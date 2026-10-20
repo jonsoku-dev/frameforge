@@ -7,3 +7,5 @@ renders/*
 public/audio/generated/
 .cache/
 public/assets/generated/
+__pycache__/
+*.pyc
