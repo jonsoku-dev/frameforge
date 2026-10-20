@@ -1,0 +1,174 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-stage: var(--stage);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-pass: var(--pass);
+  --color-warn: var(--warn);
+  --color-fail: var(--fail);
+  --animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
+  --font-mono: var(--font-mono-family, ui-monospace), ui-monospace, monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+body { margin: 0; background: oklch(0.16 0 0); }
+html:has(body.render-mode) { background: white; }
+.render-mode { background: transparent; }
+.render-mode #root { position: fixed; inset: 0; overflow: hidden; }
+.error, [data-frame-error] {
+  background: oklch(0.25 0.04 45);
+  color: oklch(0.9 0.06 55);
+  padding: 28px;
+  white-space: pre-wrap;
+  font: 14px/1.7 ui-monospace, monospace;
+}
+/* Composition root matches a bare browser page: UA default serif font and border-box everywhere, as the reference renderer does. */
+.frame-canvas, .render-mode #root {
+  color: canvastext;
+  font-family: initial;
+  letter-spacing: normal;
+  line-height: normal;
+  background: transparent;
+}
+.frame-canvas, .frame-canvas *, .render-mode #root, .render-mode #root *, .frame-canvas ::before, .frame-canvas ::after, .render-mode #root ::before, .render-mode #root ::after {
+  box-sizing: border-box;
+}
+
+@font-face { font-family: "LINE Seed Sans"; src: url("/fonts/line-seed/en/LINESeedSans_W_Th.woff2") format("woff2"); font-weight: 250; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans"; src: url("/fonts/line-seed/en/LINESeedSans_W_Rg.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans"; src: url("/fonts/line-seed/en/LINESeedSans_W_Bd.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans"; src: url("/fonts/line-seed/en/LINESeedSans_W_XBd.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans"; src: url("/fonts/line-seed/en/LINESeedSans_W_He.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans KR"; src: url("/fonts/line-seed/kr/LINESeedKR-Th.woff2") format("woff2"); font-weight: 250; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans KR"; src: url("/fonts/line-seed/kr/LINESeedKR-Rg.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans KR"; src: url("/fonts/line-seed/kr/LINESeedKR-Bd.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed JP"; src: url("/fonts/line-seed/jp/LINESeedJP_OTF_Th.woff2") format("woff2"); font-weight: 250; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed JP"; src: url("/fonts/line-seed/jp/LINESeedJP_OTF_Rg.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed JP"; src: url("/fonts/line-seed/jp/LINESeedJP_OTF_Bd.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed JP"; src: url("/fonts/line-seed/jp/LINESeedJP_OTF_Eb.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+
+
+@keyframes border-beam { 100% { offset-distance: 100%; } }
+
+@layer base {
+  .studio :where(:not(.frame-canvas, .frame-canvas *)) { box-sizing: border-box; }
+  .studio :where(:not(.frame-canvas, .frame-canvas *)):where(a) { color: inherit; text-decoration: none; }
+  .studio :where(button, input, select, textarea):where(:not(.frame-canvas *)) { font: inherit; color: inherit; margin: 0; border: 0 solid var(--border); background: none; padding: 0; }
+  .studio :where(h1, h2, h3, h4, p, ul, ol, dl, dd, pre, figure):where(:not(.frame-canvas *)) { margin: 0; padding: 0; font-size: inherit; font-weight: inherit; }
+  .studio :where(ul, ol):where(:not(.frame-canvas *)) { list-style: none; }
+}
+
+.studio {
+  --background: oklch(0.16 0 0);
+  --panel: oklch(0.195 0 0);
+  --card: oklch(0.23 0 0);
+  --card-foreground: oklch(0.96 0 0);
+  --raised: oklch(0.27 0 0);
+  --stage: oklch(0.25 0 0);
+  --stage-edge: oklch(1 0 0 / 14%);
+  --border: oklch(1 0 0 / 9%);
+  --foreground: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.74 0 0);
+  --subtle-foreground: oklch(0.66 0 0);
+  --primary: oklch(0.72 0.13 250);
+  --primary-foreground: oklch(0.18 0.02 250);
+  --secondary: oklch(0.27 0 0);
+  --secondary-foreground: oklch(0.96 0 0);
+  --muted: oklch(0.27 0 0);
+  --accent: oklch(0.27 0 0);
+  --accent-foreground: oklch(0.96 0 0);
+  --pass: oklch(0.76 0.14 155);
+  --warn: oklch(0.82 0.14 85);
+  --fail: oklch(0.70 0.19 22);
+  --destructive: var(--fail);
+  --safe-title: oklch(0.88 0.16 95 / 70%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--primary);
+  --radius: 6px;
+  --rail: 248px;
+  --inspector: 400px;
+  --timeline: 208px;
+  --lane: 24px;
+  --transport: 36px;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: "LINE Seed Sans", "LINE Seed Sans KR", "LINE Seed JP", sans-serif;
+  font-synthesis: none;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 20px;
+  height: 100dvh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr) var(--inspector);
+  grid-template-rows: 44px minmax(0, 1fr) var(--timeline);
+  grid-template-areas: "bar bar bar" "rail stage inspector" "timeline timeline timeline";
+  overflow: hidden;
+}
+.studio .tnum, .studio output { font-variant-numeric: tabular-nums; }
+.studio .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 18px; }
+.studio :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.studio :focus:not(:focus-visible) { outline: none; }
+.area-bar { grid-area: bar; }
+.area-rail { grid-area: rail; }
+.area-stage { grid-area: stage; }
+.area-inspector { grid-area: inspector; }
+.area-timeline { grid-area: timeline; }
+.stage-well { background: var(--stage); }
+.stage-frame { box-shadow: 0 0 0 1px var(--stage-edge); }
+.studio .error, .studio [data-frame-error] { border-radius: 8px; }
+
+/* 1280-1599: rail collapses to icons and can overlay the stage. */
+@media (max-width: 1599px) {
+  .studio { --rail: 64px; --inspector: 360px; --timeline: 176px; --lane: 20px; --transport: 32px; }
+  .studio[data-rail="open"] .area-rail { position: relative; z-index: 30; width: 248px; box-shadow: 8px 0 24px oklch(0 0 0 / 40%); }
+}
+/* 1024-1279: inspector becomes a drawer over the stage, toggled with I. */
+@media (max-width: 1279px) {
+  .studio { grid-template-columns: var(--rail) minmax(0, 1fr); grid-template-areas: "bar bar" "rail stage" "timeline timeline"; }
+  .studio .area-inspector { grid-area: stage; justify-self: end; width: 360px; z-index: 20; box-shadow: -8px 0 24px oklch(0 0 0 / 40%); }
+  .studio[data-inspector="closed"] .area-inspector { display: none; }
+}
+/* Below 1024 only the stage and timeline remain. */
+@media (max-width: 1023px) {
+  .studio { grid-template-columns: minmax(0, 1fr); grid-template-areas: "bar" "stage" "timeline"; }
+  .studio .area-rail, .studio .area-inspector { display: none; }
+}
+.slide-in { animation: slide-in 140ms ease-out; }
+@keyframes slide-in { from { opacity: 0; transform: translateY(8px); } }
+.fresh-card { animation: fresh 600ms linear; }
+@keyframes fresh { from { background: var(--raised); } }
+@media (prefers-reduced-motion: reduce) {
+  .studio *, .studio *::before, .studio *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}
+@media (min-width: 1600px) {
+  .studio[data-rail="closed"] { --rail: 64px; }
+}
+@media (min-width: 1280px) {
+  .studio[data-inspector="closed"] { --inspector: 0px; }
+}
+.studio-boot { margin: 32px; color: oklch(0.74 0 0); font-family: "LINE Seed Sans", "LINE Seed Sans KR", sans-serif; }
+.studio-boot button { text-decoration: underline; }

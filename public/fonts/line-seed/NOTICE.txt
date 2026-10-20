@@ -1,0 +1,6 @@
+LINE Seed Sans, LINE Seed Sans KR, and LINE Seed JP.
+Copyright LY Corp. https://seed.line.me/
+Released under the SIL Open Font License, Version 1.1.
+https://scripts.sil.org/OFL
+
+These files are the Frameforge studio typeface. Compositions do not inherit them.

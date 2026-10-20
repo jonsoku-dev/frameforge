@@ -1,0 +1,22 @@
+{
+  "slug": "shape-noise",
+  "fps": 30,
+  "durationSeconds": 20.0,
+  "bpm": 120,
+  "key": "A minor",
+  "mood": "tech",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.3, "label": "hook"},
+    {"from": 4, "to": 10, "energy": 0.7, "label": "morph"},
+    {"from": 10, "to": 16, "energy": 0.85, "label": "streak"},
+    {"from": 16, "to": 18, "energy": 0.5, "label": "name"},
+    {"from": 18, "to": 20, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [4.0, 15.0],
+  "sfx": [
+    {"name": "whoosh", "preset": "whoosh", "intent": "soft airy whoosh of a shape sliding across a paper field", "length": 0.8},
+    {"name": "impact", "preset": "impact", "intent": "deep soft impact, a shape settling into place", "length": 0.9}
+  ],
+  "seed": 13,
+  "loudness": {"I": -24, "TP": -2}
+}

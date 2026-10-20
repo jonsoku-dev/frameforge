@@ -1,0 +1,23 @@
+{
+  "slug": "video-collage",
+  "fps": 30,
+  "durationSeconds": 20.0,
+  "bpm": 120,
+  "key": "C major",
+  "mood": "upbeat",
+  "sections": [
+    {"from": 0, "to": 3, "energy": 0.3, "label": "title"},
+    {"from": 3, "to": 9, "energy": 0.7, "label": "clip-a"},
+    {"from": 9, "to": 15, "energy": 0.8, "label": "split"},
+    {"from": 15, "to": 18, "energy": 0.9, "label": "badge"},
+    {"from": 18, "to": 20, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [3.0, 15.0],
+  "sfx": [
+    {"name": "pop", "preset": "pop", "intent": "soft bubble pop, a clip landing on a frame", "length": 0.4},
+    {"name": "whoosh", "preset": "whoosh", "intent": "soft airy whoosh for a panel wiping open", "length": 0.8},
+    {"name": "ding", "preset": "ding", "intent": "bright short glass ding, a club badge appearing", "length": 0.6}
+  ],
+  "seed": 13,
+  "loudness": {"I": -24, "TP": -2}
+}

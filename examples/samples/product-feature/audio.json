@@ -1,0 +1,69 @@
+{
+  "slug": "product-feature",
+  "fps": 30,
+  "durationSeconds": 20,
+  "bpm": 112,
+  "key": "G major",
+  "mood": "upbeat",
+  "sections": [
+    {
+      "from": 0,
+      "to": 4,
+      "energy": 0.3,
+      "label": "hook"
+    },
+    {
+      "from": 4,
+      "to": 9,
+      "energy": 0.6,
+      "label": "noise"
+    },
+    {
+      "from": 9,
+      "to": 14,
+      "energy": 0.8,
+      "label": "battery"
+    },
+    {
+      "from": 14,
+      "to": 17,
+      "energy": 0.85,
+      "label": "connect"
+    },
+    {
+      "from": 17,
+      "to": 18,
+      "energy": 0.45,
+      "label": "promise"
+    },
+    {
+      "from": 18,
+      "to": 20,
+      "energy": 0.1,
+      "label": "hold"
+    }
+  ],
+  "hits": [
+    4,
+    14.8
+  ],
+  "sfx": [
+    {
+      "name": "pop",
+      "preset": "pop"
+    },
+    {
+      "name": "whoosh",
+      "preset": "whoosh"
+    },
+    {
+      "name": "click",
+      "preset": "click"
+    }
+  ],
+  "seed": 19,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T13:35:22+09:00",
+      "actor": "codex gpt-6-luna",
+      "kind": "author",
+      "prompt": {
+        "path": ".scratch/samples/brief-recipe-steps.md",
+        "text": "Read .scratch/samples/brief-common.md first and follow every instruction in it.\n\nYour assignment. slug `recipe-steps`, composition id `RecipeSteps`, vertical 1080×1920, 20 s (600 frames), port 4411. A fictional recipe app (coin a name; state it is fictional) shows one dish in three steps. 0–4 s: three ingredient icons from lucide-react (for example Egg, Milk, Wheat or whatever exists) drop in with springs onto a warm card, each with a label; 4–9 s step 1 card slides up over them \"섞는다\", with a bowl drawn as a circle and the ingredient icons sliding into it; 9–14 s step 2 \"굽는다\" with a timer ring drawn as an SVG arc that fills over 150 frames and a big countdown number labeled 예시; 14–17 s step 3 \"담는다\", the ring becomes a plate (filled circle) and a Check icon lands; 17–20 s app name and tagline, hold. Palette: cream `#FFF4E6`, ink `#2B1B12`, accent `#E8590C`, soft `#FFD8B5`. Fonts: headline \"Jua\" weight 400, UI \"Noto Sans KR\" weight 500. Track `/audio/library/calm-20.wav`; SFX `pop.wav` per ingredient landing, `click.wav` when the timer ring completes, `ding.wav` on the Check icon. Vertical: set the CDP capture to 1080×1920."
+      },
+      "summary": "show a fictional recipe app guiding one dish through three calm, readable preparation steps.",
+      "artifacts": [
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-0.png",
+          "frames": [
+            0
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-25.png",
+          "frames": [
+            25
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-70.png",
+          "frames": [
+            70
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-119.png",
+          "frames": [
+            119
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-130.png",
+          "frames": [
+            130
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-190.png",
+          "frames": [
+            190
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-269.png",
+          "frames": [
+            269
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-300.png",
+          "frames": [
+            300
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-345.png",
+          "frames": [
+            345
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-410.png",
+          "frames": [
+            410
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-419.png",
+          "frames": [
+            419
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-420.png",
+          "frames": [
+            420
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-450.png",
+          "frames": [
+            450
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-509.png",
+          "frames": [
+            509
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-510.png",
+          "frames": [
+            510
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-539.png",
+          "frames": [
+            539
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/recipe-steps/frame-599.png",
+          "frames": [
+            599
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T14:17:54+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 600프레임, 54초. 시트 11장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/recipe-steps.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/recipe-steps-sheet.png",
+          "frames": [
+            20,
+            60,
+            120,
+            170,
+            240,
+            300,
+            380,
+            430,
+            480,
+            520,
+            599
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 54,
+        "frames": 600,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T14:17:59+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 0), 통합 음량 -24.83 LKFS / TP -12.21 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r02",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 0
+        },
+        "loudness": {
+          "I": -24.83,
+          "TP": -12.21,
+          "LRA": 5.9
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

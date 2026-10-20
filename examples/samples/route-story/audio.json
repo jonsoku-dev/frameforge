@@ -1,0 +1,22 @@
+{
+  "slug": "route-story",
+  "fps": 30,
+  "durationSeconds": 20.0,
+  "bpm": 96,
+  "key": "F major",
+  "mood": "warm",
+  "sections": [
+    {"from": 0, "to": 2.5, "energy": 0.3, "label": "order"},
+    {"from": 2.5, "to": 15, "energy": 0.7, "label": "travel"},
+    {"from": 15, "to": 17.5, "energy": 0.6, "label": "arrival"},
+    {"from": 17.5, "to": 20, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [2.5, 15.0],
+  "sfx": [
+    {"name": "whoosh", "intent": "soft fabric whoosh of a scooter pulling away", "length": 1.0, "preset": "whoosh"},
+    {"name": "pop", "intent": "soft bubble pop, a map pin landing", "length": 0.4, "preset": "pop"},
+    {"name": "ding", "intent": "short warm glass ding, a door arriving", "length": 0.8, "preset": "ding"}
+  ],
+  "seed": 7,
+  "loudness": {"I": -24, "TP": -2}
+}

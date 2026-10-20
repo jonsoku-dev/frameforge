@@ -1,0 +1,140 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T12:17:17+09:00",
+      "actor": "claude sonnet",
+      "kind": "author",
+      "prompt": {
+        "path": "examples/samples/event-teaser/prompt.md"
+      },
+      "summary": "KERFWORKS 2027 is a fictional design-engineering conference; the name, the city (Quillmere), the dates and the tracks are invented. No real logo, number or claim appears, and the date card is labeled 예시 (sample).",
+      "artifacts": []
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T13:11:09+09:00",
+      "actor": "claude opus",
+      "kind": "review",
+      "summary": "지적 5개. 부제 16.5px, 트랙 03 노출 0.9s, 카드가 바에서 태어나지 않고 빈 종이 15프레임, 훅 느림, Manrope 한글 폴백.",
+      "artifacts": [
+        {
+          "kind": "review",
+          "path": "docs/samples/reviews/review-opus.md"
+        }
+      ],
+      "findings": [
+        {
+          "id": "r02-1",
+          "from": 210,
+          "to": 345,
+          "text": "부제가 scale(0.55)로 줄어 실효 16.5px(1.5%). 글자 44px, 축소 비율 0.35"
+        },
+        {
+          "id": "r02-2",
+          "from": 274,
+          "to": 345,
+          "text": "03 트랙 라벨이 0.9초만 읽힘. 막대 간격 30 → 22, stagger 2 → 1"
+        },
+        {
+          "id": "r02-3",
+          "from": 345,
+          "to": 362,
+          "text": "날짜 카드가 막대와 무관하게 올라오고 빈 종이가 화면을 덮음. 막대 2가 카드로 자라게"
+        },
+        {
+          "id": "r02-4",
+          "from": 0,
+          "to": 142,
+          "text": "이름이 4.7초에야 읽힘. 첫 글리프 90 → 72, stagger 5 → 3"
+        },
+        {
+          "id": "r02-5",
+          "text": "Manrope에 한글이 없어 \"예시\"가 시스템 고딕으로 폴백. 한글 있는 UI 글꼴로"
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T13:47:22+09:00",
+      "actor": "claude sonnet",
+      "kind": "fix",
+      "summary": "opus 리뷰 5개 반영.",
+      "changes": [
+        "부제 29px",
+        "바 간격 22프레임",
+        "바 2가 카드로 성장",
+        "이름 72 시작",
+        "UI 글꼴 Noto Sans KR"
+      ],
+      "resolves": [
+        "r02-1",
+        "r02-2",
+        "r02-3",
+        "r02-4",
+        "r02-5"
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "r04",
+      "at": "2026-10-20T14:11:45+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 450프레임, 38초. 시트 10장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/event-teaser.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/event-teaser-sheet.png",
+          "frames": [
+            10,
+            50,
+            90,
+            150,
+            225,
+            330,
+            352,
+            366,
+            390,
+            449
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 38,
+        "frames": 450,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r05",
+      "at": "2026-10-20T14:11:51+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 0), 통합 음량 -25.03 LKFS / TP -8.86 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r04",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 0
+        },
+        "loudness": {
+          "I": -25.03,
+          "TP": -8.86,
+          "LRA": 4.3
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "slug": "template",
+  "fps": 30,
+  "durationSeconds": 20.0,
+  "bpm": 110,
+  "key": "C major",
+  "mood": "upbeat",
+  "sections": [
+    {
+      "from": 0,
+      "to": 3,
+      "energy": 0.3,
+      "label": "hook"
+    },
+    {
+      "from": 3,
+      "to": 11,
+      "energy": 0.75,
+      "label": "beats"
+    },
+    {
+      "from": 11,
+      "to": 15,
+      "energy": 0.6,
+      "label": "promise"
+    },
+    {
+      "from": 15,
+      "to": 18,
+      "energy": 0.4,
+      "label": "name"
+    },
+    {
+      "from": 18,
+      "to": 20,
+      "energy": 0.1,
+      "label": "hold"
+    }
+  ],
+  "hits": [
+    3.0,
+    15.0
+  ],
+  "sfx": [
+    {
+      "name": "whoosh",
+      "preset": "whoosh",
+      "intent": "soft airy whoosh for a panel sliding in",
+      "length": 0.8
+    },
+    {
+      "name": "impact",
+      "preset": "impact",
+      "intent": "deep soft impact, a name landing",
+      "length": 0.9
+    }
+  ],
+  "seed": 7,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}

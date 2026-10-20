@@ -1,0 +1,24 @@
+{
+  "slug": "caption-explainer",
+  "fps": 30,
+  "durationSeconds": 25.0,
+  "bpm": 100,
+  "key": "C major",
+  "mood": "corporate",
+  "sections": [
+    {"from": 0, "to": 4.8, "energy": 0.3, "label": "hook"},
+    {"from": 4.8, "to": 9.6, "energy": 0.7, "label": "bubble"},
+    {"from": 9.6, "to": 14.4, "energy": 0.6, "label": "card"},
+    {"from": 14.4, "to": 19.2, "energy": 0.75, "label": "streak"},
+    {"from": 19.2, "to": 21.6, "energy": 0.9, "label": "count"},
+    {"from": 21.6, "to": 25.0, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [4.8, 19.2],
+  "sfx": [
+    {"name": "pop", "intent": "soft bubble pop, a card landing on a table, short", "preset": "pop", "length": 0.4},
+    {"name": "ding", "intent": "single clean glass chime, short decay", "preset": "ding", "length": 0.8},
+    {"name": "whoosh", "intent": "soft airy whoosh passing left to right, short", "preset": "whoosh", "length": 0.9}
+  ],
+  "seed": 23,
+  "loudness": {"I": -24, "TP": -2}
+}

@@ -1,0 +1,62 @@
+{
+  "slug": "weather-brief",
+  "fps": 30,
+  "durationSeconds": 15,
+  "bpm": 100,
+  "key": "C major",
+  "mood": "minimal",
+  "sections": [
+    {
+      "from": 0,
+      "to": 3,
+      "energy": 0.2,
+      "label": "sunrise"
+    },
+    {
+      "from": 3,
+      "to": 8,
+      "energy": 0.45,
+      "label": "cards"
+    },
+    {
+      "from": 8,
+      "to": 11,
+      "energy": 0.5,
+      "label": "curve"
+    },
+    {
+      "from": 11,
+      "to": 13,
+      "energy": 0.35,
+      "label": "advice"
+    },
+    {
+      "from": 13,
+      "to": 15,
+      "energy": 0.1,
+      "label": "hold"
+    }
+  ],
+  "hits": [
+    11.3
+  ],
+  "sfx": [
+    {
+      "name": "pop",
+      "preset": "pop"
+    },
+    {
+      "name": "whoosh",
+      "preset": "whoosh"
+    },
+    {
+      "name": "ding",
+      "preset": "ding"
+    }
+  ],
+  "seed": 23,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}

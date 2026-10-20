@@ -1,0 +1,58 @@
+{
+  "slug": "data-story",
+  "fps": 30,
+  "durationSeconds": 20,
+  "bpm": 90,
+  "key": "D major",
+  "mood": "calm",
+  "sections": [
+    {
+      "from": 0,
+      "to": 4,
+      "energy": 0.25,
+      "label": "count-up"
+    },
+    {
+      "from": 4,
+      "to": 10,
+      "energy": 0.55,
+      "label": "bars"
+    },
+    {
+      "from": 10,
+      "to": 15,
+      "energy": 0.7,
+      "label": "line"
+    },
+    {
+      "from": 15,
+      "to": 18,
+      "energy": 0.65,
+      "label": "peak"
+    },
+    {
+      "from": 18,
+      "to": 20,
+      "energy": 0.1,
+      "label": "hold"
+    }
+  ],
+  "hits": [
+    15.2
+  ],
+  "sfx": [
+    {
+      "name": "click",
+      "preset": "click"
+    },
+    {
+      "name": "ding",
+      "preset": "ding"
+    }
+  ],
+  "seed": 12,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}

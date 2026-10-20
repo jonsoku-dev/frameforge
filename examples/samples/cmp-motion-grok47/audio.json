@@ -1,0 +1,30 @@
+{
+  "slug": "cmp-motion-grok47",
+  "fps": 30,
+  "durationSeconds": 15.0,
+  "bpm": 120,
+  "key": "D major",
+  "mood": "upbeat",
+  "sections": [
+    {"from": 0, "to": 2.5, "energy": 0.3, "label": "hook"},
+    {"from": 2.5, "to": 6, "energy": 0.64, "label": "turn"},
+    {"from": 6, "to": 10, "energy": 0.86, "label": "steps"},
+    {"from": 10, "to": 13, "energy": 0.62, "label": "promise"},
+    {"from": 13, "to": 15, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [2.5, 12.8],
+  "sfx": [
+    {"name": "whoosh", "preset": "whoosh", "variant": 1},
+    {"name": "pop", "preset": "pop"},
+    {"name": "tick", "preset": "tick", "variant": 1},
+    {"name": "tick2", "preset": "tick", "variant": 2},
+    {"name": "whoosh2", "preset": "whoosh", "variant": 2},
+    {"name": "click", "preset": "click", "variant": 1},
+    {"name": "click2", "preset": "click", "variant": 2},
+    {"name": "click3", "preset": "click", "variant": 3},
+    {"name": "whoosh3", "preset": "whoosh", "variant": 3},
+    {"name": "ding", "preset": "ding"}
+  ],
+  "seed": 47,
+  "loudness": {"I": -24, "TP": -2}
+}

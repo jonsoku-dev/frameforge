@@ -1,0 +1,135 @@
+{
+  "reference": "@remotion/player 4.0.273",
+  "viewport": [
+    1920,
+    1080
+  ],
+  "method": "Same immutable community component files; same Chrome session, fonts and normalized canvas CSS; original Player initialFrame vs Frameforge frame bridge; screenshots via Stagehand. No source code changes in tested components. Not native renderer parity, performance benchmark or full API acceptance.",
+  "cases": [
+    {
+      "case": "BarChart-100",
+      "changed_pixels": 237042,
+      "pixels": 2073600,
+      "changed_ratio": 0.1143142361111111,
+      "max_channel_delta": 237
+    },
+    {
+      "case": "BarChart-199",
+      "changed_pixels": 236818,
+      "pixels": 2073600,
+      "changed_ratio": 0.11420621141975308,
+      "max_channel_delta": 237
+    },
+    {
+      "case": "BarChart-30",
+      "changed_pixels": 168889,
+      "pixels": 2073600,
+      "changed_ratio": 0.08144724151234568,
+      "max_channel_delta": 225
+    },
+    {
+      "case": "FadeInFadeOut-20",
+      "changed_pixels": 32623,
+      "pixels": 2073600,
+      "changed_ratio": 0.015732542438271605,
+      "max_channel_delta": 229
+    },
+    {
+      "case": "FadeInFadeOut-50",
+      "changed_pixels": 0,
+      "pixels": 2073600,
+      "changed_ratio": 0.0,
+      "max_channel_delta": 0
+    },
+    {
+      "case": "FadeInFadeOut-80",
+      "changed_pixels": 0,
+      "pixels": 2073600,
+      "changed_ratio": 0.0,
+      "max_channel_delta": 0
+    },
+    {
+      "case": "SlideTransition-120",
+      "changed_pixels": 2073600,
+      "pixels": 2073600,
+      "changed_ratio": 1.0,
+      "max_channel_delta": 22
+    },
+    {
+      "case": "SlideTransition-75",
+      "changed_pixels": 1036800,
+      "pixels": 2073600,
+      "changed_ratio": 0.5,
+      "max_channel_delta": 22
+    },
+    {
+      "case": "SlideTransition-90",
+      "changed_pixels": 2073600,
+      "pixels": 2073600,
+      "changed_ratio": 1.0,
+      "max_channel_delta": 22
+    },
+    {
+      "case": "SpringPhysics-110",
+      "changed_pixels": 251735,
+      "pixels": 2073600,
+      "changed_ratio": 0.12139998070987654,
+      "max_channel_delta": 229
+    },
+    {
+      "case": "SpringPhysics-179",
+      "changed_pixels": 259345,
+      "pixels": 2073600,
+      "changed_ratio": 0.12506992669753086,
+      "max_channel_delta": 229
+    },
+    {
+      "case": "SpringPhysics-30",
+      "changed_pixels": 109486,
+      "pixels": 2073600,
+      "changed_ratio": 0.052799961419753086,
+      "max_channel_delta": 229
+    },
+    {
+      "case": "Typewriter-0",
+      "changed_pixels": 0,
+      "pixels": 2073600,
+      "changed_ratio": 0.0,
+      "max_channel_delta": 0
+    },
+    {
+      "case": "Typewriter-15",
+      "changed_pixels": 0,
+      "pixels": 2073600,
+      "changed_ratio": 0.0,
+      "max_channel_delta": 0
+    },
+    {
+      "case": "Typewriter-45",
+      "changed_pixels": 0,
+      "pixels": 2073600,
+      "changed_ratio": 0.0,
+      "max_channel_delta": 0
+    }
+  ],
+  "exact_matches": 5,
+  "total": 15,
+  "known_source_issues": [
+    "SlideTransition subtracts 90 inside a Sequence already offset by 90; frame120 scene is still offscreen in both implementations.",
+    "FadeInFadeOut subtracts delay again inside Sequence.",
+    "StarrySky uses Math.random during each render; excluded from deterministic pixel comparison."
+  ],
+  "fixes": [
+    "Scoped studio CSS away from video content; rendering canvas default background aligned to reference."
+  ],
+  "measurement_revision": "Before studio CSS isolation fix",
+  "post_fix_verification": {
+    "browser": "CUA in-app browser",
+    "BarChart_h1": {
+      "fontSize": "64px",
+      "lineHeight": "normal",
+      "marginTop": "42.88px"
+    },
+    "full_pixel_recomparison": "not-run: Stagehand session lost"
+  }
+}

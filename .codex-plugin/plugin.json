@@ -1,0 +1,37 @@
+{
+  "name": "frameforge",
+  "version": "0.1.0",
+  "description": "Make deterministic motion-graphics and explainer videos with Frameforge: React frame functions, a drawn asset kit, generated music, motion-derived sound effects, a local studio and renderer. Skills for Claude Code, Codex, Cursor and Grok Build.",
+  "author": {
+    "name": "Frameforge"
+  },
+  "repository": "https://github.com/jonsoku-dev/frameforge",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "motion-graphics",
+    "react",
+    "animation",
+    "rendering",
+    "audio",
+    "assets"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Frameforge",
+    "shortDescription": "Make videos agentically",
+    "longDescription": "Deterministic motion graphics and explainers with React frame functions, a drawn asset kit, generated music and motion-derived sound effects. Studio and renderer run locally.",
+    "developerName": "Frameforge",
+    "category": "Creativity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "20초 제품 소개 모션그래픽 만들어 줘",
+      "이 영상의 효과음을 움직임에서 뽑아 줘",
+      "스튜디오 띄워서 보여 줘"
+    ],
+    "brandColor": "#22C55E"
+  }
+}

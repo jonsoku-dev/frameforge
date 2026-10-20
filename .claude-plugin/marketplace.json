@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-marketplace.json",
+  "name": "frameforge",
+  "owner": {
+    "name": "Frameforge"
+  },
+  "description": "Plugins for making deterministic videos with Frameforge",
+  "plugins": [
+    {
+      "name": "frameforge",
+      "displayName": "Frameforge",
+      "source": "./",
+      "description": "Make motion-graphics and explainer videos with Frameforge",
+      "category": "Design",
+      "tags": [
+        "video",
+        "motion-graphics",
+        "react",
+        "animation"
+      ]
+    }
+  ]
+}

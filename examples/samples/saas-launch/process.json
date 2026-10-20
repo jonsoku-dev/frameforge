@@ -1,0 +1,141 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T12:20:20+09:00",
+      "actor": "claude opus",
+      "kind": "author",
+      "prompt": {
+        "path": "examples/samples/saas-launch/prompt.md"
+      },
+      "summary": "할 일에 묻힌 사람에게 \"하나만 고정하면 끝낼 수 있다\"는 느낌을 30초 안에 남긴다.",
+      "artifacts": []
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T13:11:09+09:00",
+      "actor": "claude sonnet",
+      "kind": "review",
+      "summary": "지적 5개. 할 일 행 글자 17.6px(1.6%)로 TV에서 읽히지 않음, 첫 2초에 행 1–2개뿐, 668 빈 주황 화면, 포커스 카드 푸시가 프레임 밖.",
+      "artifacts": [
+        {
+          "kind": "review",
+          "path": "docs/samples/reviews/review-sonnet.md"
+        }
+      ],
+      "findings": [
+        {
+          "id": "r02-1",
+          "from": 0,
+          "to": 150,
+          "text": "할 일 행 글자 약 17.6px(프레임 높이의 1.6%). 보이는 행 9개, 글자 34px로 고정"
+        },
+        {
+          "id": "r02-2",
+          "from": 0,
+          "to": 60,
+          "text": "첫 2초에 행이 1–2개뿐이라 \"Too many tasks.\"가 증명되지 않음. 8행을 6–50프레임에"
+        },
+        {
+          "id": "r02-3",
+          "from": 806,
+          "to": 834,
+          "text": "\"Solotack\"의 \"o\"가 줄어드는 원 뒤에서 비침. 이름 글자 시작 810 → 822"
+        },
+        {
+          "id": "r02-4",
+          "from": 660,
+          "to": 676,
+          "text": "타일 9가 순수 주황 한 장. 헤드라인 시작 672 → 662, 줄 간격 8 → 5"
+        },
+        {
+          "id": "r02-5",
+          "from": 388,
+          "to": 456,
+          "text": "포커스 카드가 푸시 중 오른쪽 끝에서 잘리고 라벨이 456까지 없음. 라벨 408, 푸시 약 10% 낮게"
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T13:47:22+09:00",
+      "actor": "claude opus",
+      "kind": "fix",
+      "summary": "sonnet 리뷰 5개 반영.",
+      "changes": [
+        "행 텍스트 34px·9행 스크롤",
+        "8행이 41프레임 안에 도착",
+        "헤드라인 662 시작",
+        "카드 자체만 1.06 푸시"
+      ],
+      "resolves": [
+        "r02-1",
+        "r02-2",
+        "r02-3",
+        "r02-4",
+        "r02-5"
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "r04",
+      "at": "2026-10-20T14:09:09+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 900프레임, 77초. 시트 10장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/saas-launch.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/saas-launch-sheet.png",
+          "frames": [
+            40,
+            146,
+            200,
+            300,
+            432,
+            480,
+            610,
+            750,
+            814,
+            899
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 77,
+        "frames": 900,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r05",
+      "at": "2026-10-20T14:09:14+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 2), 통합 음량 -24.94 LKFS / TP -9.22 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r04",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 2
+        },
+        "loudness": {
+          "I": -24.94,
+          "TP": -9.22,
+          "LRA": 10.4
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

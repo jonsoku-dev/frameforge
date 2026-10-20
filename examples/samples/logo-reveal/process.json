@@ -1,0 +1,140 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T12:21:56+09:00",
+      "actor": "claude haiku",
+      "kind": "author",
+      "prompt": {
+        "path": "examples/samples/logo-reveal/prompt.md"
+      },
+      "summary": "가상의 모션 스튜디오 \"ildra\"의 로고가 여덟 개의 사분원 띠가 모여 이중 고리가 되고, 고리가 강조색 점으로 줄어 소문자 i의 점이 되며, 나머지 글자가 하나씩 올라와 이름을 완성하는 10초 로고 리빌.",
+      "artifacts": []
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T13:11:09+09:00",
+      "actor": "claude sonnet",
+      "kind": "review",
+      "summary": "지적 5개. 122–188에 48px 점만 있는 2.2초, 회전 구간이 거의 정지, 라벨 30px, 플래시 타이밍 어긋남, 훅 느림.",
+      "artifacts": [
+        {
+          "kind": "review",
+          "path": "docs/samples/reviews/review-sonnet.md"
+        }
+      ],
+      "findings": [
+        {
+          "id": "r02-1",
+          "from": 122,
+          "to": 188,
+          "text": "지름 48px 점 하나만 66프레임 이동. 구간 압축, 점 반지름 24 → 36px"
+        },
+        {
+          "id": "r02-2",
+          "from": 56,
+          "to": 108,
+          "text": "흩어진 조각이 1.7초 동안 거의 정지. 회전 56–96, 고리 완성 112"
+        },
+        {
+          "id": "r02-3",
+          "text": "\"MOTION STUDIO\" 30px에 넓은 자간. 40px, 간격 80 → 64px"
+        },
+        {
+          "id": "r02-4",
+          "from": 120,
+          "to": 121,
+          "text": "고리 완성 직후 잉크에서 종이로 바로 붙는 플래시. 단계를 두거나 흰 링 펄스로"
+        },
+        {
+          "id": "r02-5",
+          "from": 0,
+          "to": 18,
+          "text": "첫 타일에 조각 넷만 있고 중심이 빔. 출발 간격 4 → 2프레임, 18프레임 안 도착"
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T13:47:22+09:00",
+      "actor": "claude haiku",
+      "kind": "fix",
+      "summary": "sonnet 리뷰 5개 반영.",
+      "changes": [
+        "빈 구간 압축(점 이동 140–164, 워드마크 176)",
+        "회전 56–96",
+        "라벨 40px",
+        "플래시 112–113",
+        "조각 도착 30프레임"
+      ],
+      "resolves": [
+        "r02-1",
+        "r02-2",
+        "r02-3",
+        "r02-4",
+        "r02-5"
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "r04",
+      "at": "2026-10-20T14:13:20+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 300프레임, 24초. 시트 10장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/logo-reveal.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/logo-reveal-sheet.png",
+          "frames": [
+            20,
+            40,
+            70,
+            110,
+            130,
+            140,
+            170,
+            200,
+            230,
+            299
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 24,
+        "frames": 300,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r05",
+      "at": "2026-10-20T14:13:25+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 3), 통합 음량 -25.1 LKFS / TP -10.49 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r04",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 3
+        },
+        "loudness": {
+          "I": -25.1,
+          "TP": -10.49,
+          "LRA": 6.3
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

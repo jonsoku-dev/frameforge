@@ -1,0 +1,59 @@
+{
+  "slug": "saas-launch",
+  "fps": 30,
+  "durationSeconds": 30,
+  "bpm": 120,
+  "key": "C major",
+  "mood": "upbeat",
+  "sections": [
+    {
+      "from": 0,
+      "to": 5,
+      "energy": 0.25,
+      "label": "problem"
+    },
+    {
+      "from": 5,
+      "to": 8.3,
+      "energy": 0.5,
+      "label": "pin"
+    },
+    {
+      "from": 8.3,
+      "to": 22,
+      "energy": 0.85,
+      "label": "cards"
+    },
+    {
+      "from": 22,
+      "to": 28,
+      "energy": 0.5,
+      "label": "promise"
+    },
+    {
+      "from": 28,
+      "to": 30,
+      "energy": 0.1,
+      "label": "hold"
+    }
+  ],
+  "hits": [
+    5,
+    22
+  ],
+  "sfx": [
+    {
+      "name": "whoosh",
+      "preset": "whoosh"
+    },
+    {
+      "name": "click",
+      "preset": "click"
+    }
+  ],
+  "seed": 10,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}

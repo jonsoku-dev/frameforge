@@ -1,0 +1,135 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T12:18:15+09:00",
+      "actor": "claude opus",
+      "kind": "author",
+      "prompt": {
+        "path": "examples/samples/data-story/prompt.md"
+      },
+      "summary": "가상의 도시 \"솔내시\"의 1년 자전거 통행량(샘플 데이터)이 한 숫자에서 열두 막대로, 다시 한 선으로 바뀌며 가장 붐빈 달 하나로 수렴하는 데이터 이야기.",
+      "artifacts": []
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T13:11:09+09:00",
+      "actor": "claude sonnet",
+      "kind": "review",
+      "summary": "지적 5개. 모노스페이스 쉼표가 숫자를 벌림, 도킹 라벨 16px, 120–150 빈 구간, 카운트업이 처음 20프레임에 몰림.",
+      "artifacts": [
+        {
+          "kind": "review",
+          "path": "docs/samples/reviews/review-sonnet.md"
+        }
+      ],
+      "findings": [
+        {
+          "id": "r02-1",
+          "text": "큰 숫자가 IBM Plex Mono라 쉼표가 숫자 한 칸 폭이고 \"회\"와 두 가족이 섞임. Plex Sans KR로"
+        },
+        {
+          "id": "r02-2",
+          "text": "독 라벨이 dock scale 0.27 때문에 16px(1.5%). scale 0.42, 라벨 90px"
+        },
+        {
+          "id": "r02-3",
+          "text": "월 라벨 30px, 푸터 28px로 기준선에 걸림. 38px, 34px로"
+        },
+        {
+          "id": "r02-4",
+          "from": 120,
+          "to": 150,
+          "text": "제목 없이 12px 납작한 막대만. 제목 130 → 124, 첫 막대 132 → 128"
+        },
+        {
+          "id": "r02-5",
+          "from": 10,
+          "to": 35,
+          "text": "카운트업이 처음 20프레임에 몰려 0에서 오르는 구간이 안 보임. 10–70 ease-out"
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T13:47:22+09:00",
+      "actor": "claude opus",
+      "kind": "fix",
+      "summary": "sonnet 리뷰 5개 반영.",
+      "changes": [
+        "숫자를 Plex Sans KR tabular-nums로",
+        "도킹 0.42 스케일(라벨 39px)",
+        "헤드라인 124·막대 128 시작",
+        "카운트 10–70 ease-out"
+      ],
+      "resolves": [
+        "r02-1",
+        "r02-2",
+        "r02-3",
+        "r02-4",
+        "r02-5"
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "r04",
+      "at": "2026-10-20T14:10:58+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 600프레임, 55초. 시트 10장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/data-story.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/data-story-sheet.png",
+          "frames": [
+            40,
+            100,
+            140,
+            200,
+            280,
+            330,
+            400,
+            460,
+            520,
+            599
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 55,
+        "frames": 600,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r05",
+      "at": "2026-10-20T14:11:03+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 0), 통합 음량 -24.85 LKFS / TP -12.94 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r04",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 0
+        },
+        "loudness": {
+          "I": -24.85,
+          "TP": -12.94,
+          "LRA": 5.9
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

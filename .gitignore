@@ -1,0 +1,9 @@
+node_modules/
+dist/
+renders/*
+!renders/.gitkeep
+.DS_Store
+.scratch/
+public/audio/generated/
+.cache/
+public/assets/generated/

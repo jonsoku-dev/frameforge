@@ -1,0 +1,25 @@
+{
+  "slug": "plugin-smoke-codex",
+  "fps": 30,
+  "durationSeconds": 10.0,
+  "bpm": 120,
+  "key": "C major",
+  "mood": "warm",
+  "sections": [
+    {"from": 0, "to": 2.5, "energy": 0.28, "label": "갓구움", "role": "intro"},
+    {"from": 2.5, "to": 5, "energy": 0.68, "label": "담기", "role": "build"},
+    {"from": 5, "to": 8, "energy": 0.5, "label": "알림", "role": "verse"},
+    {"from": 8, "to": 10, "energy": 0.12, "label": "브랜드 고정", "role": "outro"}
+  ],
+  "hits": [
+    {"at": 2.5, "weight": 0.62, "style": "lift"},
+    {"at": 5, "weight": 0.45, "style": "soft"}
+  ],
+  "sfx": [
+    {"name": "whoosh", "intent": "warm papery whoosh for a bakery order moving across the counter", "preset": "whoosh", "length": 0.7},
+    {"name": "pop", "intent": "soft doughy pop for a bakery order settling onto a tray", "preset": "pop", "length": 0.35},
+    {"name": "ding", "intent": "single gentle bakery door bell chime, short warm decay", "preset": "ding", "length": 0.7}
+  ],
+  "seed": 47,
+  "loudness": {"I": -24, "TP": -2}
+}

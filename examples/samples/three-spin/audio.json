@@ -1,0 +1,21 @@
+{
+  "slug": "three-spin",
+  "fps": 30,
+  "durationSeconds": 10.0,
+  "bpm": 120,
+  "key": "E minor",
+  "mood": "tech",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.35, "label": "turn"},
+    {"from": 4, "to": 6, "energy": 0.75, "label": "slide"},
+    {"from": 6, "to": 8, "energy": 0.5, "label": "name"},
+    {"from": 8, "to": 10, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [4.0],
+  "sfx": [
+    {"name": "whoosh", "preset": "whoosh", "intent": "short airy whoosh as a faceted gem glides sideways and the camera leans in", "length": 0.7},
+    {"name": "impact", "preset": "impact", "intent": "soft glassy thud of a faceted gem landing at full size", "length": 0.8}
+  ],
+  "seed": 21,
+  "loudness": {"I": -24, "TP": -2}
+}

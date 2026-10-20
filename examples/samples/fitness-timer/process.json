@@ -1,0 +1,177 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T13:34:43+09:00",
+      "actor": "codex gpt-6-luna (high)",
+      "kind": "author",
+      "prompt": {
+        "path": ".scratch/samples/brief-fitness-timer.md",
+        "text": "Read .scratch/samples/brief-common.md first and follow every instruction in it.\n\nYour assignment. slug `fitness-timer`, composition id `FitnessTimer`, vertical 1080×1920, 10 s (300 frames), port 4413. An interval-timer teaser for a fictional workout app (coin a name; state it is fictional). Use `Loop` from 'frameforge' for the repeating beat: a 60-frame loop where a big number counts 3,2,1 (20 frames each, each digit shoving the previous one out) with a lucide icon (Dumbbell, then Flame, then Timer, changing per loop iteration using the absolute frame) and a progress bar that fills across the loop; three loops (0–180); 180–240 the bars stack into the app name; 240–300 hold with the name and a one-line promise. Camera push on each loop start is not allowed (max two pushes overall; use one on the name). Palette: ink `#0F172A`, lime `#C6F135`, paper `#F8FAFC`. Fonts: headline \"Anton\" weight 400, UI \"Noto Sans KR\" weight 500. Track `/audio/library/tech-10.wav` (hit at 8.0 s = frame 240; the name must be fully in at 240); SFX `click.wav` on every digit, `impact.wav` at 240. Vertical: set the CDP capture to 1080×1920."
+      },
+      "summary": "Tease a fictional interval workout app by turning three repeating countdown beats into its name and promise.",
+      "artifacts": [
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-0.png",
+          "frames": [
+            0
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-19.png",
+          "frames": [
+            19
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-20.png",
+          "frames": [
+            20
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-59.png",
+          "frames": [
+            59
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-60.png",
+          "frames": [
+            60
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-119.png",
+          "frames": [
+            119
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-120.png",
+          "frames": [
+            120
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-179.png",
+          "frames": [
+            179
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-180.png",
+          "frames": [
+            180
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-210.png",
+          "frames": [
+            210
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-239.png",
+          "frames": [
+            239
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-240.png",
+          "frames": [
+            240
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-270.png",
+          "frames": [
+            270
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/fitness-timer/frame-299.png",
+          "frames": [
+            299
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T14:18:28+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 300프레임, 24초. 시트 12장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/fitness-timer.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/fitness-timer-sheet.png",
+          "frames": [
+            0,
+            19,
+            30,
+            59,
+            60,
+            120,
+            179,
+            180,
+            210,
+            239,
+            240,
+            299
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 24,
+        "frames": 300,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T14:18:33+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 1), 통합 음량 -25.09 LKFS / TP -8.5 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r02",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 1
+        },
+        "loudness": {
+          "I": -25.09,
+          "TP": -8.5,
+          "LRA": 6.4
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T13:41:16+09:00",
+      "actor": "codex gpt-5.6-luna",
+      "kind": "author",
+      "prompt": {
+        "path": ".scratch/samples/brief-weather-brief.md",
+        "text": "Read .scratch/samples/brief-common.md first and follow every instruction in it.\n\nYour assignment. slug `weather-brief`, composition id `WeatherBrief`, 1920×1080, 15 s (450 frames), port 4414. A one-day forecast teaser for a fictional weather app (coin a name; state it is fictional; all numbers labeled 예시). 0–3 s a sun drawn as a circle rises from the bottom edge and the sky wipes from night to day color; 3–8 s four time slots (아침, 낮, 저녁, 밤) slide in as columns, each with a lucide icon (Sun, Cloud, CloudRain, Moon) that draws on with strokeDashoffset and a temperature bar that grows (values 예시); 8–11 s the four bars connect into one temperature curve and the columns fade back by sliding down out of frame (no opacity-only exit); 11–13 s one-line advice \"우산은 저녁에\" rises; 13–15 s app name and hold. Palette: night `#0B1E3F`, day `#CFE8FF`, ink `#0F172A`, accent `#FFB703`. Fonts: headline \"Do Hyeon\" weight 400, UI \"Noto Sans KR\" weight 500. Track `/audio/library/minimal-15.wav`; SFX `pop.wav` per icon draw completion, `whoosh.wav` on the columns exit, `ding.wav` on the advice line."
+      },
+      "summary": "A 15 s one-day forecast teaser for the fictional weather app Moru, with every on-screen number marked 예시.",
+      "artifacts": [
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-0.png",
+          "frames": [
+            0
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-30.png",
+          "frames": [
+            30
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-75.png",
+          "frames": [
+            75
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-90.png",
+          "frames": [
+            90
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-105.png",
+          "frames": [
+            105
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-112.png",
+          "frames": [
+            112
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-135.png",
+          "frames": [
+            135
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-165.png",
+          "frames": [
+            165
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-210.png",
+          "frames": [
+            210
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-245.png",
+          "frames": [
+            245
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-275.png",
+          "frames": [
+            275
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-320.png",
+          "frames": [
+            320
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-345.png",
+          "frames": [
+            345
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-375.png",
+          "frames": [
+            375
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-410.png",
+          "frames": [
+            410
+          ]
+        },
+        {
+          "kind": "still",
+          "path": ".scratch/samples/weather-brief/frame-449.png",
+          "frames": [
+            449
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T14:19:50+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 450프레임, 33초. 시트 11장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/weather-brief.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/weather-brief-sheet.png",
+          "frames": [
+            20,
+            60,
+            100,
+            150,
+            200,
+            250,
+            300,
+            340,
+            370,
+            420,
+            449
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 33,
+        "frames": 450,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T14:19:55+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 0), 통합 음량 -24.88 LKFS / TP -14.23 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r02",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 0
+        },
+        "loudness": {
+          "I": -24.88,
+          "TP": -14.23,
+          "LRA": 12.6
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

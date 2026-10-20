@@ -1,0 +1,136 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T12:20:51+09:00",
+      "actor": "claude haiku",
+      "kind": "author",
+      "prompt": {
+        "path": "examples/samples/podcast-promo/prompt.md"
+      },
+      "summary": "가상 팟캐스트 「느린 대화」의 에피소드 한 편을 15초 세로가 아닌 가로 프로모로 알린다. 막대 파형이 한 인용문을 열고, 그 선이 제목의 밑줄이 된다.",
+      "artifacts": []
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T13:11:09+09:00",
+      "actor": "claude sonnet",
+      "kind": "review",
+      "summary": "지적 5개. 요소가 프레임 대비 작음, 258–350 거의 빈 화면과 점선 잔상, 텍스트가 3.8초에야 등장.",
+      "artifacts": [
+        {
+          "kind": "review",
+          "path": "docs/samples/reviews/review-sonnet.md"
+        }
+      ],
+      "findings": [
+        {
+          "id": "r02-1",
+          "from": 258,
+          "to": 350,
+          "text": "인용문 퇴장에 점선 조각이 남고 이후 가로선 하나뿐. 줄 단위 clip 와이프, 제목 360 → 326"
+        },
+        {
+          "id": "r02-2",
+          "text": "파형이 폭 50%, 높이 4–22%로 작음. 막대 30px, 높이 80–460px, 간격 56px"
+        },
+        {
+          "id": "r02-3",
+          "from": 0,
+          "to": 114,
+          "text": "3.8초 동안 글자 없이 작은 막대만. 인용문 1줄 114 → 48"
+        },
+        {
+          "id": "r02-4",
+          "text": "인용문 56px가 700px 틈에 떠 있음. 80px, 틈 940px, 줄 간격 100px"
+        },
+        {
+          "id": "r02-5",
+          "text": "열림 중 글자 마스크 조각(\"않\" 반쪽)이 보임. 상승 거리 100%, 아래 여유 0.2em"
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T13:47:22+09:00",
+      "actor": "claude opus",
+      "kind": "fix",
+      "summary": "rework 판정. opus가 장면과 크기를 다시 짰다.",
+      "changes": [
+        "재작업. 막대 30×80–460px",
+        "인용 80px가 1.6초부터",
+        "퇴장은 클립 와이프",
+        "막대가 블록→밑줄로 두 단계 수렴",
+        "제목 140px"
+      ],
+      "resolves": [
+        "r02-1",
+        "r02-2",
+        "r02-3",
+        "r02-4",
+        "r02-5"
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "r04",
+      "at": "2026-10-20T14:14:09+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 450프레임, 40초. 시트 10장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/podcast-promo.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/podcast-promo-sheet.png",
+          "frames": [
+            0,
+            45,
+            89,
+            130,
+            160,
+            200,
+            262,
+            300,
+            355,
+            449
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 40,
+        "frames": 450,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r05",
+      "at": "2026-10-20T14:14:14+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 0), 통합 음량 -25.16 LKFS / TP -12.44 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r04",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 0
+        },
+        "loudness": {
+          "I": -25.16,
+          "TP": -12.44,
+          "LRA": 11.7
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

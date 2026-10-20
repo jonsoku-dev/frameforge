@@ -1,0 +1,63 @@
+{
+  "slug": "cafe-morning",
+  "fps": 30,
+  "durationSeconds": 20.0,
+  "bpm": 96,
+  "key": "C major",
+  "mood": "warm",
+  "sections": [
+    {
+      "from": 0,
+      "to": 5,
+      "energy": 0.3,
+      "label": "hook"
+    },
+    {
+      "from": 5,
+      "to": 12.5,
+      "energy": 0.75,
+      "label": "cards"
+    },
+    {
+      "from": 12.5,
+      "to": 17.5,
+      "energy": 0.6,
+      "label": "promise"
+    },
+    {
+      "from": 17.5,
+      "to": 20,
+      "energy": 0.1,
+      "label": "name"
+    }
+  ],
+  "hits": [
+    5.0,
+    12.5
+  ],
+  "sfx": [
+    {
+      "name": "pop",
+      "intent": "soft bubble pop, a card landing on a table, short",
+      "preset": "pop",
+      "length": 0.4
+    },
+    {
+      "name": "ding",
+      "intent": "single warm bell chime, gentle, short decay",
+      "preset": "ding",
+      "length": 0.8
+    },
+    {
+      "name": "whoosh",
+      "intent": "soft airy whoosh passing left to right, short",
+      "preset": "whoosh",
+      "length": 1.0
+    }
+  ],
+  "seed": 31,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}

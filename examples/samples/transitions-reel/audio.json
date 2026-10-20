@@ -1,0 +1,22 @@
+{
+  "slug": "transitions-reel",
+  "fps": 30,
+  "durationSeconds": 20.0,
+  "bpm": 120,
+  "key": "A minor",
+  "mood": "house",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.3, "label": "title"},
+    {"from": 4, "to": 12, "energy": 0.8, "label": "seoul-busan"},
+    {"from": 12, "to": 16, "energy": 0.75, "label": "jeju"},
+    {"from": 16, "to": 18, "energy": 0.6, "label": "name"},
+    {"from": 18, "to": 20, "energy": 0.12, "label": "hold"}
+  ],
+  "hits": [4.0, 16.0],
+  "sfx": [
+    {"name": "pop", "intent": "soft short pop, a landmark settling into place", "preset": "pop", "length": 0.4},
+    {"name": "whoosh", "intent": "soft airy whoosh sweeping across, short", "preset": "whoosh", "length": 1.0}
+  ],
+  "seed": 47,
+  "loudness": {"I": -24, "TP": -2}
+}

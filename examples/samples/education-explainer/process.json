@@ -1,0 +1,142 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T12:20:11+09:00",
+      "actor": "claude opus",
+      "kind": "author",
+      "prompt": {
+        "path": "examples/samples/education-explainer/prompt.md"
+      },
+      "summary": "같은 원금이 단리와 복리에서 어떻게 다르게 자라는지 25초 안에 눈으로 보여준다.",
+      "artifacts": []
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T13:11:09+09:00",
+      "actor": "claude sonnet",
+      "kind": "review",
+      "summary": "지적 5개. 458–540 공식 빌드가 빈 파랑, 복리 라벨이 예시 태그에 붙음, 첫 장면 원이 작음, 헤드라인 뒤 공백, 점이 겹침.",
+      "artifacts": [
+        {
+          "kind": "review",
+          "path": "docs/samples/reviews/review-sonnet.md"
+        }
+      ],
+      "findings": [
+        {
+          "id": "r02-1",
+          "from": 458,
+          "to": 540,
+          "text": "수식 구축 중 프레임 약 70%가 빈 파랑. 기호 간격 10 → 5프레임, ding 514"
+        },
+        {
+          "id": "r02-2",
+          "from": 400,
+          "to": 458,
+          "text": "\"복리\" 라벨이 예시 태그에 붙고 곡선 끝이 태그 밑. 끝점 y 300 이하, 라벨 재배치"
+        },
+        {
+          "id": "r02-3",
+          "from": 0,
+          "to": 120,
+          "text": "원 지름 150px로 작고 오른쪽 절반이 빔. 원 300px, 헤드라인 190px"
+        },
+        {
+          "id": "r02-4",
+          "from": 100,
+          "to": 132,
+          "text": "헤드라인 뒤 원 둘만 약 30프레임. 제목 126 → 108, 낙하 132 → 116"
+        },
+        {
+          "id": "r02-5",
+          "from": 300,
+          "to": 340,
+          "text": "파란 점이 검은 점을 덮음. y 차이 40px 또는 지름 36px"
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T13:47:22+09:00",
+      "actor": "claude opus",
+      "kind": "fix",
+      "summary": "sonnet 리뷰 5개 반영.",
+      "changes": [
+        "기호 5프레임 간격",
+        "곡선 끝 y 321·라벨 재배치",
+        "첫 원 300px·헤드라인 190px",
+        "제목 108 시작",
+        "점 20px로 축소"
+      ],
+      "resolves": [
+        "r02-1",
+        "r02-2",
+        "r02-3",
+        "r02-4",
+        "r02-5"
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "r04",
+      "at": "2026-10-20T14:15:24+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 750프레임, 65초. 시트 10장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/education-explainer.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/education-explainer-sheet.png",
+          "frames": [
+            60,
+            104,
+            200,
+            290,
+            330,
+            400,
+            450,
+            486,
+            600,
+            749
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 65,
+        "frames": 750,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r05",
+      "at": "2026-10-20T14:15:29+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 1), 통합 음량 -24.76 LKFS / TP -12.58 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r04",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 1
+        },
+        "loudness": {
+          "I": -24.76,
+          "TP": -12.58,
+          "LRA": 7.5
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

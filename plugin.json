@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "frameforge",
+  "version": "0.1.0",
+  "description": "Make deterministic motion-graphics and explainer videos with Frameforge: React frame functions, a drawn asset kit, generated music, motion-derived sound effects, a local studio and renderer. Skills for Claude Code, Codex, Cursor and Grok Build.",
+  "author": {
+    "name": "Frameforge"
+  },
+  "repository": "https://github.com/jonsoku-dev/frameforge",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "motion-graphics",
+    "react",
+    "animation",
+    "rendering",
+    "audio",
+    "assets"
+  ],
+  "skills": "./skills/"
+}

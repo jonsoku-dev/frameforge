@@ -1,0 +1,68 @@
+{
+  "package": "remotion@4.0.537",
+  "effects": [
+    {
+      "params": {
+        "amount": 2
+      },
+      "output": {
+        "effectKey": "k2-disabled-false",
+        "params": {
+          "amount": 2
+        },
+        "memoized": false
+      }
+    },
+    {
+      "params": {
+        "amount": 2,
+        "disabled": true
+      },
+      "output": {
+        "effectKey": "k2-disabled-true",
+        "params": {
+          "amount": 2,
+          "disabled": true
+        },
+        "memoized": false
+      }
+    },
+    {
+      "params": {
+        "amount": 0,
+        "disabled": false
+      },
+      "output": {
+        "effectKey": "k0-disabled-false",
+        "params": {
+          "amount": 0,
+          "disabled": false
+        },
+        "memoized": false
+      }
+    },
+    {
+      "params": {
+        "amount": 1.5
+      },
+      "output": {
+        "effectKey": "k1.5-disabled-false",
+        "params": {
+          "amount": 1.5
+        },
+        "memoized": false
+      }
+    },
+    {
+      "params": {
+        "amount": -1
+      },
+      "error": "amount"
+    }
+  ],
+  "htmlInCanvas": {
+    "constant": "HTML in Canvas requires Chrome 149 or newer with Canvas Draw Element enabled at chrome://flags/#canvas-draw-element.",
+    "supportedWithoutDocument": false,
+    "messageWithoutDocument": "HTML in Canvas is unavailable because there is no browser document. HTML in Canvas requires Chrome 149 or newer with Canvas Draw Element enabled at chrome://flags/#canvas-draw-element."
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "brief": "prompt.md",
+  "audio": "audio.json",
+  "runs": [
+    {
+      "id": "r01",
+      "at": "2026-10-20T12:18:30+09:00",
+      "actor": "claude sonnet",
+      "kind": "author",
+      "prompt": {
+        "path": "examples/samples/countdown-hype/prompt.md"
+      },
+      "summary": "a ten-second countdown that builds to the name of a sale, where each digit shoves the previous one off the frame.",
+      "artifacts": []
+    },
+    {
+      "id": "r02",
+      "at": "2026-10-20T13:11:09+09:00",
+      "actor": "claude opus",
+      "kind": "review",
+      "summary": "지적 5개. 마지막 2초에 글자 이동, 숫자가 작아져 70% 빈 화면, 24/30프레임 박자 불일치, Roboto Mono 한글 폴백, 라벨 32px.",
+      "artifacts": [
+        {
+          "kind": "review",
+          "path": "docs/samples/reviews/review-opus.md"
+        }
+      ],
+      "findings": [
+        {
+          "id": "r02-1",
+          "from": 240,
+          "to": 299,
+          "text": "마지막 2초에 이름 진입, 푸시, 하단 줄이 움직임. 이름을 228–240에 진입"
+        },
+        {
+          "id": "r02-2",
+          "from": 0,
+          "to": 239,
+          "text": "숫자가 1000px에서 415px로 줄어 끝에 70%가 빈 초록. 860px에서 약 937px로 키움"
+        },
+        {
+          "id": "r02-3",
+          "from": 0,
+          "to": 240,
+          "text": "숫자 24프레임, 배경 30프레임 주기가 엇나감. 배경을 48프레임마다 숫자 도착에"
+        },
+        {
+          "id": "r02-4",
+          "text": "Roboto Mono에 한글이 없어 \"샘플\", \"예시\"가 폴백. 한글 있는 글꼴로"
+        },
+        {
+          "id": "r02-5",
+          "text": "라벨 32px, 하단 줄 40px가 숫자 옆에서 가장 작음. 42px, 52px"
+        }
+      ]
+    },
+    {
+      "id": "r03",
+      "at": "2026-10-20T13:47:22+09:00",
+      "actor": "claude sonnet",
+      "kind": "fix",
+      "summary": "opus 리뷰 5개 반영.",
+      "changes": [
+        "이름 228–239 진입 후 240–299 정지(바이트 동일)",
+        "숫자 860→937px 성장",
+        "배경 컷 48프레임 주기",
+        "Noto Sans KR",
+        "라벨 42/52px"
+      ],
+      "resolves": [
+        "r02-1",
+        "r02-2",
+        "r02-3",
+        "r02-4",
+        "r02-5"
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "r04",
+      "at": "2026-10-20T14:15:58+09:00",
+      "actor": "script",
+      "kind": "render",
+      "summary": "MP4 300프레임, 26초. 시트 10장.",
+      "artifacts": [
+        {
+          "kind": "mp4",
+          "path": "renders/samples/countdown-hype.mp4"
+        },
+        {
+          "kind": "sheet",
+          "path": "renders/samples/countdown-hype-sheet.png",
+          "frames": [
+            0,
+            40,
+            70,
+            100,
+            130,
+            215,
+            231,
+            243,
+            270,
+            299
+          ]
+        }
+      ],
+      "metrics": {
+        "seconds": 26,
+        "frames": 300,
+        "overrides": {}
+      }
+    },
+    {
+      "id": "r05",
+      "at": "2026-10-20T14:16:03+09:00",
+      "actor": "script",
+      "kind": "check",
+      "summary": "flash 통과(최악 1초 전환 1), 통합 음량 -25.03 LKFS / TP -7.55 dBTP, bt709. 수치 출처 renders/samples/results.json(2026-10-20T13:42:11+09:00).",
+      "artifacts": [],
+      "metrics": {
+        "of": "r04",
+        "flash": {
+          "pass": true,
+          "worstSecondTransitions": 1
+        },
+        "loudness": {
+          "I": -25.03,
+          "TP": -7.55,
+          "LRA": 6.5
+        },
+        "colorSpace": {
+          "pass": true,
+          "value": "bt709"
+        }
+      }
+    }
+  ]
+}

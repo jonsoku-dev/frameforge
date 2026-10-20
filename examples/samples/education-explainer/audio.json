@@ -1,0 +1,64 @@
+{
+  "slug": "education-explainer",
+  "fps": 30,
+  "durationSeconds": 25,
+  "bpm": 90,
+  "key": "C major",
+  "mood": "calm",
+  "sections": [
+    {
+      "from": 0,
+      "to": 4,
+      "energy": 0.25,
+      "label": "question"
+    },
+    {
+      "from": 4,
+      "to": 10,
+      "energy": 0.5,
+      "label": "stack"
+    },
+    {
+      "from": 10,
+      "to": 15.3,
+      "energy": 0.65,
+      "label": "curves"
+    },
+    {
+      "from": 15.3,
+      "to": 21,
+      "energy": 0.7,
+      "label": "formula"
+    },
+    {
+      "from": 21,
+      "to": 23,
+      "energy": 0.4,
+      "label": "moral"
+    },
+    {
+      "from": 23,
+      "to": 25,
+      "energy": 0.1,
+      "label": "hold"
+    }
+  ],
+  "hits": [
+    15.3
+  ],
+  "sfx": [
+    {
+      "name": "pop",
+      "preset": "pop"
+    },
+    {
+      "name": "ding",
+      "preset": "ding"
+    }
+  ],
+  "seed": 17,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}
