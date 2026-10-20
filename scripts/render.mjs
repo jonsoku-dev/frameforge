@@ -289,8 +289,7 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
     const sizes = new Set(results.map(item => item.frameSize));
     if (sizes.size > 1) throw new Error(`Composition error: chunks capture different sizes (${[...sizes].join(', ')}); Experimental.Clipper must clip every rendered frame to one size.`);
     const segments = mergeSegments(results.map(item => item.segments));
-    // FRAMEFORGE_SFX_GUARD=off renders samples written before the density rule; new work keeps the guard.
-    const dense = frames || process.env.FRAMEFORGE_SFX_GUARD === 'off' ? null : sfxFault(segments.filter(({clip}) => clip.startFrame > 0).map(({first}) => first), selected.fps);
+    const dense = frames ? null : sfxFault(segments.filter(({clip}) => clip.startFrame > 0).map(({first}) => first), selected.fps);
     if (dense) throw new Error(`Composition error: ${dense}`);
     // Sounds the engine derived from motion: each plays its whole file, panned, and yields to any authored effect within half a second.
     if (!frames) {

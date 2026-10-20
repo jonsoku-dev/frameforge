@@ -8,7 +8,7 @@
 
 공용 음원 라이브러리는 없다(`docs/samples/rules.md`). 이유는 소리가 그 작품의 모션에 맞춰 만들어져야 한다는 사용자 규칙이다. 이 규칙은 이 문서를 요청한 작업 지시에서 옮겼다. 저장소 문서에는 `rules.md`의 "공용 음원은 없다" 한 줄만 있다. 같은 30초 트랙을 두 편이 나눠 쓰면 타격이 어느 한쪽의 사건에도 맞지 않는다.
 
-이 방식은 두 번째 세대다. 샘플 첫 라운드는 `/audio/library/<name>.wav` 공용 트랙을 썼다(`.scratch/samples/brief-common.md`). 이 경로는 지금 없다. `scripts/assets/`에는 음악·효과음 생성기 `score.py`와 효과음 소스 해결기 `sfx.py`, 측정 도구 `score-report.py`, 그림 에셋 해결기 `art.py`가 있고. 샘플 코드는 모두 `/audio/generated/<slug>/`을 가리킨다. `docs/samples/README.md`가 언급하는 `audio-library.md`는 옛 방식의 기록이다.
+`scripts/assets/`에는 음악·효과음 생성기 `score.py`, 효과음 소스 해결기 `sfx.py`, 측정 도구 `score-report.py`, 그림 에셋 해결기 `art.py`가 있다. 샘플 코드는 모두 `/audio/generated/<slug>/`을 가리킨다.
 
 ### 사양 파일
 

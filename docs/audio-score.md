@@ -191,8 +191,6 @@
 
 생성기는 정규화 전에 두 가지를 assert로 확인한다. 리미터 직전 신호에서 `slam`이고 무게 0.5 이상인 히트의 첫 150 ms가 그 히트 앞뒤 0.5초 안에서 가장 큰 피크를 갖는지(더 가벼운 히트와 `lift`, `soft`는 피크 구간 바로 앞뒤 40 ms보다만 크면 된다. 가벼운 히트는 일부러 주변보다 크지 않기 때문이다), 마지막 1초의 RMS가 가장 큰 1초 구간보다 20 dB 이상 낮은지.
 
-히트 처리는 `GENERATION`을 올리지 않고 바꿨다. 해시가 사양 원문과 `GENERATION`뿐이어서 이미 만들어진 `public/audio/generated/<slug>/`는 그대로 유효하고, 새 처리는 `--force`나 사양을 고친 뒤 다음 생성부터 적용된다. `GENERATION`을 올리면 모든 작품이 다음 요청에서 다시 만들어진다.
-
 ## 측정 도구
 
 `python3 scripts/assets/score-report.py <music.wav> [--spec <audio.json>]`는 JSON 한 줄을 출력한다.

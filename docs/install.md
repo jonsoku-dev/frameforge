@@ -201,7 +201,6 @@ npm run skill:uninstall -- --dry-run       # 지울 링크 목록만 출력, 아
 | `FFMPEG_PATH` | `ffmpeg` | 렌더러, 스튜디오 검사, 검사 스크립트, `score.py`, `art.py` | FFmpeg 실행 파일 |
 | `FFMPEG` | `ffmpeg` | `score.py`, `score-report.py` | `FFMPEG_PATH`가 없을 때만 보는 옛 이름 |
 | `FFPROBE_PATH` | `ffprobe` | Vite 미들웨어, 스튜디오 검사, `art.py`, `frame-check.mjs`, `snapshot-diff.mjs` | ffprobe 실행 파일. `frame-check.mjs`와 `snapshot-diff.mjs`는 값이 없으면 `FFMPEG_PATH`의 `ffmpeg`를 `ffprobe`로 바꾼 경로를 씁니다. |
-| `FRAMEFORGE_SFX_GUARD` | 켜짐 | `scripts/render.mjs` | `off`이면 효과음 밀도 검사(0.5초 간격, 4초에 셋까지)를 끕니다. 규칙 이전에 만든 샘플용입니다. |
 | `FRAMEFORGE_SFX_LICENSES` | `cc0` | `scripts/assets/sfx.py` | Openverse 효과음의 허용 라이선스(쉼표 목록). `cc0,by`로 CC BY를 허용하면 `CREDITS.md`가 생깁니다. |
 | `FRAMEFORGE_IMAGE_COMMAND` | 없음 | `scripts/assets/art.py` | 호스트의 이미지 생성 도구를 부르는 셸 명령 템플릿. `{prompt}`와 선택적으로 `{out}`을 넣습니다. 셸로 실행됩니다. |
 | `ELEVENLABS_API_KEY` | 없음 | `scripts/assets/sfx.py`, `score.py` | 효과음 텍스트 생성. 음악 공급자 `"provider": "elevenlabs"`는 아직 연결되지 않은 스텁이라 키가 있으면 `NotImplementedError`로 멈춥니다. 키가 없으면 내장 합성을 씁니다. |
