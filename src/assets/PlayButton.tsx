@@ -1,6 +1,6 @@
 import {art, type ArtMeta, type ArtProps} from './system';
 
-export const meta: ArtMeta = {name: 'PlayButton', parts: ['player', 'play', 'progress'], tags: ['play', 'play button', 'video', 'player', 'watch', 'stream', 'youtube', '재생', '재생버튼', '영상', '동영상', '플레이어', '시청']};
+export const meta: ArtMeta = {name: 'PlayButton', parts: ['player', 'play', 'progress'], tags: ['play', 'play button', 'video', 'player', 'watch', 'stream', '재생', '재생버튼', '영상', '동영상', '플레이어', '시청']};
 
 export function PlayButton(props: ArtProps) {
   const a = art(props);

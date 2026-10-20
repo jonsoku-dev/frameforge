@@ -12,7 +12,7 @@ import {atempoChain, remoteCachePath} from './video-frames.mjs';
 
 const project = fileURLToPath(new URL('../', import.meta.url));
 const ffmpegPath = () => process.env.FFMPEG_PATH || 'ffmpeg';
-// PNG is sRGB; without an explicit bt709 matrix and tags, 1080p players guess and LINE green drifts.
+// PNG is sRGB; without an explicit bt709 matrix and tags, 1080p players guess and saturated greens drift.
 const videoCodec = count => ['-frames:v', String(count), '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv', '-c:v', 'libx264', '-crf', '18', '-preset', 'slow', '-x264-params', 'colorprim=bt709:transfer=bt709:colormatrix=bt709:range=tv', '-movflags', '+faststart'];
 /** Each clip is seeked, trimmed, delayed to its first mounted frame (minus `offset`, the first output frame), and summed without normalization. */
 function encodeArgs(video, encode, fps, count, segments, output, offset = 0) {
