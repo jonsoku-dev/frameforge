@@ -1,53 +1,20 @@
 {
-  "date": "2026-10-20",
+  "date": "2026-10-21",
   "status": "partial-compatible-prototype",
   "build": "pass",
   "core_tests": {
     "command": "npm test",
-    "passed": 138,
+    "passed": 144,
     "failed": 0
   },
   "numeric_api_comparison": {
     "source": "actual remotion 4.0.537 npm package executed in Node (scratch oracle, not a project dependency)",
     "tarball_sha256": "e75511d3bc8ec4a981bfc125d5fb519a7aa190e249af99860a58fbda1375e3e4",
-    "cases": 1100,
-    "match_at_1e_6": 1100,
+    "cases": 1554,
+    "match_at_1e_6": 1554,
     "documented_random_differences": 0,
-    "full_api_parity": false
-  },
-  "browser": {
-    "route": "Claude in Chrome MCP against local vite dev servers (4317 default entry, 4400 community entry)",
-    "reported_user_agent_chrome": "155.0.0.0",
-    "desktop_viewport": [
-      1280,
-      1050
-    ],
-    "mobile_viewport": [
-      390,
-      844
-    ],
-    "passed": [
-      "render mode frame 30: Opening",
-      "render mode frame 30: Typewriter, FadeInFadeOut, BarChart, SpringPhysics, SlideTransition, StarrySky",
-      "no console errors in both tabs"
-    ],
-    "ordinary_flow_page_errors": [],
-    "intentional_fixture_errors": "expected",
-    "throttling": "none",
-    "date": "2026-10-20"
-  },
-  "sample": {
-    "path": "renders/hello-stagehand.mp4",
-    "method": "Stagehand frame bridge -> PNG screenshots -> system FFmpeg",
-    "ffprobe": {
-      "codec": "h264",
-      "width": 960,
-      "height": 540,
-      "fps": 30,
-      "frames": 90,
-      "duration_seconds": 3
-    },
-    "independent_cli_proven": false
+    "full_api_parity": false,
+    "command": "npm run benchmark"
   },
   "rea": {
     "status": "ok",
@@ -58,42 +25,6 @@
     "inventoried_files": 464,
     "use": "export inventory and API-surface gap list; no implementation semantics taken from the bundle"
   },
-  "cli": {
-    "status": "ok",
-    "date": "2026-10-20",
-    "method": "scripts/render.mjs drives headless Chrome over DevTools Protocol with Node built-in WebSocket; no puppeteer-core",
-    "runs": [
-      {
-        "composition": "LineGameSpot",
-        "output": "renders/line-game-spot.mp4",
-        "ffprobe": "h264,1920,1080,30/1,600",
-        "seconds": 48.4,
-        "audio": "aac 48000 Hz 2ch",
-        "color_tags": "tv/bt709/bt709/bt709"
-      },
-      {
-        "composition": "Opening",
-        "output": "renders/opening.mp4",
-        "ffprobe": "h264,1920,1080,30/1,450",
-        "seconds": 34.0
-      }
-    ],
-    "contact_sheet": {
-      "output": "renders/line-game-spot-sheet.png",
-      "frames": [
-        30,
-        120,
-        200,
-        248,
-        270,
-        360,
-        412,
-        448,
-        480,
-        570
-      ]
-    }
-  },
   "user_existing_project": {
     "status": "not-tested",
     "reason": "No project supplied"
@@ -102,32 +33,6 @@
     "status": "not-run"
   },
   "license_evidence": "docs/legal/remotion-license-review.md",
-  "advanced_motion": {
-    "path": "renders/advanced-motion.mp4",
-    "codec": "h264",
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "frames": 360,
-    "seconds": 12,
-    "audio": false,
-    "method": "Stagehand screenshot -> FFmpeg",
-    "frame55_repeat_pixel_identical": true,
-    "browser_errors": [],
-    "content": "independently authored",
-    "metrics_in_visual": "synthetic creative data"
-  },
-  "community_examples": {
-    "count": 6,
-    "execution": "selected frames render",
-    "source_commit": "fe10b866da07c5799b226d7ff9598c1dc35d7159",
-    "component_files_unchanged": false, "component_files_changes": "import specifiers renamed to the frameforge alias and one comment line edited",
-    "pixel_comparison_before_css_fix": {
-      "exact": 5,
-      "total": 15
-    },
-    "after_css_fix": "CUA verifies heading computed styles; full pixel recompare blocked by lost Stagehand session"
-  },
   "sequence_timing": {
     "source": "behavior expected by public tests in remotion-dev/remotion packages/core/src/test at commit 051aeb2d5fd02a1870932195ac357a26e03d1c5d",
     "covered": [
@@ -148,8 +53,7 @@
     "explicit_error_stubs": [],
     "missing": [
       "Internals"
-    ],
-    "note": "Audio, Video, OffthreadVideo and every name formerly listed as missing are exported now (docs/research/feature-parity-roadmap.md stages A, B, F); remaining limits are listed per stage there"
+    ]
   },
   "text_guard": {
     "date": "2026-10-20",
@@ -157,188 +61,47 @@
     "render_mode": "frame fails with Clipped text: ... when ink exceeds nearest overflow/clip-path ancestor by more than 0.5px",
     "studio": "red outline plus footer line",
     "skips": "translation transforms between text and clipper (reveal in motion); data-clip=\"allow\" opt-out",
-    "root_cause_fixed": "Gothic A1 ink ascent 0.87em vs font ascent 0.80em; glyph masks in examples/Opening.tsx and examples/LineGameSpot.tsx now pad 0.1em top and 0.06em sides",
-    "keyframes_checked": {
-      "LineGameSpot": [
-        30,
-        120,
-        200,
-        240,
-        270,
-        360,
-        412,
-        480,
-        570,
-        599
-      ],
-      "Opening": [
-        60,
-        130,
-        200,
-        250,
-        320,
-        380,
-        420,
-        449
-      ]
-    },
+    "root_cause_fixed": "Gothic A1 ink ascent 0.87em vs font ascent 0.80em; glyph masks pad 0.1em top and 0.06em sides (the Glyphs pattern in examples/samples/_template)",
     "at_rest_check": "translations between text and clipper are subtracted so reveal masks are checked at rest on every frame",
-    "studio_scale_fix": "translations converted with the stage scale; studio preview of LineGameSpot plays 0:00-0:12 with no warning after the fix"
-  },
-  "references": {
-    "films": "docs/films/line-game-tv/prompt.md lists references and reasons",
-    "notes": [
-      "docs/references/opus-5-5/khiro19-note.md",
-      "docs/references/opus-5-5/aiidelist.md",
-      "docs/references/opus-5-5/charlie-hills.md"
-    ],
-    "research": "docs/research/video-engine-landscape.md"
+    "studio_scale_fix": "translations converted with the stage scale"
   },
   "audio": {
     "date": "2026-10-20",
     "engine": "Audio component registers absolute clips; render.mjs mixes with adelay/amix into AAC",
     "assets": "scripts/assets/score.py: per-composition audio.json spec -> public/audio/generated/<slug>/ (gitignored, generated on demand by the dev server and before render)",
-    "music_file_loudness": {
-      "I_LUFS": -24.0,
-      "TP_dBTP": -6.77,
-      "LRA": 19.4
-    },
-    "final_mix_loudness": {
-      "I_LUFS": -24.97,
-      "TP_dBTP": -6.71,
-      "LRA": 19.2
-    },
-    "sfx_windows": {
-      "whoosh_2.15s_max_dB": -19.2,
-      "impact_7.95s_max_dB": -6.9,
-      "tail_19s_max_dB": -64.7
-    },
     "not_done": "nobody listened; numeric checks only",
     "studio_playback": "play button pressed via real click; music, whoosh and impact files fetched during playback; element state not DOM-visible (new Audio())",
-    "library_removed": "2026-10-20: public/audio/library and the three LINE GAME WAVs deleted; no audio file is committed",
     "generator_v2": {
       "date": "2026-10-20",
       "moods": 13,
-      "line_game_spot": {
-        "v1": {
-          "LRA": 20.2,
-          "crest_dB": 20.47,
-          "sub_share": 0.783,
-          "corr": 0.99
-        },
-        "v2": {
-          "LRA": 13.5,
-          "crest_dB": 13.95,
-          "sub_share": 0.372,
-          "corr": 0.734
-        }
-      },
-      "determinism": "72 files identical across two forced runs",
       "provider_stub": "elevenlabs/suno fall back to synth without keys"
     }
   },
   "color": {
-    "pipeline": "scale=out_color_matrix=bt709:out_range=tv + setparams + x264 colorprim/transfer/colormatrix",
-    "decoded_vs_target": {
-      "green": [
-        [
-          4,
-          198,
-          82
-        ],
-        [
-          6,
-          199,
-          85
-        ]
-      ],
-      "paper": [
-        [
-          242,
-          242,
-          239
-        ],
-        [
-          244,
-          244,
-          241
-        ]
-      ],
-      "ink": [
-        [
-          16,
-          16,
-          16
-        ],
-        [
-          17,
-          17,
-          17
-        ]
-      ]
-    },
-    "untagged_green_was": [
-      0,
-      172,
-      81
-    ]
+    "pipeline": "scale=out_color_matrix=bt709:out_range=tv + setparams + x264 colorprim/transfer/colormatrix"
   },
   "flash_check": {
     "script": "scripts/flash-check.mjs",
-    "line-game-spot": {
-      "pass": true,
-      "worst_second_transitions": 3
-    },
-    "opening": {
-      "pass": true,
-      "worst_second_transitions": 1
-    },
     "note": "approximation of Ofcom guidance, not Harding FPA"
   },
   "sequence_playback_rate_constancy": "throws in studio preview when playbackRate changes across frames; render mode remounts per frame so it cannot catch it",
-  "pixel_parity": {
-    "date": "2026-10-20",
-    "reference": "remotion@4.0.537 + @remotion/cli, executed in scratch (Free License, individual)",
-    "doc": "docs/research/remotion-parity.md",
-    "after_fixes_psnr_db": {
-      "Typewriter-30": 25.76,
-      "FadeInFadeOut-30": 78.64,
-      "BarChart-30": 35.66,
-      "BarChart-90": 35.65,
-      "SpringPhysics-30": 24.53,
-      "SpringPhysics-90": 23.22,
-      "SlideTransition-60": 26.98,
-      "StarrySky-30": 24.93
-    },
-    "fixes_from_parity": [
-      "box-sizing border-box for composition root in studio and render mode",
-      "Sequence absolute-fill wrapper is a flex row",
-      "composition default font is the UA default (serif)"
-    ],
-    "remaining_gap": "glyph rasterization differs between Remotion headless shell (Chromium 157) and Chrome 155; StarrySky uses Math.random so it cannot match; SpringPhysics blue circle about 4 px offset unexplained"
-  },
   "samples": {
-    "date": "2026-10-20",
+    "date": "2026-10-21",
     "doc": "docs/samples/README.md",
-    "count": 10,
-    "models": {
-      "opus": 4,
-      "sonnet": 3,
-      "haiku": 2,
-      "fable": 1
-    },
-    "all_pass": {
-      "text_guard": true,
-      "flash_check": true,
-      "loudness_within_-24±2": true,
-      "color_tags": "bt709"
-    },
-    "results": "renders/samples/results.json",
-    "uniform_strips": "renders/samples/<slug>-strip.png, every 15th frame from the encoded MP4, all ten inspected; no broken or black frames",
-    "reviews": [
-      "docs/samples/reviews/review-sonnet.md",
-      "docs/samples/reviews/review-opus.md"
-    ]
+    "count": 9,
+    "films": [
+      "cafe-morning",
+      "kit-launch",
+      "light-festival",
+      "transitions-reel",
+      "shape-noise",
+      "caption-explainer",
+      "video-collage",
+      "route-story",
+      "three-spin"
+    ],
+    "template": "examples/samples/_template",
+    "entry": "examples/samples/index.tsx"
   },
   "studio_v2": {
     "date": "2026-10-20",
@@ -347,7 +110,6 @@
     "tests": "tests/studio.test.tsx",
     "verified_in_browser": [
       "process tab with runs and sheet ticks",
-      "tune tab with 5 declared variables on saas-launch",
       "timeline scene/audio/process lanes",
       "no console errors"
     ],
@@ -361,8 +123,7 @@
       "staticRuns",
       "huddledShare",
       "thinShare"
-    ],
-    "first_run": "opus samples pass; event-teaser, logo-reveal, travel-poster, weather-brief fail on thin"
+    ]
   },
   "guides": [
     "docs/guides/README.md",
@@ -374,37 +135,22 @@
   "audio_v3": {
     "date": "2026-10-20",
     "complaint": "user heard stitched-together music and overlapping effects in the studio",
-    "player_check": "instrumented HTMLMediaElement in Chrome during 13 s of playback of cmp-motion-opus: one music seek (0 to 0.1 s) and one seek per clip start; the player is not the cause",
     "causes": [
       "12 sound effects in 13 s on top of the music hits",
       "section edges off the bar grid (2.5, 12.4, 13 s at 120 BPM) switching layers mid-bar",
       "a drum fill at every section edge, 7 dB section level span, one-beat ramps"
     ],
-    "generator_changes": "scripts/assets/score.py: bar-line phase chosen from hits and edges, arrangement switches only on those bar lines, fills only before rises of 0.2 or more and two bars clear of hits, ramps of one bar, LEVEL_DB 4; GENERATION constant in the output digest so old outputs stay valid (33 sidecars migrated)",
-    "sfx_guard": "scripts/render.mjs sfxFault: effects under 0.5 s apart or four inside 4 s refuse the render; FRAMEFORGE_SFX_GUARD=off for samples written before the rule; test in tests/studio.test.tsx",
-    "metrics": "scripts/assets/score-report.py adds continuity (0.25 s level steps over 5 dB) and arrangement (per-beat activity jumps over 2x); cafe-morning spec: old generator 3 jumps, new 2; LRA 7.6 vs 5.3",
-    "first_sample": "examples/samples/cafe-morning (haiku, warm 96 BPM, 3 effects in 20 s), renders/samples/cafe-morning.mp4; a/b files public/audio/generated/cafe-morning (new) and cafe-morning-v2 (old)",
+    "generator_changes": "scripts/assets/score.py: bar-line phase chosen from hits and edges, arrangement switches only on those bar lines, fills only before rises of 0.2 or more and two bars clear of hits, ramps of one bar, LEVEL_DB 4",
+    "sfx_guard": "scripts/render.mjs sfxFault: effects under 0.5 s apart or four inside 4 s refuse the MP4 render; test in tests/studio.test.tsx",
+    "metrics": "scripts/assets/score-report.py adds continuity (0.25 s level steps over 5 dB) and arrangement (per-beat activity jumps over 2x)",
     "not_verified": "no one listened; the user is the judge"
-  },
-  "model_comparison": {
-    "date": "2026-10-20",
-    "doc": "docs/samples/compare.md",
-    "briefs": [
-      ".scratch/compare/brief-motion.md",
-      ".scratch/compare/brief-website.md"
-    ],
-    "models": 9,
-    "samples": 18,
-    "rendered": 17,
-    "failed": "cmp-website-sonnet (clipped text guard)",
-    "guard_exception": "cmp-*-grokfast rendered with FRAMEFORGE_SFX_GUARD=off"
   },
   "engine_alias": {
     "date": "2026-10-20",
     "import_name": "frameforge",
     "mapped_to": "src/core/index.tsx",
     "environment_api": "getFrameforgeEnvironment / useFrameforgeEnvironment",
-    "remaining_mentions": "docs/legal, docs/research, verification.json, compatibility-benchmark.json and examples/community/{LICENSE,source.json} keep the reference name as evidence and attribution"
+    "remaining_mentions": "docs/legal, docs/research, verification.json and compatibility-benchmark.json keep the reference name as evidence and attribution"
   },
   "sfx_pipeline": {
     "date": "2026-10-20",
@@ -433,7 +179,7 @@
     "rules": "move at motion start (>=4 frames, travel >=15% of range), land at first reach of the target (overshoot +0.3), appear at the halfway crossing of a progress; 0.5 s gap, 3 per 4 s, quiet frames around music hits",
     "evidence": "cafe-morning render log motionSounds: whoosh@110 (field wipe, 0.3), pop@167 (cards land, 1.0), whoosh@350 (promise wipe, 0.99), ding@394 (cup drawn, 1.0), whoosh@480 (name slide, pan +0.6)",
     "tests": "tests/sound.test.tsx (4 tests)",
-    "density_fix": "2026-10-20: the 3-per-4-s cap is a forward pass (keep a clip only when fewer than three played in the previous 4 s); the earlier loop removed the earliest of equal clips repeatedly and left a 350-frame silent gap in tsumtsum-jp; tests/sound.test.tsx covers eight equal landings → [100,115,130]"
+    "density_fix": "the 3-per-4-s cap is a forward pass (keep a clip only when fewer than three played in the previous 4 s); tests/sound.test.tsx covers eight equal landings → [100,115,130]"
   },
   "haiku_feature_films": {
     "date": "2026-10-20",
@@ -444,7 +190,7 @@
       "video-collage": "Video (two ffmpeg-generated clips) + AnimatedImage GIF",
       "route-story": "paths getPointAtLength/getTangentAtLength + interpolateColors"
     },
-    "results": "all five rendered, flash and frame-check pass, I -24.8..-25.8 LKFS; renders/samples/<slug>.mp4, sheets and strips; registered in examples/samples/index.tsx; docs/samples/README.md table has 22 rows"
+    "results": "all five rendered, flash and frame-check pass, I -24.8..-25.8 LKFS; registered in examples/samples/index.tsx"
   },
   "parity_phases": {
     "A": "done (17 exports, interpolateColors oracle 413)",
@@ -463,10 +209,6 @@
     "mcp": "none by design (the reference engine deprecated its hosted MCP in favour of skills)",
     "claude_install": "claude plugin marketplace add <repo>; claude plugin install frameforge@frameforge → Successfully installed (scope: user); a fresh `claude -p --model haiku` session listed frameforge-assets, -audio, -best-practices, -check, -create, -render, -studio",
     "codex_install": "codex plugin marketplace add <repo> → Added marketplace frameforge; a fresh `codex exec -m gpt-5.6-terra` session listed frameforge:frameforge-{assets,audio,best-practices,check,create,render,studio}",
-    "end_to_end": {
-      "claude": "fresh `claude -p --model haiku --permission-mode acceptEdits` session with the plugin installed made examples/samples/plugin-smoke-claude from the frameforge-create skill using only kit assets, ran tsc + tests, rendered renders/samples/plugin-smoke-claude.mp4 and fixed a frame-check thin 10.4% failure on its own",
-      "codex": "fresh `codex exec -s workspace-write -m gpt-5.6-terra` session made examples/samples/plugin-smoke-codex the same way (138 tests pass via node --import tsx); its sandbox could not bind the Vite port, so the render was run outside Codex: motionSounds ding@4, pop@94 (pan 0.6), pop@172; frame-check fails (empty 150–165, thin 0.117) which is the film quality, not the pipeline"
-    },
     "backlog": "npm-published engine CLI for projects outside the repo; ChatGPT directory submission"
   },
   "asset_resolver": {
@@ -474,22 +216,12 @@
     "script": "scripts/assets/art.py (host → image-command → generate(Recraft) → library(Openverse CC0 SVG) → kit), sanitizer, palette recolor with data-palette-* marks on the root, assets.json manifest, CREDITS.md; self-check with mock servers",
     "component": "src/core/art.tsx <Art src size draw ink accent soft paper>; src/packages/lottie.tsx <Lottie> (lottie-web, goToAndStop per frame)",
     "wiring": "npm run art, vite artOnDemand middleware for /assets/generated/<slug>/<name>.svg, renderer runs art.py after score.py",
-    "evidence": ".scratch/art-demo/assets.json: cup → Wikimania-branded coffee cup (cc0), bike → Maki-bicycle-15 (cc0), rocket → kit Rocket"
+    "evidence": ".scratch/art-demo/assets.json (local, not committed): cup and bike resolved to Openverse CC0 SVGs, rocket fell through to kit Rocket"
   },
   "motif_kit": {
     "date": "2026-10-20",
     "assets": 44,
     "module": "src/assets (system.ts contract, catalog.ts, Sheet.tsx)",
-    "tests": "tests/assets.test.tsx",
-    "sheets": ".scratch/asset-kit/full-0.png, full-1.png"
-  },
-  "production_film": {
-    "date": "2026-10-20",
-    "slug": "tsumtsum-jp",
-    "brief": "docs/films/tsumtsum-jp/brief.md (Japanese copy, 30 s, IP compliance: placeholder tsums, 13 host slots for licensor assets, no logos)",
-    "assets": "examples/samples/tsumtsum-jp/assets.tsx (opus): Tsum ×12 variants with squash/blink/smile/parts, Board, ChainLine, Burst, ScorePop, FeverGauge, Finger, Confetti + kit Phone/Coin/Heart; sheet .scratch/samples/tsumtsum-jp/assets-sheet-full.png",
-    "film": "Spot.tsx (opus, 336 lines), audio.json 128 BPM hits as objects, SNS loudness -16/-1",
-    "review": "docs/films/tsumtsum-jp/review-1.md (sonnet, Japanese-native criteria): 18 items, 17 applied in the fix round, 1 partial (per-cell chain blips limited by the 3-per-4-s rule), 2 licensor checks listed in prompt.md",
-    "checks": "first render: flash 0, frame-check pass, I -25.0; second render after the fix round: see renders/samples/results.json"
+    "tests": "tests/assets.test.tsx"
   }
 }
