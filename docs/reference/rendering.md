@@ -17,9 +17,9 @@ npm run render -- examples/samples/kit-launch/entry.tsx KitLaunch renders/kit-la
 npm run render -- examples/samples/cafe-morning/entry.tsx CafeMorning renders/cafe-morning-sheet.png --frames 30,120,240,360,480,570
 ```
 
-2026-10-20 실행 결과. 아래 첫 측정 대상인 20초 TV 스팟은 실제 브랜드를 써서 공개판에서 빠졌고, 그 수치는 기록으로만 남깁니다. `Opening`은 `examples/Opening.tsx`에 남아 있습니다. `renders/line-game-spot.mp4`는 H.264(bt709 태그, crf 18) + AAC 48 kHz 스테레오, 1920×1080, 30 fps, 600 frames, 20초, 약 48초 소요. 최종 믹스 통합 음량 −25.0 LKFS, 트루 피크 −6.7 dBTP(국내 TV 기준 −24 ±2 안). 복호 색 검증: 디코드한 프레임의 초록이 `[4,198,82]`(목표 `#06C755` = `[6,199,85]`), 종이 `[242,242,239]`, 검정 `[16,16,16]`. 태그 없이 인코딩하면 같은 초록이 `[0,172,81]`로 어두워진다. 방송 플래시 검사 `node scripts/flash-check.mjs renders/line-game-spot.mp4` 통과(1초 창 최대 전환 3회, 허용 6회). Ofcom 지침의 근사이지 Harding 인증은 아니다. `renders/opening.mp4`는 450 frames, 15초, 약 34초 소요. 둘 다 ffprobe로 확인했습니다. 렌더 중 글자 잘림 검사가 한 프레임이라도 실패하면 인코딩 없이 중단됩니다.
+2026-10-20 실행 결과. 아래 첫 측정 대상인 20초 TV 스팟은 실제 브랜드를 써서 공개판에서 빠졌고, 그 수치는 기록으로만 남깁니다. 그 스팟의 MP4는 H.264(bt709 태그, crf 18) + AAC 48 kHz 스테레오, 1920×1080, 30 fps, 600 frames, 20초, 약 48초 소요. 최종 믹스 통합 음량 −25.0 LKFS, 트루 피크 −6.7 dBTP(국내 TV 기준 −24 ±2 안). 복호 색 검증: 디코드한 프레임의 초록이 `[4,198,82]`(목표 `#06C755` = `[6,199,85]`), 종이 `[242,242,239]`, 검정 `[16,16,16]`. 태그 없이 인코딩하면 같은 초록이 `[0,172,81]`로 어두워진다. 방송 플래시 검사 `node scripts/flash-check.mjs <그 MP4>` 통과(1초 창 최대 전환 3회, 허용 6회). Ofcom 지침의 근사이지 Harding 인증은 아니다. ffprobe로 확인했습니다. 렌더 중 글자 잘림 검사가 한 프레임이라도 실패하면 인코딩 없이 중단됩니다.
 
-`CHROME_PATH`, `FFMPEG_PATH`로 설치 경로를 지정할 수 있습니다. 렌더러는 loopback 서버(4318, HMR 꺼짐)와 임시 Chrome 프로필을 사용하고, 글꼴·이미지·`delayRender` 핸들을 기다린 뒤 PNG 프레임을 H.264로 인코딩합니다. 기존 출력은 덮어쓰지 않습니다. 성공한 인코딩만 최종 파일로 옮깁니다. 오디오 믹싱은 구현했습니다(상수 볼륨, 앞뒤 자르기, `Video` 소리의 `atempo` 배속). 병렬 렌더링은 "결정성 린트와 병렬 렌더" 절을 보세요. `renders/hello-stagehand.mp4`와 `renders/advanced-motion.mp4`는 이전에 브라우저 스크린샷으로 만든 샘플입니다.
+`CHROME_PATH`, `FFMPEG_PATH`로 설치 경로를 지정할 수 있습니다. 렌더러는 loopback 서버(4318, HMR 꺼짐)와 임시 Chrome 프로필을 사용하고, 글꼴·이미지·`delayRender` 핸들을 기다린 뒤 PNG 프레임을 H.264로 인코딩합니다. 기존 출력은 덮어쓰지 않습니다. 성공한 인코딩만 최종 파일로 옮깁니다. 오디오 믹싱은 구현했습니다(상수 볼륨, 앞뒤 자르기, `Video` 소리의 `atempo` 배속). 병렬 렌더링은 "결정성 린트와 병렬 렌더" 절을 보세요.
 
 ## 결정성 린트와 병렬 렌더
 

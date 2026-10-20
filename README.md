@@ -21,11 +21,7 @@ npm ci
 npm run dev
 ```
 
-브라우저에서 http://127.0.0.1:4317 을 엽니다. 샘플 작품 전체를 보려면 진입점을 바꿉니다.
-
-```sh
-VIDEO_ENTRY=examples/samples/index.tsx npm run dev
-```
+브라우저에서 http://127.0.0.1:4317 을 엽니다. 기본 진입점 `examples/samples/index.tsx`가 샘플 작품 전체를 등록합니다.
 
 MP4 하나를 만들어 봅니다. 아래 명령은 샘플 `cafe-morning`의 처음 90프레임(3초)을 렌더합니다. 음악과 효과음은 렌더 직전에 자동으로 생성됩니다.
 
@@ -133,7 +129,7 @@ API 전체는 [docs/reference/api.md](docs/reference/api.md)에 있습니다.
 | [docs/reference/rendering.md](docs/reference/rendering.md) | 렌더러, 병렬 렌더, 결정성 린트 |
 | [docs/reference/quality-checks.md](docs/reference/quality-checks.md) | 글자 잘림 가드와 검사 도구 |
 | [docs/reference/cli.md](docs/reference/cli.md) | 저장소 밖 프로젝트 CLI |
-| [docs/reference/verification.md](docs/reference/verification.md) | 검증 기록, REA 상태, 커뮤니티 예제 호환 조사 |
+| [docs/reference/verification.md](docs/reference/verification.md) | 검증 기록, REA 상태 |
 | [docs/guides/README.md](docs/guides/README.md) | 기획, 모션, 에셋, 모델별 작업 가이드 |
 | [docs/README.md](docs/README.md) | 모든 문서의 목록 |
 

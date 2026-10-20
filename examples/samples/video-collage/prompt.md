@@ -6,7 +6,7 @@
 
 **색.** 잉크 `#052E16`, 종이 `#F0FDF4`, 강조 `#22C55E`, 연한 `#BBF7D0`. 금지: `#06C755`.
 
-**글꼴.** 헤드라인 Jua(400), UI Gowun Dodum(400). 금지: Gothic A1. 이 작품은 `docs/samples/plan.md`에 행이 없어 글꼴을 정하지 않은 상태에서 직접 골랐다.
+**글꼴.** 헤드라인 Jua(400), UI Gowun Dodum(400). 금지: Gothic A1. 이 작품의 글꼴은 직접 골랐다.
 
 **에셋.** 영상 세 개와 GIF 하나는 ffmpeg로 만든 테스트 영상이다. `public/footage/club-a.mp4`(testsrc2, 330 Hz 소리), `public/footage/club-b.mp4`(mandelbrot, 440 Hz 소리), `public/footage/badge.gif`(testsrc 240px, 2초). 원본 파일은 실제 촬영물이 아니다.
 

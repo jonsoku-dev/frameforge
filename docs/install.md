@@ -196,7 +196,7 @@ npm run skill:uninstall -- --dry-run       # 지울 링크 목록만 출력, 아
 | --- | --- | --- | --- |
 | `FRAMEFORGE_PORT` | `4318` | `scripts/render.mjs` | `npm run render`가 띄우는 Vite 서버 포트. 렌더를 동시에 여러 개 돌릴 때 바꿉니다. 스튜디오 포트(4317)와 스튜디오 출력 탭의 렌더 포트(4318 고정)는 바꾸지 않습니다. |
 | `FRAMEFORGE_PROJECT` | 없음 | `vite.config.ts` | 저장소 밖 프로젝트 루트. 그 폴더에 `frameforge.json`이 있어야 합니다. `frameforge` CLI가 프로젝트 안에서 실행될 때 자동으로 넣습니다. |
-| `VIDEO_ENTRY` | `examples/index.tsx` | `vite.config.ts` | 스튜디오와 렌더가 읽는 진입 파일. `npm run render`는 첫 인자로 이 값을 정합니다. |
+| `VIDEO_ENTRY` | `examples/samples/index.tsx` | `vite.config.ts` | 스튜디오와 렌더가 읽는 진입 파일. `npm run render`는 첫 인자로 이 값을 정합니다. |
 | `CHROME_PATH` | 아래 목록에서 처음 있는 것 | `scripts/render.mjs` | Chrome 실행 파일. 기본 목록은 macOS의 Google Chrome, Chromium 앱과 `/usr/bin/chromium`, `/usr/bin/chromium-browser`, `/usr/bin/google-chrome`입니다. |
 | `FFMPEG_PATH` | `ffmpeg` | 렌더러, 스튜디오 검사, 검사 스크립트, `score.py`, `art.py` | FFmpeg 실행 파일 |
 | `FFMPEG` | `ffmpeg` | `score.py`, `score-report.py` | `FFMPEG_PATH`가 없을 때만 보는 옛 이름 |

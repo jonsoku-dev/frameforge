@@ -89,7 +89,7 @@ npm run frame-check -- renders/samples/kit-launch-check.mp4     # 성공: 마지
 VIDEO_ENTRY=examples/samples/cafe-morning/entry.tsx npm run dev
 ```
 
-성공: http://127.0.0.1:4317 이 응답합니다. 확인은 `curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:4317/`이 `200`을 출력하는 것입니다. 사용자에게 이 URL을 알려 줍니다. 서버는 127.0.0.1에만 열립니다. 샘플 전체를 보려면 `VIDEO_ENTRY=examples/samples/index.tsx`를 씁니다. 서버는 계속 실행되므로 백그라운드로 띄우고, 일이 끝나면 끕니다.
+성공: http://127.0.0.1:4317 이 응답합니다. 확인은 `curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:4317/`이 `200`을 출력하는 것입니다. 사용자에게 이 URL을 알려 줍니다. 서버는 127.0.0.1에만 열립니다. `VIDEO_ENTRY` 없이 `npm run dev`로 띄우면 샘플 전체(`examples/samples/index.tsx`)가 열립니다. 서버는 계속 실행되므로 백그라운드로 띄우고, 일이 끝나면 끕니다.
 
 ### 7. 플러그인이나 스킬 설치(선택)
 

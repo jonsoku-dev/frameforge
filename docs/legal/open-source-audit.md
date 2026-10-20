@@ -29,6 +29,8 @@
 | 15 | `package.json` | 조치 | `"private": true`, `license` 필드 없음. 조치: `"license": "MIT"`, `"repository"`, `"bugs"`, `"homepage"` 추가. npm 공개 시 이름을 정하고 `private` 해제 |
 | 16 | 시험·검증 기록 `verification.json`, `docs/samples/*`(모델 비교) | 확인 | 내부 작업 기록이다. 모델 이름·평가가 들어 있으나 문제될 내용 없음. 공개판에서 남길지 선택 |
 
+2026-10-21 갱신. 3행의 `community-compatibility.json`, 6·7행의 `examples/community/`, 13행의 `docs/references/opus-5-5/`, 16행의 `docs/samples/` 모델 비교 기록은 저장소에서 지웠다. 그래서 `THIRD_PARTY_NOTICES.md`에도 커뮤니티 예제 절이 없다.
+
 ## 공개 전 체크리스트
 
 1. [차단] `public/screens/` 삭제, 캡처 스크립트 승격, 해당 샘플을 "캡처를 직접 넣는" 방식으로 전환.

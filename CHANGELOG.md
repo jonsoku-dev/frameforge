@@ -2,6 +2,25 @@
 
 이 프로젝트는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따릅니다.
 
+## [Unreleased]
+
+### 바뀜
+
+- 스튜디오와 `npm run render`, `__VIDEO_ENTRY__`의 기본 진입점이 `examples/samples/index.tsx`입니다. 렌더러의 기본 컴포지션은 `KitLaunch`입니다.
+- `art.py`가 모티프 키트 목록을 `src/assets/catalog.ts`에서만 읽습니다. 읽지 못하면(엔진에 `npm install`이 없을 때) 고정 목록으로 대신하지 않고 실패합니다.
+- 효과음 밀도 검사(0.5초 간격, 4초에 셋까지)는 MP4 렌더에서 늘 켜져 있습니다.
+- `verification.json`과 `docs/reference/verification.md`는 지금 저장소 상태만 적습니다.
+
+### 제거
+
+- 처음 데모 진입점 `examples/index.tsx`와 `examples/Opening.tsx`, 쓰지 않던 `tests/fixtures/entry.tsx`.
+- 제3자 호환 데모 `examples/community/`와 `community-compatibility.json`, `THIRD_PARTY_NOTICES.md`의 해당 절.
+- 외부 글 요약 `docs/references/opus-5-5/`.
+- 비교 실험 작품 `cmp-motion-*` 아홉 편과 플러그인 시험 작품 `plugin-smoke-claude`, `plugin-smoke-codex`, 그리고 `docs/samples/compare.md`, `plan.md`, `reviews/`, `docs/studio/process-log.md`. 비교 결과는 `docs/guides/model-playbook.md`에 두 문장으로 남겼습니다.
+- 지금 규칙 이전에 만든 작품 열네 편(saas-launch, kinetic-typo, data-story, event-teaser, app-onboarding, logo-reveal, podcast-promo, education-explainer, countdown-hype, product-feature, recipe-steps, fitness-timer, travel-poster, weather-brief). 스튜디오 테스트가 읽던 기획서는 `tests/fixtures/`로 옮겼습니다.
+- `FRAMEFORGE_SFX_GUARD=off` 탈출구, `examples/<slug>.audio.json` 사양 위치, `GENERATION` 이관 메모, 쓰지 않던 `src/components/magicui/magic-card.tsx`.
+- 커밋돼 있던 `scripts/assets/__pycache__/`. `.gitignore`에 `__pycache__/`와 `*.pyc`를 넣었습니다.
+
 ## [0.1.0] - 2026-10-20
 
 첫 공개 버전입니다. 부분 호환 프로토타입입니다. 아래 수치는 저장소 루트 `verification.json`의 기록입니다.

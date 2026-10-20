@@ -4,7 +4,7 @@
 
 ## 0. 2.0 이전에 스튜디오가 못 하던 것
 
-2.0 이전의 `src/studio/main.tsx`는 장면 목록, 재생, 시간 슬라이더, 글자 잘림 표시, "영상 저장" 버튼 하나였다. 지금 `main.tsx`는 부팅과 렌더 모드 다리만 맡고 화면은 `App.tsx`가 그린다. 사용자가 실제로 하는 일은 다른 곳에서 일어난다. 기획은 `prompt.md`, 소리는 `audio.json`, 리뷰는 `docs/samples/reviews/*.md`, 수정 내역은 `docs/samples/README.md`의 "리뷰가 찾은 것 / 고친 것", 검사 결과는 `renders/samples/results.json`, 시트는 `renders/samples/*-sheet.png`에 흩어져 있다. 옛 스튜디오는 이 중 하나도 보여 주지 않았다. 장면 이름과 모델 표기는 `main.tsx` 안의 `SCENE_TITLES` 표에 손으로 적혀 있었다. 값 하나를 바꾸려면 `Spot.tsx`를 열어야 했고, 렌더는 진행률 없이 수십 초 동안 "저장하고 있습니다"만 보였다.
+2.0 이전의 `src/studio/main.tsx`는 장면 목록, 재생, 시간 슬라이더, 글자 잘림 표시, "영상 저장" 버튼 하나였다. 지금 `main.tsx`는 부팅과 렌더 모드 다리만 맡고 화면은 `App.tsx`가 그린다. 사용자가 실제로 하는 일은 다른 곳에서 일어난다. 기획은 `prompt.md`, 소리는 `audio.json`, 리뷰는 리뷰 파일, 수정 내역은 `docs/samples/README.md`의 "리뷰가 찾은 것 / 고친 것", 검사 결과는 `renders/samples/results.json`, 시트는 `renders/samples/*-sheet.png`에 흩어져 있다. 옛 스튜디오는 이 중 하나도 보여 주지 않았다. 장면 이름과 모델 표기는 `main.tsx` 안의 `SCENE_TITLES` 표에 손으로 적혀 있었다. 값 하나를 바꾸려면 `Spot.tsx`를 열어야 했고, 렌더는 진행률 없이 수십 초 동안 "저장하고 있습니다"만 보였다.
 
 2.0은 이 흩어진 기록을 컴포지션 폴더 하나로 모으고, 스튜디오를 그 폴더의 작업대로 만든다. 로컬 도구로 남는다. `npm run dev`로 서버를 켜고 `http://127.0.0.1:4317`을 연다.
 
@@ -12,8 +12,8 @@
 
 | 용어 | 뜻 |
 | --- | --- |
-| 컴포지션 | `<Composition id="...">` 하나. 예 `SaasLaunch` |
-| 폴더 | 컴포지션의 원본 폴더. 예 `examples/samples/saas-launch/` |
+| 컴포지션 | `<Composition id="...">` 하나. 예 `KitLaunch` |
+| 폴더 | 컴포지션의 원본 폴더. 예 `examples/samples/kit-launch/` |
 | 기획서 | 폴더의 `prompt.md` |
 | 실행(run) | 작성, 리뷰, 수정, 렌더, 검사, 캡처, 요청 중 하나의 기록. `process.json`에 쌓인다 |
 | 버전 | `author` 또는 `fix` 실행이 만든 상태. v1, v2처럼 부른다 |
@@ -39,7 +39,7 @@
 
 ### 1.2 검수자
 
-정지 화면을 프레임 단위로 본다. 2.0 이전에는 시트 PNG를 열어 보고 타일이 몇 번 프레임인지 기획서의 "검사 프레임" 목록과 손으로 맞췄다. 시트 타일에 프레임 번호가 없기 때문이다(`renders/samples/saas-launch-sheet.png`의 타일 10장에는 번호가 없고, 기획서의 검사 프레임은 16개라서 시트만으로는 어느 프레임인지 알 수 없다).
+정지 화면을 프레임 단위로 본다. 2.0 이전에는 시트 PNG를 열어 보고 타일이 몇 번 프레임인지 기획서의 "검사 프레임" 목록과 손으로 맞췄다. 시트 타일에 프레임 번호가 없기 때문이다(열 장짜리 시트는 타일에 번호가 없고, 기획서의 검사 프레임은 16개라서 시트만으로는 어느 프레임인지 알 수 없다).
 
 | 일 | 빈도 | 스튜디오에서 하는 동작 |
 | --- | --- | --- |
@@ -86,9 +86,9 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │ ▣ frameforge   examples/samples/index.tsx          ● 연결됨        렌더 412/900 ▮▮▮▯▯   ?    │ 44
 ├───────────────┬──────────────────────────────────────────────────────┬───────────────────────┤
-│ 컴포지션  44  │ Solotack 런치 스팟  1920×1080 · 30fps · 30초  v3       │ 기획  과정  조정  출력 │ 36
+│ 컴포지션  44  │ kit-launch       1920×1080 · 30fps · 30초  v3       │ 기획  과정  조정  출력 │ 36
 │ ┌───────────┐ │ 410 / 899  0:13:20   [안전 영역 G] [잘림 0] [에디터 ▾] ├───────────────────────┤
-│ │▓ Solotack │ │┌────────────────────────────────────────────────────┐│                       │
+│ │▓ kit-launch│ │┌────────────────────────────────────────────────────┐│                       │
 │ │  16:9 30초│ ││                                                    ││   (선택한 탭 내용)     │
 │ │  opus  v3 ●││                                                    ││                       │
 │ └───────────┘ ││                 컴포지션 무대                       ││                       │
@@ -115,7 +115,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ ▣ frameforge  examples/samples/index.tsx      ● 연결됨  렌더 412/900   ?  │ 44
 ├────┬─────────────────────────────────────────────┬───────────────────────┤
-│ ▓● │ Solotack 런치 스팟 · v3   410/899  [G][잘림0][▾]│ 기획 과정 조정 출력    │ 36
+│ ▓● │ kit-launch       · v3   410/899  [G][잘림0][▾]│ 기획 과정 조정 출력    │ 36
 │ ▓● │┌───────────────────────────────────────────┐ │                       │
 │ ▓○ ││                                           │ │                       │
 │ ▓● ││          무대 789×444 (16:9)               │ │     검사기 360        │
@@ -201,7 +201,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 ┌ 기획 ──────────────────────────────┐
 │ prompt.md            [에디터에서 ↗] │
 │ ─────────────────────────────────  │
-│ # saas-launch: Solotack 런치 스팟   │
+│ # kit-launch                        │
 │ **목적.** 할 일에 묻힌 사람에게 ...  │
 │ ## 장면표                           │
 │ | 프레임 | 화면을 채우는 것 | ...    │
@@ -245,7 +245,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 │   해결한 지적 5개 (리뷰 sonnet)       │
 │   [시트 ▦ 16장]  [프롬프트 보기]      │
 │ ⚑ 리뷰  claude sonnet · 10-19       │
-│   지적 5개  [review-sonnet.md ↗]    │
+│   지적 5개  [리뷰 파일 ↗]          │
 │   1. 0–150 할 일 줄 글자 17.6px  ✓v2 │
 │   2. 0–60 훅 ...                ✓v2 │
 │ ✦ 작성  claude opus · 10-18   v1    │
@@ -309,7 +309,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 │ └──────────────────────────────── ┘ │
 │ ┌ 결과 · 12분 전 · v3 ─────────── ┐ │
 │ │ [▶ 영상 미리보기 ]               │ │
-│ │ renders/studio/saas-launch/      │ │
+│ │ renders/studio/kit-launch/        │ │
 │ │   20261020-142233-v3.mp4  [복사] │ │
 │ │ ✓ 글자 잘림  렌더 중 0곳         │ │
 │ │ ✓ 플래시     최악 1초 2회 / 허용 6│ │
@@ -342,7 +342,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 | 진입 파일 오류 | 전체 | 무대 자리에 오류 카드. 메시지, 파일 경로, "다시 시도" 버튼. "에디터에서 열기" 링크는 아직 없다(미구현). Vite가 파일 변경 후 다시 불러온다 |
 | 컴포지션 그리기 오류 | 무대 | 기존 `Boundary` 오류 카드에 프레임 번호와 "에디터에서 열기"를 더함. 타임라인은 계속 움직인다 |
 | API 응답 없음 | 검사기 | 재생과 탐색은 그대로 된다. 검사기 각 탭에 "서버 정보를 읽지 못했습니다"와 다시 시도. 스튜디오는 API 없이도 플레이어로 쓸 수 있어야 한다 |
-| 폴더 없음 | 검사기 | 진입 파일이 `examples/index.tsx`처럼 폴더 구조가 아니면 "이 컴포지션은 폴더가 없어 기획, 과정, 조정을 쓸 수 없습니다. 출력은 됩니다." |
+| 폴더 없음 | 검사기 | 진입 파일이 `src/demo-entry.tsx`처럼 폴더 구조가 아니면 "이 컴포지션은 폴더가 없어 기획, 과정, 조정을 쓸 수 없습니다. 출력은 됩니다." |
 | 기획서 없음 | 기획 탭 | "`prompt.md`가 없습니다"와 만들 경로 |
 | 과정 기록 없음 | 과정 탭 | "아직 기록이 없습니다. 에이전트가 `process.json`에 실행을 남기면 여기에 보입니다." 요청 작성기는 그대로 쓸 수 있고, 첫 요청이 파일을 만든다 |
 | `process.json` 해석 실패 | 과정 탭 | 오류 위치(줄, 열)와 "에디터에서 열기". 다른 탭은 정상 |
@@ -390,17 +390,17 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 
 ### 2.10 URL과 새로고침
 
-선택한 컴포지션과 프레임을 주소의 해시에 둔다. 예 `#/SaasLaunch@410`. 에이전트가 `Spot.tsx`를 고치면 Vite가 페이지를 다시 불러오는데, 해시 덕분에 같은 컴포지션의 같은 프레임으로 돌아온다. 검사기 탭과 레일 접힘 상태는 `localStorage`에 둔다. 처음 열 때 탭은 과정이다. 에디터 선택은 `frameforge:editor`, 초안은 `frameforge:draft:<컴포지션 ID>`에 둔다.
+선택한 컴포지션과 프레임을 주소의 해시에 둔다. 예 `#/KitLaunch@410`. 에이전트가 `Spot.tsx`를 고치면 Vite가 페이지를 다시 불러오는데, 해시 덕분에 같은 컴포지션의 같은 프레임으로 돌아온다. 검사기 탭과 레일 접힘 상태는 `localStorage`에 둔다. 처음 열 때 탭은 과정이다. 에디터 선택은 `frameforge:editor`, 초안은 `frameforge:draft:<컴포지션 ID>`에 둔다.
 
 ## 3. 프로세스 가시성
 
 ### 3.1 파일 위치
 
-컴포지션 폴더마다 `process.json` 하나. 예 `examples/samples/saas-launch/process.json`. 커밋 대상이다. 생성된 오디오처럼 다시 만들 수 있는 것이 아니기 때문이다.
+컴포지션 폴더마다 `process.json` 하나. 예 `examples/samples/kit-launch/process.json`. 커밋 대상이다. 생성된 오디오처럼 다시 만들 수 있는 것이 아니기 때문이다.
 
 ### 3.2 계약
 
-사용자가 정한 모양을 기준으로 하고, 다음을 더했다. 실행 `id`, `kind`의 `request`, 산출물의 `frames`, 선택 필드 `frame`, `changes`, `findings`, `resolves`. 더한 이유는 각 필드 설명에 있다. 아래 예는 saas-launch 기록의 발췌다. 리뷰의 지적 다섯 중 둘만 적었다.
+사용자가 정한 모양을 기준으로 하고, 다음을 더했다. 실행 `id`, `kind`의 `request`, 산출물의 `frames`, 선택 필드 `frame`, `changes`, `findings`, `resolves`. 더한 이유는 각 필드 설명에 있다. 아래 예는 기록의 모양을 보이는 예다. 지금 `process.json`이 있는 샘플은 없다. 리뷰의 지적 다섯 중 둘만 적었다.
 
 ```json
 {
@@ -412,10 +412,10 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
       "at": "2026-10-18T09:12:00+09:00",
       "actor": "claude opus",
       "kind": "author",
-      "prompt": {"path": ".scratch/samples/brief-saas-launch.md"},
-      "summary": "Solotack 30초 런치 스팟 첫 작성. 할 일 줄, 핀, 카드 셋, 이름.",
+      "prompt": {"path": ".scratch/samples/brief-kit-launch.md"},
+      "summary": "kit-launch 20초 런치 스팟 첫 작성.",
       "artifacts": [
-        {"kind": "sheet", "path": "renders/samples/saas-launch-sheet.png"}
+        {"kind": "sheet", "path": "renders/samples/kit-launch-sheet.png"}
       ]
     },
     {
@@ -424,7 +424,6 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
       "actor": "claude sonnet",
       "kind": "review",
       "summary": "지적 5개. 줄 글자 17.6px, 훅 느림, 이름 뒤 비침, 빈 accent, 포커스 카드 잘림.",
-      "artifacts": [{"kind": "review", "path": "docs/samples/reviews/review-sonnet.md"}],
       "findings": [
         {"id": "r02-1", "from": 0, "to": 150, "text": "할 일 줄 글자 17.6px. 보이는 줄 9개, 글자 34px로"},
         {"id": "r02-3", "from": 806, "to": 834, "text": "이름 글자가 줄어드는 원 뒤에서 비침. 시작을 822로"}
@@ -438,7 +437,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
       "summary": "sonnet 리뷰 5개 반영.",
       "changes": ["보이는 줄 9개, 줄 높이 77px, 글자 34px 고정", "이름 등장 810 → 822"],
       "resolves": ["r02-1", "r02-3"],
-      "artifacts": [{"kind": "sheet", "path": "renders/studio/saas-launch/20261019-1430-v2.png", "frames": [20, 40, 120]}]
+      "artifacts": [{"kind": "sheet", "path": "renders/studio/kit-launch/20261019-1430-v2.png", "frames": [20, 40, 120]}]
     },
     {
       "id": "r04",
@@ -446,7 +445,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
       "actor": "script",
       "kind": "render",
       "summary": "MP4 900프레임, 77초",
-      "artifacts": [{"kind": "mp4", "path": "renders/studio/saas-launch/20261020-142233-v2.mp4"}],
+      "artifacts": [{"kind": "mp4", "path": "renders/studio/kit-launch/20261020-142233-v2.mp4"}],
       "metrics": {"seconds": 77, "frames": 900, "overrides": {}}
     },
     {
@@ -455,7 +454,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
       "actor": "script",
       "kind": "check",
       "summary": "flash 통과, frame 통과, 음량 통과, bt709",
-      "artifacts": [{"kind": "log", "path": "renders/studio/saas-launch/20261020-142233-v2.checks.json"}],
+      "artifacts": [{"kind": "log", "path": "renders/studio/kit-launch/20261020-142233-v2.checks.json"}],
       "metrics": {
         "of": "r04",
         "flash": {"pass": true, "worstSecondStartFrame": 404, "worstSecondTransitions": 2},
@@ -556,7 +555,7 @@ prompt.md, audio.json ─▶ author 실행 (v1) ─────────▶ �
 | x | `열 × (480 + 4)` |
 | y | `행 × (타일 높이 + 4)` |
 
-saas-launch 시트는 1932×818 px, 4열 3행, 타일 10장이다. 4 × 480 + 3 × 4 = 1932, 3 × 270 + 2 × 4 = 818이라서 이 식과 맞는다. 바깥 여백은 없고 타일 사이에만 4 px가 있다. 렌더러가 이 식을 바꾸면 스튜디오의 잘라내기도 같이 바꿔야 하므로, 2.1에서 `render.mjs`가 시트 옆에 `<시트>.json`(`frames`, `columns`, `tileWidth`, `tileHeight`, `padding`)을 쓰고 스튜디오는 그 파일이 있으면 그것을 읽는다. 이 사이드카 파일은 아직 구현하지 않았고, 지금 스튜디오는 위 식으로 자른다.
+열 장짜리 시트는 1932×818 px, 4열 3행이다. 4 × 480 + 3 × 4 = 1932, 3 × 270 + 2 × 4 = 818이라서 이 식과 맞는다. 바깥 여백은 없고 타일 사이에만 4 px가 있다. 렌더러가 이 식을 바꾸면 스튜디오의 잘라내기도 같이 바꿔야 하므로, 2.1에서 `render.mjs`가 시트 옆에 `<시트>.json`(`frames`, `columns`, `tileWidth`, `tileHeight`, `padding`)을 쓰고 스튜디오는 그 파일이 있으면 그것을 읽는다. 이 사이드카 파일은 아직 구현하지 않았고, 지금 스튜디오는 위 식으로 자른다.
 
 ### 3.6 시트 보기
 
@@ -570,9 +569,8 @@ saas-launch 시트는 1932×818 px, 4열 3행, 타일 10장이다. 4 × 480 + 3 
 | fix(사람, 덮어쓰기 저장) | 스튜디오 서버 | 있음 | |
 | request | 스튜디오 서버 | 있음 | |
 | author, review, fix(에이전트), capture | 에이전트 | 덧붙이기 도우미의 CLI로 | 같음 |
-| 기존 14개 샘플 기록 | 에이전트 한 번 작업 | `docs/samples/README.md`의 모델, "리뷰가 찾은 것", "고친 것", `docs/samples/reviews/*.md`, `renders/samples/results.json`에서 채움 | |
 
-쓰기 규칙은 하나다. 모든 쓰기는 `scripts/process.mjs`의 덧붙이기 함수를 거친다. 서버도 이 함수를 가져다 쓰고, 에이전트는 같은 파일의 CLI를 부른다. 예 `node scripts/process.mjs append examples/samples/saas-launch '{"actor":"claude opus","kind":"fix","summary":"...","changes":["..."],"resolves":["r06"]}'`. 나머지 명령은 `init <폴더>`와 `validate <폴더>`다. `--actor`, `--kind` 같은 플래그 형식은 없고 실행은 JSON 한 덩어리로 받는다. 이 함수는 다음을 한다.
+쓰기 규칙은 하나다. 모든 쓰기는 `scripts/process.mjs`의 덧붙이기 함수를 거친다. 서버도 이 함수를 가져다 쓰고, 에이전트는 같은 파일의 CLI를 부른다. 예 `node scripts/process.mjs append examples/samples/kit-launch '{"actor":"claude opus","kind":"fix","summary":"...","changes":["..."],"resolves":["r06"]}'`. 나머지 명령은 `init <폴더>`와 `validate <폴더>`다. `--actor`, `--kind` 같은 플래그 형식은 없고 실행은 JSON 한 덩어리로 받는다. 이 함수는 다음을 한다.
 
 1. `process.json.lock`을 배타적으로 만든다. 이미 있으면 50 ms 간격으로 최대 2초 기다린 뒤 실패한다. 10초보다 오래된 잠금 파일은 죽은 것으로 보고 지운다.
 2. 파일을 읽고 3.2절 규칙으로 검사한다. 파일이 없으면 `{brief: 'prompt.md', audio: 폴더에 audio.json이 있으면 'audio.json', runs: []}`로 시작한다.
@@ -613,7 +611,7 @@ saas-launch 시트는 1932×818 px, 4열 3행, 타일 10장이다. 4 × 480 + 3 
 | `boolean` | 없음 | 참, 거짓 | 체크 상자 |
 | `audioVolume` | 없음. 범위 0–1, 단계 0.05로 고정 | 0–1 숫자 | 슬라이더와 dB 표시(`20·log10(v)`, 0이면 "무음") |
 
-예. saas-launch가 선언할 변수(JSON 모양으로 적는다).
+예. 변수 선언(JSON 모양으로 적는다).
 
 ```json
 [
@@ -629,11 +627,11 @@ saas-launch 시트는 1932×818 px, 4열 3행, 타일 10장이다. 4 × 480 + 3 
 ]
 ```
 
-지금 변수를 선언한 샘플은 saas-launch 하나다.
+지금 변수를 선언한 샘플은 없다.
 
 컴포지션이 변수를 쓰는 규칙.
 
-- `Spot`은 변수 값을 props로 받는다. 상수로 박혀 있던 값을 props 읽기로 바꾼다. saas-launch의 `Spot`은 `{...변수 기본값, ...getInputProps(), ...props}`로 합친다. 미리보기는 값을 props로 넘기고 렌더는 `overrides.json`을 입력값(`getInputProps()`)으로 넘기므로 두 경로가 같은 값을 받는다. saas-launch는 `calculateMetadata`를 쓰지 않는다.
+- `Spot`은 변수 값을 props로 받는다. 상수로 박혀 있던 값을 props 읽기로 바꾼다. `Spot`은 `{...변수 기본값, ...getInputProps(), ...props}`로 합친다. 미리보기는 값을 props로 넘기고 렌더는 `overrides.json`을 입력값(`getInputProps()`)으로 넘기므로 두 경로가 같은 값을 받는다. `calculateMetadata`는 쓰지 않는다.
 - 등록 쪽은 `<Composition ... variables={variables} />`로 선언을 넘긴다. 코어의 `Composition`은 `variables` prop을 정의(`CompositionDefinition.variables`)에 그대로 보관만 한다. `defaultProps`를 만들지 않으므로 기본값을 합치는 일은 `Spot`이 한다. frameforge 확장이다. 스튜디오는 `ResolvedComposition.variables`를 `parseVariables`로 읽는다. 서버가 TSX를 해석할 필요가 없다.
 - 선언 검사는 코어가 아니라 스튜디오의 `parseVariables`가 한다. `key` 중복, `default`가 타입에 맞지 않음, `number`에 `min`/`max`/`step` 없음, `enum` 선택지가 2개 미만인 항목은 오류를 내지 않고 목록에서 조용히 빠진다. 범위 검사(`valueFits`)는 저장된 `overrides.json` 값에만 적용한다.
 - 타이밍 변수는 절대 프레임이 아니라 기획서 장면표 값에 더하는 이동량이다. `Spot`이 장면 순서가 뒤집히지 않게 범위를 정한다. 그 순간의 효과음 `<Sequence from>`도 같은 이동량을 쓴다. 그래야 소리가 화면을 따라간다.
@@ -660,7 +658,7 @@ saas-launch 시트는 1932×818 px, 4열 3행, 타일 10장이다. 4 × 480 + 3 
 
 한계. `calculateMetadata`가 props로 길이나 크기를 바꾸는 컴포지션은 미리보기에서 덮어쓰기를 반영하지 못한다(재탐색을 하지 않으므로). 지금 샘플에는 그런 컴포지션이 없다. 생기면 그 컴포지션만 값 변경 시 재탐색하도록 2.1에서 바꾼다.
 
-CLI 렌더(`npm run render -- examples/samples/saas-launch/entry.tsx ...`)는 2.1부터 진입 파일 폴더에 `overrides.json`이 있고 네 번째 인자가 없으면 그 파일을 입력값으로 쓴다(미구현. 지금 CLI는 네 번째 인자의 JSON만 입력값으로 쓴다). 그래야 스튜디오 렌더와 CLI 렌더가 같은 영상을 만든다.
+CLI 렌더(`npm run render -- examples/samples/kit-launch/entry.tsx ...`)는 2.1부터 진입 파일 폴더에 `overrides.json`이 있고 네 번째 인자가 없으면 그 파일을 입력값으로 쓴다(미구현. 지금 CLI는 네 번째 인자의 JSON만 입력값으로 쓴다). 그래야 스튜디오 렌더와 CLI 렌더가 같은 영상을 만든다.
 
 ### 4.3 실시간 미리보기 규칙
 
@@ -756,7 +754,7 @@ G로 켜고 끈다. 무대 위에 겹치는 선이며 렌더에는 들어가지 
 
 기획서에서 첫 표를 찾는다. 첫 머리 칸이 "프레임" 또는 "Frames"인 마크다운 표다. 각 행의 첫 칸을 `시작–끝`으로 읽는다. 구분자로 `–`, `-`, `—`를 받는다. 둘째 칸을 띠 이름으로 쓰고 24자에서 자른다. 셋째 칸 이후는 툴팁이다.
 
-- 구간이 겹치면(saas-launch의 0–150과 126–150) 겹치는 띠를 둘째 줄에 놓는다. 장면 레인은 최대 두 줄이고 셋째 겹침은 둘째 줄에 덮어쓴다.
+- 구간이 겹치면(`tests/fixtures/`의 시험 기획서에 0–150과 126–150이 있다) 겹치는 띠를 둘째 줄에 놓는다. 장면 레인은 최대 두 줄이고 셋째 겹침은 둘째 줄에 덮어쓴다.
 - 표를 찾지 못하면 장면 레인에 "기획서에서 장면표를 찾지 못했습니다"를 흐리게 쓴다.
 - 띠를 누르면 시작 프레임으로 간다. `[`, `]`는 띠 시작 사이를 오간다.
 
@@ -890,12 +888,12 @@ G로 켜고 끈다. 무대 위에 겹치는 선이며 렌더에는 들어가지 
   "entry": "examples/samples/index.tsx",
   "compositions": [
     {
-      "id": "SaasLaunch",
-      "folder": "examples/samples/saas-launch",
-      "title": "saas-launch: Solotack 런치 스팟",
-      "files": {"spot": "examples/samples/saas-launch/Spot.tsx", "brief": "examples/samples/saas-launch/prompt.md", "audio": "examples/samples/saas-launch/audio.json", "process": null, "overrides": null},
-      "brief": "# saas-launch: Solotack 런치 스팟\n...",
-      "audio": {"value": {"slug": "saas-launch", "bpm": 120}},
+      "id": "KitLaunch",
+      "folder": "examples/samples/kit-launch",
+      "title": "kit-launch",
+      "files": {"spot": "examples/samples/kit-launch/Spot.tsx", "brief": "examples/samples/kit-launch/prompt.md", "audio": "examples/samples/kit-launch/audio.json", "process": null, "overrides": null},
+      "brief": "# kit-launch\n...",
+      "audio": {"value": {"slug": "kit-launch", "bpm": 120}},
       "process": {"value": null},
       "overrides": {"value": {}},
       "importedResults": {"flash": {"pass": true, "worstSecondTransitions": 2}, "loudness": {"I": -24.94, "TP": -9.22, "LRA": 10.4}, "colorSpace": "bt709"}
@@ -906,7 +904,7 @@ G로 켜고 끈다. 무대 위에 겹치는 선이며 렌더에는 들어가지 
 ```
 
 - `jobs`는 서버 메모리의 렌더 작업 목록이다. 스튜디오는 새로고침 뒤 진행 중인 작업에 다시 붙는 데 쓴다.
-- 컴포지션과 폴더의 연결은 진입 파일 어디에도 적혀 있지 않다. 서버가 만든다. 진입 파일이 있는 폴더의 하위 폴더를 훑어 `<하위 폴더>/entry.tsx`를 읽고 `<Composition>`, `<Still>` 태그의 `id`, `fps`, `durationInFrames`를 정규식으로 뽑는다(`fps`와 길이는 요청 프레임 범위 검사와 렌더 총 프레임 수에 쓴다). 뽑은 ID가 그 하위 폴더의 컴포지션이다. 진입 파일 자신이 폴더 안의 `entry.tsx`이면 그 폴더다. 연결되지 않은 ID는 `folder: null`(지금의 `examples/index.tsx`의 `Opening`).
+- 컴포지션과 폴더의 연결은 진입 파일 어디에도 적혀 있지 않다. 서버가 만든다. 진입 파일이 있는 폴더의 하위 폴더를 훑어 `<하위 폴더>/entry.tsx`를 읽고 `<Composition>`, `<Still>` 태그의 `id`, `fps`, `durationInFrames`를 정규식으로 뽑는다(`fps`와 길이는 요청 프레임 범위 검사와 렌더 총 프레임 수에 쓴다). 뽑은 ID가 그 하위 폴더의 컴포지션이다. 진입 파일 자신이 폴더 안의 `entry.tsx`이면 그 폴더다. 연결되지 않은 ID는 `folder: null`(예 `src/demo-entry.tsx`의 컴포지션).
 - 컴포지션 목록과 순서, 길이, 크기는 스튜디오가 이미 브라우저에서 탐색한 값을 쓴다. 서버 응답은 ID로 합친다. 그래서 진입 파일에 등록되지 않은 폴더(예 `examples/samples/_template/`)는 목록에 나오지 않는다.
 - 파일 하나가 깨져도 응답 전체가 실패하지 않는다. JSON 파일은 `{value}` 또는 `{error: "3번째 줄 14열: ..."}`로 온다.
 - `importedResults`는 `process.json`에 `check` 실행이 없을 때만 `renders/samples/results.json`에서 슬러그로 찾아 넣는다.
@@ -936,11 +934,11 @@ G로 켜고 끈다. 무대 위에 겹치는 선이며 렌더에는 들어가지 
 
 ### 8.1 브라우저에서 확인하는 목록
 
-준비. `VIDEO_ENTRY=examples/samples/index.tsx npm run dev` 후 Chrome에서 `http://127.0.0.1:4317`. saas-launch만 변수 선언이 되어 있고(나머지 33개 컴포지션은 없다), 진입 파일의 34개 컴포지션 중 14개 샘플에 `process.json`이 있다.
+준비. `VIDEO_ENTRY=examples/samples/index.tsx npm run dev` 후 Chrome에서 `http://127.0.0.1:4317`. 진입 파일의 컴포지션 아홉 개 중 변수를 선언한 것과 `process.json`이 있는 것은 지금 없다. 과정과 조정 항목은 `node scripts/process.mjs init <폴더>`로 `process.json`을 만들거나 변수를 선언한 작품를 먼저 만든 뒤에 본다.
 
 배치
 
-- [ ] 창 1920×1080. 레일 248 px, 검사기 400 px, 타임라인 208 px. SaasLaunch 무대가 1195×672 px 근처(±4 px)이고 가로 스크롤이 없다.
+- [ ] 창 1920×1080. 레일 248 px, 검사기 400 px, 타임라인 208 px. KitLaunch 무대가 1195×672 px 근처(±4 px)이고 가로 스크롤이 없다.
 - [ ] 창 1280×800(브라우저 안쪽 약 1280×700). 레일이 64 px로 접히고, 16:9 무대 폭이 780 px 이상이며, 가로 스크롤이 없다.
 - [ ] 창 1100 px. 검사기가 서랍이 되고 I로 열고 닫힌다.
 - [ ] 레일에 제목이 `prompt.md` 첫 제목으로 보인다. `main.tsx`에 `SCENE_TITLES`가 없다.
@@ -950,20 +948,20 @@ G로 켜고 끈다. 무대 위에 겹치는 선이며 렌더에는 들어가지 
 - [ ] Space, ←, →, Shift+→(10프레임), Home, End가 동작한다. 프레임 410에서 시간이 `0:13:20`(13 × 30 + 20 = 410)으로 보인다.
 - [ ] 입력칸에 글자를 치는 동안 Space가 재생을 시작하지 않는다. 입력칸에서 ⌘S는 저장한다.
 - [ ] 1–4로 탭이 바뀐다. 탭은 Tab 키로 들어가 ←/→로 이동하며 초점 고리가 보인다.
-- [ ] 주소가 `#/SaasLaunch@410`이 되고, 새로고침하면 같은 컴포지션의 410 프레임이 열린다.
+- [ ] 주소가 `#/KitLaunch@410`이 되고, 새로고침하면 같은 컴포지션의 410 프레임이 열린다.
 
 과정
 
-- [ ] SaasLaunch 과정 탭에 작성, 리뷰, 수정 실행이 최신 순으로 있고 수정 카드에 "바뀐 것" 줄과 버전 배지가 있다. 버전 번호가 author와 fix 실행 수와 같다.
+- [ ] `process.json`이 있는 작품의 과정 탭에 작성, 리뷰, 수정 실행이 최신 순으로 있고 수정 카드에 "바뀐 것" 줄과 버전 배지가 있다. 버전 번호가 author와 fix 실행 수와 같다.
 - [ ] 시트가 있는 실행을 누르면 타임라인 과정 레인에 시트 프레임 수만큼 눈금이 찍힌다. 눈금 위에 마우스를 올린 미리보기 타일이 그 프레임의 무대 화면과 같은 장면이다(3.5절 식 확인).
 - [ ] 시트 보기에서 각 타일 왼쪽 위에 프레임 번호가 있고, 타일을 누르면 무대가 그 프레임으로 간다.
 - [ ] 리뷰 실행의 지적 옆에 해결한 버전이 보인다.
-- [ ] 프레임 668에서 C, 문장 입력, ⌘Enter. 목록 맨 위에 "요청 · 열림 · 프레임 668"이 생기고, `examples/samples/saas-launch/process.json` 끝에 `kind: "request"`, `frame: 668` 실행이 있다. 과정 레인 668에 마름모가 있다.
-- [ ] 터미널에서 `node scripts/process.mjs append examples/samples/saas-launch '{"actor":"claude opus","kind":"fix","summary":"밑줄 시점 조정","resolves":["<요청 id>"]}'`를 실행하면, 새로고침 없이 2초 안에 과정 탭에 새 수정 카드가 생기고 요청이 "해결 v<N>"으로 바뀐다.
+- [ ] 프레임 668에서 C, 문장 입력, ⌘Enter. 목록 맨 위에 "요청 · 열림 · 프레임 668"이 생기고, 그 폴더의 `process.json` 끝에 `kind: "request"`, `frame: 668` 실행이 있다. 과정 레인 668에 마름모가 있다.
+- [ ] 터미널에서 `node scripts/process.mjs append examples/samples/kit-launch '{"actor":"claude opus","kind":"fix","summary":"밑줄 시점 조정","resolves":["<요청 id>"]}'`를 실행하면, 새로고침 없이 2초 안에 과정 탭에 새 수정 카드가 생기고 요청이 "해결 v<N>"으로 바뀐다.
 
 조정
 
-- [ ] SaasLaunch 조정 탭에 변수 9개가 묶음별로 있다.
+- [ ] 변수를 선언한 작품의 조정 탭에 선언한 변수가 묶음별로 있다(위 예는 9개).
 - [ ] "헤드라인 1행" 입력칸에 초점을 주면 무대가 프레임 40으로 간다. 글자를 바꾸면 무대 머리줄의 "반영 N ms"가 100 이하로 보인다. 열 번 바꿔 열 번 모두 100 이하.
 - [ ] 헤드라인 1행에 "Too many unfinished"를 넣으면 잘림 칩이 빨강이 되고 해당 글자에 빨간 테두리가 생긴다(또는 잘리지 않으면 칩이 회색 그대로다. 둘 중 무엇이든 칩과 테두리가 일치한다).
 - [ ] 강조색을 바꾸고 ⌘S. `overrides.json`에 기본값과 다른 키만 있고, 과정 탭에 actor "사람"의 수정 카드가 "강조색 #FF5A36 → ..."로 생긴다. 같은 값으로 한 번 더 ⌘S를 눌러도 실행이 늘지 않는다.
@@ -973,7 +971,7 @@ G로 켜고 끈다. 무대 위에 겹치는 선이며 렌더에는 들어가지 
 
 출력과 검사
 
-- [ ] SaasLaunch 출력 탭의 시트 프레임 칩이 기획서 검사 프레임 16개로 채워져 있다. 시트 만들기를 누르면 진행 카드가 프레임 수를 세고, 끝나면 결과 카드에 번호가 겹쳐진 시트가 보인다. 파일이 `renders/studio/saas-launch/` 아래 새 이름으로 생기고 기존 `renders/samples/saas-launch-sheet.png`는 그대로다.
+- [ ] KitLaunch 출력 탭의 시트 프레임 칩이 기획서 검사 프레임 개수만큼 채워져 있다. 시트 만들기를 누르면 진행 카드가 프레임 수를 세고, 끝나면 결과 카드에 번호가 겹쳐진 시트가 보인다. 파일이 `renders/studio/kit-launch/` 아래 새 이름으로 생기고 기존 `renders/samples/kit-launch-sheet.png`는 그대로다.
 - [ ] MP4 만들기. 진행 카드의 프레임 수가 1초에 여러 번 오르고, 마지막 프레임 뒤 "인코딩", 그 뒤 "검사"가 보인다. 결과 카드에 검사 다섯 줄(글자 잘림, 플래시, 화면 구성, 음량, 색 태그)이 있고 `<video>`가 재생된다. 음량 줄의 I 값이 `ffmpeg -af ebur128`을 손으로 돌린 값과 같다.
 - [ ] 렌더 도중 페이지를 새로고침하면 진행 카드가 같은 진행률로 돌아온다.
 - [ ] 두 컴포지션에서 연달아 MP4를 누르면 둘째가 "대기 1번째"로 보이고 첫째가 끝나면 시작한다.
@@ -986,19 +984,19 @@ G로 켜고 끈다. 무대 위에 겹치는 선이며 렌더에는 들어가지 
 - [ ] `curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:4317/api/file?path=../../etc/hosts'`가 403.
 - [ ] 프로젝트 안에 `ln -s /etc/hosts .scratch/hosts-link`를 만든 뒤 `?path=.scratch/hosts-link`가 403.
 - [ ] `?path=.env`와 `?path=node_modules/react/package.json`이 403.
-- [ ] `curl -X POST -H 'content-type: application/json' -H 'Origin: http://evil.example' -d '{"compositionId":"SaasLaunch","kind":"sheet","frames":[1]}' http://127.0.0.1:4317/api/render`가 403. `Origin` 없이 `content-type: text/plain`으로 보낸 것도 403.
+- [ ] `curl -X POST -H 'content-type: application/json' -H 'Origin: http://evil.example' -d '{"compositionId":"KitLaunch","kind":"sheet","frames":[1]}' http://127.0.0.1:4317/api/render`가 403. `Origin` 없이 `content-type: text/plain`으로 보낸 것도 403.
 - [ ] `Origin: http://127.0.0.1:4317`과 `content-type: application/json`을 붙여 보낸 `{"compositionId":"../x","kind":"mp4"}`가 400이고(`Origin` 없이 보내면 403이다) 아무 파일도 생기지 않는다.
 
 회귀
 
 - [ ] `npm run build`, `npm test` 통과.
-- [ ] `npm run render -- examples/samples/saas-launch/entry.tsx SaasLaunch /tmp/x.png --frames 30,120`이 이전처럼 시트를 만든다. 렌더 모드 다리(`window.__FRAMEFORGE__`의 `configure`, `renderFrame`, `audit`, `audio`)가 바뀌지 않았다.
+- [ ] `npm run render -- examples/samples/kit-launch/entry.tsx KitLaunch /tmp/x.png --frames 30,120`이 이전처럼 시트를 만든다. 렌더 모드 다리(`window.__FRAMEFORGE__`의 `configure`, `renderFrame`, `audit`, `audio`)가 바뀌지 않았다.
 
 ### 8.2 범위 자르기
 
 | 묶음 | 내용 |
 | --- | --- |
-| 2.0 반드시 | 다섯 영역 배치와 2.2절 크기 규칙. 레일(제목, 형식, 버전, 검사 점, 열린 요청 수). 무대 머리줄, 안전 영역, 잘림 칩, 반영 시간, 에디터 링크. 타임라인 전송 줄, 장면 레인, 소리 레인(구간, 히트), 검사 레인, 과정 레인(시트 눈금, 요청 마름모). 기획 탭(원문). 과정 탭(읽기, 버전 계산, 요청 작성기, 스틸 없이). 시트 보기와 번호 겹치기. 조정 탭(6개 타입, 미리보기, 초안, 저장). 출력 탭(MP4, 시트, 대기열, SSE 진행, 결과 카드, 검사 넷). API `project`, `file`, `media`, `overrides`, `request`, `render`, `events`와 7.1절 보안. 파일 변경 알림. 해시 위치. `scripts/process.mjs`의 덧붙이기 함수와 CLI. 코어 `Composition`의 `variables`. saas-launch의 변수 선언. 2.9절 단축키. 14개 샘플 `process.json` 채우기(에이전트 작업, 병렬) |
+| 2.0 반드시 | 다섯 영역 배치와 2.2절 크기 규칙. 레일(제목, 형식, 버전, 검사 점, 열린 요청 수). 무대 머리줄, 안전 영역, 잘림 칩, 반영 시간, 에디터 링크. 타임라인 전송 줄, 장면 레인, 소리 레인(구간, 히트), 검사 레인, 과정 레인(시트 눈금, 요청 마름모). 기획 탭(원문). 과정 탭(읽기, 버전 계산, 요청 작성기, 스틸 없이). 시트 보기와 번호 겹치기. 조정 탭(6개 타입, 미리보기, 초안, 저장). 출력 탭(MP4, 시트, 대기열, SSE 진행, 결과 카드, 검사 넷). API `project`, `file`, `media`, `overrides`, `request`, `render`, `events`와 7.1절 보안. 파일 변경 알림. 해시 위치. `scripts/process.mjs`의 덧붙이기 함수와 CLI. 코어 `Composition`의 `variables`. 2.9절 단축키. |
 | 2.1 해야 함 | 리뷰 지적을 과정 레인 구간으로. 스틸과 라이브 비교. 기획서 마크다운 렌더와 장면표 행 연결. `POST /api/open-in-editor`와 변수 선언 줄 번호. 렌더 취소(`AbortSignal`). 요청 스틸 첨부와 `render.mjs` 타일 폭 옵션. 시트 옆 `.json` 배치 정보. CLI `render.mjs`의 `process.json` 기록과 `overrides.json` 사용. "모든 프레임 검사". "세이프 밖" 칩. 구간 반복. 레일 필터. 나머지 42개 컴포지션의 변수 선언. "소스에 반영 요청"(덮어쓰기를 소스 기본값으로 바꾸라는 요청을 한 번에 만듦) |
 | 나중 | 스냅숏과 옛 버전 되돌리기. 두 버전 나란히 재생. 효과음 위치 눈금. 파형. 스튜디오에서 에이전트 직접 실행. 밝은 테마. 여러 진입 파일 전환 |
 
@@ -1070,12 +1068,12 @@ src/core/index.tsx    Composition의 variables prop 보관(검사는 스튜디�
 각 단계는 확인 하나로 끝난다. 확인이 통과해야 다음으로 간다.
 
 1. 빼기. `SCENE_TITLES`, `/api/save`, `studioSave`, 위 막대의 "영상 저장" 버튼, 아래 막대의 잘림 문장을 지운다. `main.tsx`에서 `runtime.tsx`를 떼어 낸다. 확인. `npm test`, 시트 렌더 회귀, 지금 스튜디오가 재생된다.
-2. 모델과 기록. `model.ts` 타입과 파서, 버전 계산, `scripts/process.mjs`. 확인. 테스트 파일 하나로 잠금 중 동시 덧붙이기 두 개가 둘 다 남는지, 깨진 JSON에 덧붙이기가 실패하고 파일을 건드리지 않는지 본다. 이 시점에 에이전트에게 14개 샘플 `process.json` 채우기를 맡긴다.
+2. 모델과 기록. `model.ts` 타입과 파서, 버전 계산, `scripts/process.mjs`. 확인. 테스트 파일 하나로 잠금 중 동시 덧붙이기 두 개가 둘 다 남는지, 깨진 JSON에 덧붙이기가 실패하고 파일을 건드리지 않는지 본다.
 3. 서버 읽기. `studioApi`의 `project`, `file`, `media`와 `paths.ts`. 확인. 8.1절 보안 curl 다섯 개.
 4. 배치. `App`, `Rail`, `StageView`, `Timeline`의 전송 줄과 눈금자, 크기 규칙, 해시, 단축키. 확인. 8.1절 배치와 탐색 항목.
-5. 기획과 레인. `brief.ts`, 기획 탭, 장면 레인, 소리 레인. 확인. saas-launch 장면 띠가 두 줄로 겹침을 보이고 app-onboarding의 `0-150` 형식도 읽힌다.
+5. 기획과 레인. `brief.ts`, 기획 탭, 장면 레인, 소리 레인. 확인. 겹치는 장면 띠가 두 줄로 보이고 `0-150` 형식도 읽힌다.
 6. 과정. 과정 탭, 시트 보기, 과정 레인, 요청 작성기, `POST /api/request`, 파일 변경 알림. 확인. 8.1절 과정 항목.
-7. 조정. 코어 `variables`, saas-launch를 props로 바꾸기, 조정 탭, `POST /api/overrides`. 확인. 8.1절 조정 항목, 그리고 saas-launch의 기본값 시트가 바꾸기 전 시트와 같은 화면이다(기본값이 원래 상수와 같아야 하므로).
+7. 조정. 코어 `variables`, 변수를 쓰는 작품 하나를 props로 바꾸기, 조정 탭, `POST /api/overrides`. 확인. 8.1절 조정 항목, 그리고 그 작품의 기본값 시트가 바꾸기 전 시트와 같은 화면이다(기본값이 원래 상수와 같아야 하므로).
 8. 출력. `jobs.ts`, `checks.ts`, SSE, 출력 탭, 검사 레인, 결과 카드. 확인. 8.1절 출력 항목.
 9. 다듬기. 2.8절 상태 표를 한 줄씩 만들어 본다. 동작 줄이기, 초점 고리, 대비. 확인. 8.1절 전체.
 

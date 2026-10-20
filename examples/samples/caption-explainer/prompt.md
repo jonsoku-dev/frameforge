@@ -43,7 +43,6 @@ One family, Google Fonts `Noto Sans KR`, weights 500 and 900. Captions and the l
 
 - `examples/samples/cafe-morning/Spot.tsx`: motion probes, `MotionSound` wiring, the `Glyphs` rise mask, the `pop` and `span` helpers.
 - `docs/samples/rules.md`: frame and safe-area limits, the headline minimum, and the sound density rule.
-- `docs/references/opus-5-5/README.md`: the available reference index. No film from it is copied.
 
 ## Prohibitions
 
