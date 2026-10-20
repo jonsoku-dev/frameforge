@@ -1030,7 +1030,7 @@ def generate(path, force):
 def main(argv):
     force = '--force' in argv
     paths = [a for a in argv if a != '--force'] or sorted(
-        glob.glob(os.path.join(ROOT, 'examples', '**', 'audio.json'), recursive=True)))
+        glob.glob(os.path.join(ROOT, 'examples', '**', 'audio.json'), recursive=True))
     if not paths:
         fail('score.py', 'no audio specs found')
     for path in paths:
