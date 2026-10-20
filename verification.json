@@ -55,6 +55,133 @@
       "Internals"
     ]
   },
+  "cli": {
+    "status": "ok",
+    "date": "2026-10-21",
+    "method": "scripts/render.mjs drives headless Chrome over DevTools Protocol with Node built-in WebSocket; no puppeteer-core",
+    "contact_sheets": [
+      {
+        "composition": "CafeMorning",
+        "frames": [
+          30,
+          200,
+          400,
+          570
+        ],
+        "output": "renders/samples/cafe-morning-sheet.png",
+        "png": "1932x270",
+        "seconds": 8
+      },
+      {
+        "composition": "KitLaunch",
+        "frames": [
+          30,
+          200,
+          400,
+          570
+        ],
+        "output": "renders/samples/kit-launch-sheet.png",
+        "png": "1932x270",
+        "seconds": 6
+      },
+      {
+        "composition": "LightFestival",
+        "frames": [
+          30,
+          600,
+          1200,
+          1770
+        ],
+        "output": "renders/samples/light-festival-sheet.png",
+        "png": "1932x270",
+        "seconds": 6
+      },
+      {
+        "composition": "TransitionsReel",
+        "frames": [
+          30,
+          200,
+          400,
+          570
+        ],
+        "output": "renders/samples/transitions-reel-sheet.png",
+        "png": "1932x270",
+        "seconds": 7
+      },
+      {
+        "composition": "ShapeNoise",
+        "frames": [
+          30,
+          200,
+          400,
+          570
+        ],
+        "output": "renders/samples/shape-noise-sheet.png",
+        "png": "1932x270",
+        "seconds": 5
+      },
+      {
+        "composition": "CaptionExplainer",
+        "frames": [
+          30,
+          250,
+          500,
+          720
+        ],
+        "output": "renders/samples/caption-explainer-sheet.png",
+        "png": "1932x270",
+        "seconds": 6
+      },
+      {
+        "composition": "VideoCollage",
+        "frames": [
+          30,
+          200,
+          400,
+          570
+        ],
+        "output": "renders/samples/video-collage-sheet.png",
+        "png": "1932x270",
+        "seconds": 6
+      },
+      {
+        "composition": "RouteStory",
+        "frames": [
+          30,
+          200,
+          400,
+          570
+        ],
+        "output": "renders/samples/route-story-sheet.png",
+        "png": "1932x270",
+        "seconds": 6
+      },
+      {
+        "composition": "ThreeSpin",
+        "frames": [
+          30,
+          100,
+          200,
+          270
+        ],
+        "output": "renders/samples/three-spin-sheet.png",
+        "png": "1932x270",
+        "seconds": 6
+      },
+      {
+        "composition": "TemplateSpot",
+        "frames": [
+          30,
+          200,
+          400,
+          570
+        ],
+        "output": "renders/samples/_template-sheet.png",
+        "png": "1932x270",
+        "seconds": 5
+      }
+    ]
+  },
   "text_guard": {
     "date": "2026-10-20",
     "file": "src/studio/textGuard.ts",
