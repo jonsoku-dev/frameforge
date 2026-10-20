@@ -348,7 +348,7 @@ async function main() {
     else positional.push(arg);
   }
   const frames = options['--frames']?.split(',').map(Number);
-  const [entry = 'examples/index.tsx', id = 'Hello', output = 'renders/hello.mp4', propsJson = '{}'] = positional;
+  const [entry = 'examples/samples/index.tsx', id = 'KitLaunch', output = 'renders/kit-launch.mp4', propsJson = '{}'] = positional;
   if (entry === '--help') {
     console.log('npm run render -- [entry.tsx] [composition-id] [output.mp4] [input-props-json] [--frames 30,120,240] [--frame-range 0-299] [--concurrency 3] [--pipe] [--check-idempotent]\nRequires local Chrome and FFmpeg. calculateMetadata runs before encoding. <Audio> and <Video> sound from public/ or a downloaded https:// URL is mixed into the MP4 (volume, trim, playbackRate via atempo, pan for motion sounds); Video frames come from ffmpeg extraction. --frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent fails with frame_not_idempotent when the first, middle or last frame renders differently twice. FRAMEFORGE_PORT changes the Vite port (default 4318).');
     return;

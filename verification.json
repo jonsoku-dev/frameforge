@@ -121,7 +121,7 @@
     "count": 6,
     "execution": "selected frames render",
     "source_commit": "fe10b866da07c5799b226d7ff9598c1dc35d7159",
-    "component_files_unchanged": true,
+    "component_files_unchanged": false, "component_files_changes": "import specifiers renamed to the frameforge alias and one comment line edited",
     "pixel_comparison_before_css_fix": {
       "exact": 5,
       "total": 15

@@ -8,15 +8,15 @@ README에서 옮긴 검증 기록입니다. 각 절의 날짜에 측정한 값�
 
 ## 검증 결과 (2026-10-20)
 
-이 절과 아래 절에 나오는 `cafe-morning`, `YahooJapan` 같은 실제 브랜드 작품은 공개판에서 빠졌습니다. 당시 측정 기록으로만 남깁니다.
+이 절과 아래 절에 나오는 20초 TV 스팟과 기본 미리보기 작품은 실제 브랜드를 써서 공개판에서 빠졌습니다. 당시 측정 기록으로만 남깁니다.
 
 - TypeScript strict 검사와 Vite 프로덕션 빌드 통과. `npm test` 138건 통과(그중 `tests/core.test.tsx` 32건).
 - 기준 엔진 4.0.537 실행값 1554건(interpolate와 그 `posterize`·구간별 `easing`, Easing, random, spring 옵션 조합, overshootClamping 격자, measureSpring, interpolateColors 413건, 두 검증 함수 12건, `Easing.circle`/`bounce` 입력 고정 20건) 전부 `1e-6` 이내 일치. 오류를 기록한 39건은 같은 입력에서 오류를 내는지 확인합니다. 회귀 0.
 - Sequence `playbackRate`/`trimBefore`/`freeze` 동작은 기준 엔진 저장소의 공개 테스트가 기대하는 값으로 검증했습니다(중첩 배속, 소수 프레임 4.5, 잘못된 배속 값 거부). `premountFor`/`postmountFor`는 기준 엔진과 달리 미리 올린 자식을 숨겨 두지 않고 아무것도 그리지 않습니다. 부작용이 있는 컴포넌트는 마운트 시점이 달라질 수 있습니다.
 - 브라우저(렌더 모드): Opening과 커뮤니티 예제 6개 모두 30프레임 렌더에 성공, pageerror 없음. 픽셀 비교는 하지 않았습니다.
 - 라이선스 검토와 참조 범위: `docs/legal/`. 기준 엔진 구현 코드는 복사하지 않았고, 제품 의존성에도 넣지 않았습니다.
-- 작품: `examples/samples/cafe-morning/Spot.tsx`(LINE GAME 20초 TV 스팟, 기획은 `docs/films/line-game-tv/`, 둘 다 공개판에서 제외)와 `examples/Opening.tsx`(15초)를 CLI로 전체 렌더했습니다. 글자 잘림 검사가 두 작품의 전 프레임을 통과했습니다.
-- 소리: 오디오 파일은 커밋하지 않는다. 작품마다 구조를 적은 사양(`examples/line-game-spot.audio.json`(공개판에서 제외), `examples/samples/<slug>/audio.json`)에서 `scripts/assets/score.py`가 음악과 효과음을 `public/audio/generated/<slug>/`에 합성하고, 스튜디오 첫 요청과 `npm run render` 직전에 자동으로 만든다. 형식과 음량 정책은 `docs/audio-score.md`, 스팟의 측정값은 `docs/films/line-game-tv/assets.md`.
+- 작품: 실제 브랜드 20초 TV 스팟(작품 파일과 기획 문서 모두 공개판에서 제외)과 `examples/Opening.tsx`(15초)를 CLI로 전체 렌더했습니다. 글자 잘림 검사가 두 작품의 전 프레임을 통과했습니다.
+- 소리: 오디오 파일은 커밋하지 않는다. 작품마다 구조를 적은 사양(그 스팟의 사양 파일(공개판에서 제외), `examples/samples/<slug>/audio.json`)에서 `scripts/assets/score.py`가 음악과 효과음을 `public/audio/generated/<slug>/`에 합성하고, 스튜디오 첫 요청과 `npm run render` 직전에 자동으로 만든다. 형식과 음량 정책은 `docs/audio-score.md`, 스팟의 측정값 문서는 공개판에서 제외.
 - 가드 보강: 글자 잘림 검사가 이동 중인 글자도 정지 위치 기준으로 검사한다. `Sequence`의 `playbackRate`가 프레임 사이에 바뀌면 스튜디오에서 오류를 낸다(렌더 모드는 프레임마다 다시 마운트하므로 잡지 못함).
 - 글자 잘림 원인과 수정: Gothic A1 900의 한글 잉크는 기준선 위 0.87em까지 올라가지만 글꼴 ascent는 0.80em이라, `line-height: 1` 한 줄 마스크가 윗부분 7%를 잘랐습니다. 두 작품의 글리프 마스크를 위로 0.1em, 좌우로 0.06em 넓혔고(글자 위치는 그대로), 같은 결함이 다시 들어오면 렌더가 실패하도록 검사를 넣었습니다.
 

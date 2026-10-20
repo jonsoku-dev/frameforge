@@ -49,7 +49,7 @@ function scoreOnDemand(): Plugin {
         const [, slug = '', file = ''] = match;
         const target = resolve(directory, 'public/audio/generated', slug, file);
         if (existsSync(target)) return next();
-        const spec = [resolve(films, slug, 'audio.json'), resolve(directory, 'examples', `${slug}.audio.json`)].find(existsSync);
+        const spec = [resolve(films, slug, 'audio.json')].find(existsSync);
         if (!spec) return next();
         const result = spawnSync('python3', [resolve(directory, 'scripts/assets/score.py'), spec], {cwd: directory, encoding: 'utf8'});
         console.log(`[score] ${slug}: ${result.status === 0 ? result.stdout.trim() : `failed: ${(result.stderr || String(result.error)).trim().split('\n').pop()}`}`);
@@ -139,10 +139,10 @@ function videoFrames(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [tailwindcss(), studioApi(project ?? directory.replace(/\/$/, ''), process.env.VIDEO_ENTRY || 'examples/index.tsx'), scoreOnDemand(), artOnDemand(), staticFiles(), videoFrames(), mediaMetadata(directory), optionalPeers(['three', '@react-three/fiber'], directory)],
-  define: {__VIDEO_ENTRY__: JSON.stringify(process.env.VIDEO_ENTRY || 'examples/index.tsx')},
+  plugins: [tailwindcss(), studioApi(project ?? directory.replace(/\/$/, ''), process.env.VIDEO_ENTRY || 'examples/samples/index.tsx'), scoreOnDemand(), artOnDemand(), staticFiles(), videoFrames(), mediaMetadata(directory), optionalPeers(['three', '@react-three/fiber'], directory)],
+  define: {__VIDEO_ENTRY__: JSON.stringify(process.env.VIDEO_ENTRY || 'examples/samples/index.tsx')},
   // dedupe: films in an outside project have no node_modules, so React resolves from the engine.
-  resolve: {alias: {frameforge: resolve(directory, 'src/core/index.tsx'), '@video-entry': resolve(directory, process.env.VIDEO_ENTRY || 'examples/index.tsx'), '@': resolve(directory, 'src')}, dedupe: ['react', 'react-dom']},
+  resolve: {alias: {frameforge: resolve(directory, 'src/core/index.tsx'), '@video-entry': resolve(directory, process.env.VIDEO_ENTRY || 'examples/samples/index.tsx'), '@': resolve(directory, 'src')}, dedupe: ['react', 'react-dom']},
   server: {host: '127.0.0.1', port: 4317, strictPort: true, ...(project ? {fs: {allow: [directory, project]}} : {})},
   build: {outDir: 'dist'},
 });
