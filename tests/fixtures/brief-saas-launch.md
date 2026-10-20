@@ -46,8 +46,6 @@
 
 ## 참고와 이유
 
-- `docs/references/opus-5-5/aiidelist.md`: 한 장면 한 가지 일, 이미 보이던 물체에서 다음 장면, 헤드라인 1.2초, 전환 가족 두세 개.
-- `docs/references/opus-5-5/README.md`: 2–4초마다 화면의 일이 바뀐다, 디스플레이 하나 UI 하나, 강조색 하나.
 - `examples/samples/cafe-morning/Spot.tsx`: `span`, `pop`, `push`, `Glyphs` 패턴과 원형 와이프로 배경을 바꾸는 방식.
 
 ## 금지

@@ -51,9 +51,6 @@
 
 ## 참고와 이유
 
-- `docs/references/opus-5-5/README.md`: "한 프레임은 시간의 함수" 규칙과 "2–4초마다 화면의 일이 바뀐다" 규칙을 따랐다. 이 샘플은 막대가 선이 되고, 선이 밑줄이 되는 식으로 장면이 앞 장면의 물체에서 태어난다.
-- `docs/references/opus-5-5/motion-studio-course.md`: 렌더 계약. 난수는 시드만 쓰고 상태, 타이머, 전환 효과는 쓰지 않는다. 소리는 비트가 아니라 상태 변화 프레임에 둔다.
-- LINE GAME 영상(`examples/samples/cafe-morning/Spot.tsx`): 글자 올리기 마스크와 `pop()` 스프링, 효과음 `Sequence` 배치를 가져왔다.
 
 ## 금지
 
