@@ -6,17 +6,6 @@ Frameforge는 Remotion과 제휴하지 않은 독립 구현입니다. Remotion �
 
 ## 저장소에 들어 있는 제3자 자료
 
-### 커뮤니티 예제 `examples/community/`
-
-| 항목 | 내용 |
-| --- | --- |
-| 출처 | [jessai2026/remotion-playground](https://github.com/jessai2026/remotion-playground/tree/fe10b866da07c5799b226d7ff9598c1dc35d7159), 커밋 `fe10b866da07c5799b226d7ff9598c1dc35d7159` |
-| 라이선스 | MIT, Copyright (c) 2025 Remotion Playground. 원문은 `examples/community/LICENSE` |
-| 메타데이터 차이 | 원 저장소의 루트 LICENSE는 MIT이고 `package.json`은 ISC로 표기합니다. 이 차이는 `examples/community/source.json`에 적었습니다. |
-| 파일 | `compositions/DataViz/BarChart.jsx`, `compositions/TextAnimations/FadeInFadeOut.jsx`, `compositions/TextAnimations/Typewriter.jsx`, `compositions/Particles/StarrySky.jsx`, `compositions/ThreeD/SpringPhysics.jsx`, `compositions/Transitions/SlideTransition.jsx` |
-| 변경 | import 지정자를 이 프로젝트의 alias 이름으로 바꾸고, 주석 한 줄에서 엔진 이름을 뺐습니다. 그 밖의 코드는 고치지 않았습니다. `source.json`의 sha256은 고정 커밋의 원본 파일 값입니다. |
-| 직접 작성 | 등록용 진입점 `examples/community/index.jsx` |
-
 ### LINE Seed 글꼴 `public/fonts/line-seed/`
 
 | 항목 | 내용 |
