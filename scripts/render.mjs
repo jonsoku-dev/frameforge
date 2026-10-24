@@ -307,6 +307,9 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
         if (last < clip.startFrame) continue;
         segments.push({clip: {key: clip.key, src: clip.src, volume: clip.volume, trimBefore: 0, startFrame: clip.startFrame}, first: clip.startFrame, last, pan: clip.pan});
       }
+      // Motion dump for scripts/seam-check.mjs: every probe sample of the whole sequence, written next to the output.
+      await mkdir(dirname(resolve(outputLocation)), {recursive: true});
+      await writeFile(`${resolve(outputLocation)}.motion.json`, JSON.stringify({composition: id, fps: selected.fps, from, to, samples: await lead.evaluate('window.__FRAMEFORGE__.motion()') ?? [], sounds: derived}));
       if (derived.length) console.log(JSON.stringify({motionSounds: derived.map(clip => ({frame: clip.startFrame, role: clip.role, intensity: Math.round(clip.intensity * 100) / 100, pan: clip.pan, file: clip.src.split('/').pop()}))}));
     }
     await mkdir(dirname(resolve(outputLocation)), {recursive: true});

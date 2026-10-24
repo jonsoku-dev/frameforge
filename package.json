@@ -26,7 +26,13 @@
     "lint:video": "node scripts/lint.mjs",
     "skill:install": "node scripts/skill-install.mjs",
     "skill:uninstall": "node scripts/skill-uninstall.mjs",
-    "art": "python3 scripts/assets/art.py"
+    "art": "python3 scripts/assets/art.py",
+    "voice": "python3 scripts/assets/voice.py",
+    "blender": "python3 scripts/assets/blender.py",
+    "models": "python3 scripts/assets/models.py",
+    "beats": "python3 scripts/assets/beats.py",
+    "seam-check": "node scripts/seam-check.mjs",
+    "narration-check": "node scripts/narration-check.mjs"
   },
   "dependencies": {
     "@radix-ui/react-scroll-area": "^1.4.0",
@@ -43,10 +49,12 @@
   "devDependencies": {
     "@react-three/fiber": "9.8.2",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/katex": "^0.16.7",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "0.186.0",
+    "katex": "^0.16.22",
     "lottie-web": "^5.13.0",
     "tailwindcss": "^4.3.3",
     "three": "0.186.1",

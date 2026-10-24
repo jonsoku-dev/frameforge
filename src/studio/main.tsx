@@ -22,6 +22,8 @@ declare global {
       artifacts: () => ArtifactEntry[];
       /** Clips derived from the motion reported by every frame rendered so far (reset when frame 0 renders). */
       soundClips: (fps: number) => DerivedClip[];
+      /** Every motion sample reported so far (reset when frame 0 renders); seam-check reads the dump the renderer writes from it. */
+      motion: () => MotionSample[];
     };
   }
 }
@@ -64,6 +66,7 @@ async function start() {
           return collectFrameHints();
         },
         soundClips: () => mapSoundEvents(deriveSoundEvents(motion), maps, definitions.values().next().value?.fps ?? 30),
+        motion: () => motion,
         audit: () => findClippedText(target).map(({element, ...rest}) => rest),
         audio: collectAudio,
         video: collectVideos,
