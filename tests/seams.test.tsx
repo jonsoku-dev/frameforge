@@ -146,6 +146,22 @@ test('checkSeams: clean passes, mirrored, axis swap, dead beat, speed mismatch a
   assert.deepEqual(sparse.skipped, [150]);
 });
 
+test('checkSeams at 60 fps: the window and the rest threshold follow the render rate, not the frame count', () => {
+  // 50 px over 24 frames moves under the per-frame rest threshold at 60 fps but over it per 1/30 s: alive at 60 fps.
+  const slow60 = [...series('a-out', 36, exitCurve(-50, 24)), ...series('a-in', 60, entryCurve(50, 24))];
+  assert.deepEqual(checkSeams(slow60, [60], {window: 24}).findings.map(f => f.code), ['seam_dead_beat'], 'read as 30 fps frames it looks at rest');
+  assert.deepEqual(checkSeams(slow60, [60], {fps: 60}).findings, []);
+  assert.equal(checkSeams(series('a-out', 36, exitCurve(-50, 24)), [60], {fps: 60, from: 0, to: 70}).skipped.length, 1, 'a 24-frame window past the dump end is skipped');
+});
+
+test('parseScenes: a Cuts line overrides the table, so a continuous film declares its real cuts or none', () => {
+  const table = '| Frames | What |\n|---|---|\n| 0-90 | hook |\n| 90-240 | beat |\n';
+  assert.deepEqual(parseScenes(`Cuts: none\n\n${table}`), []);
+  assert.deepEqual(parseScenes(`- Cuts: 120, 300\n${table}`), [120, 300]);
+  assert.deepEqual(parseScenes(table), [90]);
+  assert.deepEqual(parseScenes(`Cuts: TODO the frames of real cuts, or \`none\`\n\n${table}`), [90], 'an unfilled template line falls back to the table');
+});
+
 test('parseScenes reads the start of every scene-table row after the first, from a snippet and from the seam-reel brief', () => {
   assert.deepEqual(parseScenes('| Frames | What |\n|---|---|\n| 0-90 | hook |\n| 90–240 | beat |\n| 240-899 | name, still from 840 |\n'), [90, 240]);
   assert.deepEqual(parseScenes(readFileSync('examples/samples/seam-reel/prompt.md', 'utf8')), [90, 240, 390, 540, 690]);

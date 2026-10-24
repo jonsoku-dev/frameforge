@@ -2,29 +2,60 @@
 
 Copy this folder to `examples/samples/<slug>/`. Rename `template.audio.json` to `audio.json` and set its `slug` to `<slug>`; change `/audio/generated/template/` in `Spot.tsx` to `/audio/generated/<slug>/`; rename `TemplateSpot` and the composition id in `entry.tsx`. Fill every TODO below and in the copy, keep `SIZES`.
 
-Purpose: TODO one sentence. Who watches it and what they should do after.
-Fictional brand: TODO name. Not a real company, product or logo. Numbers are labelled "예시" or "샘플 데이터".
+The six sections follow `docs/samples/rules.md` "기획 구조". The table alone decides *what*; Direction and Banned decide *how good*. A worked example: `examples/samples/morph-ui/prompt.md`.
 
-Format: 1920x1080, 30 fps, 600 frames, composition id `TODO`, port TODO.
-Palette: ink #111111 (TODO role), paper #F4F4F1 (TODO role), accent #2F5BFF (TODO role). Four colours at most.
-Fonts: Gothic A1 900 headlines (Glyphs rise), Noto Sans KR 500 labels.
-Assets: TODO hero and its reductions. Prefer the motif kit (`import {Cup} from '@/assets'`) or an `assets.json` resolved by `npm run art` and drawn with `<Art>`; draw in `assets.tsx` (one `STROKE`, one `RADIUS`; replace the placeholder `Cup` and `Card`) only what neither covers. No icon library.
-Sizes (`SIZES` in Spot.tsx, short side 1080): headline 108 px, label 38 px, icon 65 px, hero shape 378 px, margins 96 px / 54 px. Nothing smaller.
+## Inputs
 
-| Frames | Fills the frame | Motion | Text |
-|---|---|---|---|
-| 0-90 | Hook: TODO | TODO | TODO |
-| 90-210 | Beat: TODO | TODO | TODO |
-| 210-330 | Beat: TODO | TODO | TODO |
-| 330-450 | Promise: TODO | TODO | TODO |
-| 450-540 | Name: TODO | TODO | TODO |
-| 540-599 | hold | nothing moves | same |
+Ask for these before anything else; the defaults stand when nobody answers.
 
-"Fills the frame" names the thing that covers most of the picture in that row. If the answer is "the background", the row is empty: add a hero shape, a screen card or a full-bleed colour.
+- Purpose: TODO one sentence. Who watches it and what they should do after.
+- Fictional brand: TODO name. Not a real company, product or logo. Numbers are labelled "예시" or "샘플 데이터".
+- States the hero becomes: TODO 6–12 (e.g. button, loader, check, toggle, slider, chart, card, toast).
+- Palette: ink #111111 (TODO role), paper #F4F4F1 (TODO role), accent #2F5BFF (TODO role). Four colours at most.
+- Fonts: TODO one display, one UI (Google Fonts).
+- Music: BPM TODO (generated from `audio.json`; an external track only with its licence written here and `npm run beats`).
 
-Audio: /audio/generated/<slug>/music.wav at 0.9. TODO sfx name at TODO frames (each one an on-screen event). `hits` in audio.json at the same seconds.
-References: TODO file and why (e.g. examples/samples/cafe-morning/Spot.tsx for Glyphs, motion probes and MotionSound, examples/samples/_template/Spot.tsx for Callout and Screen).
-Prohibitions: TODO. Always: no glow, particles, bezel, real brand, text smaller than `SIZES.label`.
+## Direction
 
-Check frames (contact sheet): 40, 150, 270, 390, 500, 590, plus TODO one frame per scene event.
-Composition check: `npm run frame-check -- renders/samples/<slug>.mp4` must print PASS.
+TODO one paragraph of taste: the bar it is held to (e.g. "Dribbble-level UI motion"), the one hero, what the camera does (it reframes so each state fills the frame), the grammar (continuous morph or joined scenes, `rules.md` 모션), the easing character (springs, a tiny overshoot at most), the end (2 s still or an exact loop).
+
+Banned: TODO the clichés this film would fall into, by name. Always: headline-plus-three-cards layouts, fade-only entrances, bouncy easing, glow, particles, bezel, real brand, dead beats, text smaller than `SIZES.label`, anything that looks like a template.
+
+## Structure
+
+TODO BPM, TODO bars, something happens on every beat (one beat = 60 / BPM s = TODO frames).
+
+| Frames | Beat | The hero becomes | The camera fills the frame with | Text |
+|---|---|---|---|---|
+| 0-90 | 1–3 | Hook: TODO | TODO | TODO |
+| 90-210 | 4–7 | TODO | TODO | TODO |
+| 210-330 | 8–11 | TODO | TODO | TODO |
+| 330-450 | 12–15 | TODO | TODO | TODO |
+| 450-599 | 16–20 | Name: TODO, still from 540 | TODO | TODO |
+
+Fold the final still into the last row (a separate hold row would read as a cut to seam-check). If a row's camera answer is "the background", the row is empty.
+
+Cuts: TODO the frames of real cuts, or `none` for a continuous morph. seam-check reads this line instead of the rows; delete it in a joined-scene film.
+
+## Build
+
+- Format: 1920x1080, TODO 30 or 60 fps (60 for a continuous morph, a fast camera or motion blur), TODO frames, composition id `TODO`, port TODO.
+- Sizes (`SIZES` in Spot.tsx, short side 1080): headline 108 px, label 38 px, icon 65 px, hero shape 378 px, margins 96 px / 54 px, measured after the camera.
+- Every value is a function of the frame. Values whose target changes on many beats use `springTrack`; the camera is one `springTrack` per axis, reported with `<MotionProbe family="camera">`.
+- Motion blur (60 fps): TODO `<CameraMotionBlur shutterAngle={180} samples={4}>` around the picture; probes, `Audio` and `MotionSound` stay outside it.
+- Assets: TODO hero and its reductions. Prefer blocks (`@/blocks`), the motif kit (`@/assets`) or an `assets.json` resolved by `npm run art`; draw in `assets.tsx` (one `STROKE`, one `RADIUS`) only what none covers. No icon library.
+- Sound: /audio/generated/<slug>/music.wav at 0.9, sections on bar lines, `hits` on the TODO biggest state changes, derived sound effects from the probes.
+- Before the full render: a contact sheet with one frame per beat (TODO list). Fix anything off the grid, cramped or hard to read.
+- Check: `node bin/frameforge.mjs check renders/samples/<slug>.mp4 --film <slug>`; frame-check must print PASS.
+- References: TODO file and why (e.g. examples/samples/morph-ui/Spot.tsx for the morph, camera and blur; examples/samples/cafe-morning/Spot.tsx for Glyphs and MotionSound).
+
+## Gotchas
+
+- Never put `will-change` on anything the camera scales: text renders blurry.
+- Text that swaps inside a morphing container needs its own exit and entry timing, or the two overlap.
+- Probes inside `CameraMotionBlur` are frozen copies and report nothing; keep them at the root.
+- TODO what broke while making this film.
+
+## Start
+
+Show the state list on the beat grid (the Structure table) and get it confirmed before writing `Spot.tsx`.

@@ -20,7 +20,7 @@ const USAGE = `frameforge <command>
   seam-check <video>.motion.json [--prompt prompt.md|--scenes a,b]
   narration-check <slug> [--prompt prompt.md]
   lint <slug|entry.tsx>            결정성 린트
-  check <video.mp4> [--fps 30] [--film <slug|folder>] [--prompt prompt.md] [--json]
+  check <video.mp4> [--fps N] [--film <slug|folder>] [--prompt prompt.md] [--json]
                                    frame-check, flash-check, seam-check(<video>.motion.json이 있을 때), narration-check(narration.timing.json이 있을 때)를 한 표로`;
 
 /** The nearest folder at or above `start` holding frameforge.json, with its films folder; null inside the engine checkout. */
@@ -99,15 +99,15 @@ export function summarize(name, stdout, stderr) {
 }
 
 /** frame-check, flash-check, then seam-check and narration-check when their script and input exist; each row is {check, status, detail}. */
-export function runChecks(video, {fps = '30', folder, prompt, project} = {}) {
+export function runChecks(video, {fps, folder, prompt, project} = {}) {
   const script = name => join(ENGINE, 'scripts', `${name}.mjs`);
   const motion = `${video}.motion.json`;
   const brief = prompt ?? (folder && existsSync(join(folder, 'prompt.md')) ? join(folder, 'prompt.md') : undefined);
   const timing = folder && join(folder, 'narration.timing.json');
   const optional = (name, input, missing) => !existsSync(script(name)) ? `scripts/${name}.mjs 없음` : !input ? missing : !existsSync(input) ? `${basename(input)} 없음` : null;
   const plan = [
-    {check: 'frame-check', args: [script('frame-check'), video, '--fps', fps]},
-    {check: 'flash-check', args: [script('flash-check'), video, fps]},
+    {check: 'frame-check', args: [script('frame-check'), video, ...(fps ? ['--fps', fps] : [])]},
+    {check: 'flash-check', args: [script('flash-check'), video, ...(fps ? [fps] : [])]},
     {check: 'seam-check', skip: optional('seam-check', motion, ''), args: [script('seam-check'), motion, ...(brief ? ['--prompt', brief] : [])]},
     {check: 'narration-check', skip: optional('narration-check', timing, '--film 없음'), args: [script('narration-check'), folder ?? '']},
   ];
@@ -216,7 +216,7 @@ export function main(argv) {
       const film = flag(flags, '--film');
       const folder = film === undefined ? undefined : film.includes('/') ? resolve(cwd, film) : join(filmsOf(project), film);
       const prompt = flag(flags, '--prompt');
-      const rows = runChecks(video, {fps: flag(flags, '--fps') ?? '30', folder, prompt: prompt ? resolve(cwd, prompt) : undefined, project});
+      const rows = runChecks(video, {fps: flag(flags, '--fps'), folder, prompt: prompt ? resolve(cwd, prompt) : undefined, project});
       console.log(flags.includes('--json') ? JSON.stringify(rows, null, 1) : checkTable(rows));
       return rows.some(row => row.status === 'FAIL') ? 1 : 0;
     }

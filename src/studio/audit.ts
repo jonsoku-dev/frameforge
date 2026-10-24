@@ -64,7 +64,18 @@ export function paintedBackground(element: Element, rect: Rect, rootColor: Rgba 
   const stack = document.elementsFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
   const at = stack.indexOf(element);
   // The element itself comes first: text sits on its own background when the same node carries colour and background-color.
-  return at < 0 ? effectiveBackground(element, rootColor, root) : firstOpaque(stack.slice(at).filter(node => root.contains(node) || node === root), rootColor);
+  return at < 0 ? effectiveBackground(element, rootColor, root) : firstOpaque(stack.slice(at).filter(node => (root.contains(node) || node === root) && painted(node, root)), rootColor);
+}
+
+/** Whether `node` paints at all: a layer faded to opacity 0 (an exited state) or hidden still hit-tests, but shows nothing behind the text. */
+function painted(node: Element, root: Element): boolean {
+  let opacity = 1;
+  for (let up: Element | null = node; up && up !== root.parentElement; up = up.parentElement) {
+    const style = getComputedStyle(up);
+    if (style.visibility === 'hidden') return false;
+    opacity *= Number(style.opacity);
+  }
+  return opacity > 0.05;
 }
 
 export const rectsOverlap = (a: Rect, b: Rect): number => Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
@@ -90,15 +101,19 @@ function textBoxes(root: Element, viewport: {width: number; height: number}): Te
     range.selectNodeContents(node);
     const r = range.getBoundingClientRect();
     if (!(r.width > 0 && r.height > 0) || r.right <= 0 || r.bottom <= 0 || r.left >= viewport.width || r.top >= viewport.height) continue;
-    let opacity = 1, hidden = false;
+    let opacity = 1, hidden = false, copy = false;
     for (let up: Element | null = parent; up && up !== root.parentElement; up = up.parentElement) {
       const style = getComputedStyle(up);
       opacity *= Number(style.opacity);
       hidden ||= style.visibility === 'hidden';
+      // <CameraMotionBlur> stacks frozen copies with plus-lighter; only the top copy is the text a viewer reads.
+      copy ||= style.mixBlendMode === 'plus-lighter' && up.nextElementSibling !== null && getComputedStyle(up.nextElementSibling).mixBlendMode === 'plus-lighter';
     }
-    if (hidden || opacity <= 0.05) continue;
+    if (hidden || copy || opacity <= 0.05) continue;
     const box = boxes.get(parent);
-    if (!box) boxes.set(parent, {element: parent, text: text.slice(0, 24), rect: rectOf(r), fontSize: parseFloat(getComputedStyle(parent).fontSize)});
+    // Size on screen: a camera scale between the text and the root makes 30px world text read as 39px.
+    const scale = parent.offsetHeight > 0 ? parent.getBoundingClientRect().height / parent.offsetHeight : 1;
+    if (!box) boxes.set(parent, {element: parent, text: text.slice(0, 24), rect: rectOf(r), fontSize: parseFloat(getComputedStyle(parent).fontSize) * scale});
     else {
       const x = Math.min(box.rect.x, r.left), y = Math.min(box.rect.y, r.top);
       box.rect = {x: round(x), y: round(y), width: round(Math.max(box.rect.x + box.rect.width, r.right) - x), height: round(Math.max(box.rect.y + box.rect.height, r.bottom) - y)};

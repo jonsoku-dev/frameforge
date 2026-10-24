@@ -7,15 +7,19 @@ import {existsSync} from 'node:fs';
 const args = process.argv.slice(2);
 const flag = (name, fallback) => { const i = args.indexOf(`--${name}`); return i < 0 ? fallback : Number(args[i + 1]); };
 const file = args.find((a, i) => !a.startsWith('--') && !args[i - 1]?.match(/^--(fps|hold)$/));
-if (!file) { console.error('usage: node scripts/frame-check.mjs <video.mp4> [--fps 30] [--hold 60] [--json]'); process.exit(2); }
+if (!file) { console.error('usage: node scripts/frame-check.mjs <video.mp4> [--fps N] [--hold frames] [--json]\nfps defaults to the video\'s own rate, hold to its last 2 s.'); process.exit(2); }
 if (!existsSync(file)) { console.error(`no such file: ${file}`); process.exit(2); }
-const fps = flag('fps', 30), hold = flag('hold', 60), json = args.includes('--json');
-const T = {diff: 24, empty: 0.01, still: 0.002, reportStill: 45, failEmpty: 30, failStill: 120, huddle: 0.4, failHuddled: 0.25, rowInk: 0.05, band: 0.06, failThin: 0.08};
 
 const ffmpeg = process.env.FFMPEG_PATH || 'ffmpeg';
 const ffprobe = process.env.FFPROBE_PATH || ffmpeg.replace(/ffmpeg$/, 'ffprobe');
-const [srcW, srcH] = execFileSync(ffprobe, ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', file]).toString().trim().split(',').map(Number);
-const width = 480, height = Math.round(srcH * width / srcW / 2) * 2, px = width * height, size = px * 3, short = Math.min(width, height);
+const [srcW, srcH, rate] = execFileSync(ffprobe, ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate', '-of', 'csv=p=0', file]).toString().trim().split(',');
+const [num, den = '1'] = rate.split('/');
+const fps = flag('fps', Number(num) / Number(den) || 30), hold = flag('hold', Math.round(2 * fps)), json = args.includes('--json');
+// Durations were tuned at 30 fps; they are seconds, so they scale with the rate. `step` compares each frame with the one
+// 1/30 s earlier, so a 60 fps film moving at the same speed reads as moving, not as half-static.
+const sec = s => Math.round(s * fps), step = Math.max(1, Math.round(fps / 30));
+const T = {diff: 24, empty: 0.01, still: 0.002, reportStill: sec(1.5), failEmpty: sec(1), failStill: sec(4), huddle: 0.4, failHuddled: 0.25, rowInk: 0.05, band: 0.06, failThin: 0.08};
+const width = 480, height = Math.round(Number(srcH) * width / Number(srcW) / 2) * 2, px = width * height, size = px * 3, short = Math.min(width, height);
 const proc = spawn(ffmpeg, ['-v', 'error', '-i', file, '-vf', `scale=${width}:${height},format=rgb24`, '-f', 'rawvideo', '-'], {stdio: ['ignore', 'pipe', 'inherit']});
 const chunks = [];
 for await (const chunk of proc.stdout) chunks.push(chunk);
@@ -26,7 +30,7 @@ if (!frames) { console.error(`no frames decoded from ${file}`); process.exit(2);
 const stats = [];
 const bins = new Uint32Array(4096), rows = new Uint32Array(height);
 for (let f = 0; f < frames; f++) {
-  const cur = raw.subarray(f * size, (f + 1) * size), prev = f ? raw.subarray((f - 1) * size, f * size) : null;
+  const cur = raw.subarray(f * size, (f + 1) * size), prev = f >= step ? raw.subarray((f - step) * size, (f - step + 1) * size) : null;
   bins.fill(0); rows.fill(0);
   for (let i = 0; i < size; i += 3) bins[(cur[i] >> 4) << 8 | (cur[i + 1] >> 4) << 4 | cur[i + 2] >> 4]++;
   let mode = 0;
@@ -74,7 +78,7 @@ const fails = [
   ...(huddledShare >= T.failHuddled ? [`huddled share ${r3(huddledShare)} >= ${T.failHuddled}`] : []),
   ...(thinShare >= T.failThin ? [`thin share ${r3(thinShare)} >= ${T.failThin}`] : []),
 ];
-const report = {file, width: srcW, height: srcH, frames, fps, hold, coverage, emptyRanges: empty, staticRuns, huddledShare: r3(huddledShare), thinRanges: thin, thinShare: r3(thinShare), fails, pass: fails.length === 0};
+const report = {file, width: Number(srcW), height: Number(srcH), frames, fps, hold, coverage, emptyRanges: empty, staticRuns, huddledShare: r3(huddledShare), thinRanges: thin, thinShare: r3(thinShare), fails, pass: fails.length === 0};
 
 if (json) console.log(JSON.stringify(report, null, 1));
 else {

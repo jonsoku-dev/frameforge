@@ -51,12 +51,14 @@ export function seamVector(samples, boundary, side, window = 12, size = {width: 
 const fmt = v => v ? `${v.axis ?? '-'}${v.direction > 0 ? '+' : v.direction < 0 ? '-' : '0'} @ ${(v.speed * 1000).toFixed(1)}‰/f` : 'no data';
 const name = v => v.axis === 'z' ? (v.direction > 0 ? 'push (growing)' : 'pull (shrinking)') : `${v.axis}${v.direction > 0 ? '+' : '-'}`;
 
-/** Findings for every boundary. Options: {window, width, height, from, to}. Boundaries whose windows fall outside [from, to]
+/** Findings for every boundary. Options: {window, width, height, from, to, fps}. `fps` (default 30) scales the default window
+ * (12 frames at 30 fps, 0.4 s) and the rest threshold, so a 60 fps film is judged on the same seconds and pixels per second. Boundaries whose windows fall outside [from, to]
  * are skipped (listed in `skipped`), so a partial render checks only the seams it contains. A boundary is measured (errors
  * possible) only when both sides carry camera-family samples, which <Seam> reports; a plain wipe or a film without seams
  * gets `seam_unmeasured` warnings with whatever other probes showed, never a failure. */
 export function checkSeams(samples, boundaries, options = {}) {
-  const window = options.window ?? 12;
+  const perThirtieth = (options.fps ?? 30) / 30;
+  const window = options.window ?? Math.round(12 * perThirtieth);
   const size = {width: options.width ?? 1920, height: options.height ?? 1080};
   const from = options.from ?? -Infinity, to = options.to ?? Infinity;
   const findings = [], vectors = [], skipped = [];
@@ -71,7 +73,7 @@ export function checkSeams(samples, boundaries, options = {}) {
     }
     if (!out.camera || !inc.camera) { push(boundary, 'seam_unmeasured', `No camera probe ${!out.camera && !inc.camera ? 'on either side of' : !out.camera ? 'before' : 'after'} the cut at frame ${boundary}; other probes read out ${fmt(out)}, in ${fmt(inc)}.`, `Join the scenes with <Seam> (or report each side's wrapper with <MotionProbe family="camera">) so the seam can be measured.`, out, inc, 'warning'); continue; }
     vectors.push({boundary, out, in: inc});
-    const outRest = out.speed < REST, inRest = inc.speed < REST;
+    const outRest = out.speed * perThirtieth < REST, inRest = inc.speed * perThirtieth < REST;
     if (outRest || inRest) { push(boundary, 'seam_dead_beat', `${outRest && inRest ? 'Both sides are' : outRest ? 'The outgoing side is' : 'The incoming side is'} at rest around frame ${boundary} (out ${fmt(out)}, in ${fmt(inc)}).`, `Land the cut mid-motion: exit with an ease-in (power 4) over ${window} frames, enter with the mirrored ease-out, and put the cut at the midpoint (cutTheCurve/zoomThrough/inverseZoom do this).`, out, inc); continue; }
     if (out.axis !== inc.axis) { push(boundary, 'seam_axis_swap', `Exit moves on ${out.axis}, entry on ${inc.axis} at frame ${boundary}.`, `Keep one axis across the cut: give the incoming scene the outgoing scene's axis (${out.axis}), or cut both to the film's current.`, out, inc); continue; }
     if (out.direction !== inc.direction) { push(boundary, 'seam_mirrored_vector', `Exit is ${name(out)}, entry is ${name(inc)} at frame ${boundary}: the entry answers the exit instead of continuing it.`, out.axis === 'z' ? `Match the scale sign: a receding exit (shrinking) needs an entry that also shrinks from large to 1 (inverseZoom); a growing exit needs an entry growing from small (zoomThrough).` : `Keep the sign: an exit to the left needs an entry arriving from the right and still moving left; never mirror the vector.`, out, inc); continue; }
@@ -89,10 +91,14 @@ export function checkSeams(samples, boundaries, options = {}) {
 
 const mode = list => list.length ? [...list.reduce((m, k) => m.set(k, (m.get(k) ?? 0) + 1), new Map())].sort((a, b) => b[1] - a[1])[0][0] : null;
 
-/** Scene boundaries from a prompt.md scene table: the first `a-b` range in every table row names that scene's frames, and
+/** Scene boundaries from a prompt.md: a `Cuts:` line when present, otherwise the scene table: the first `a-b` range in every table row names that scene's frames, and
  * every row start after the first is a cut. Fold the final still into the last scene's row; a separate hold row would be
  * a boundary where nothing moves. */
 export function parseScenes(markdown) {
+  // A continuous film's rows are state changes, not cuts: a `Cuts: none` or `Cuts: 120, 300` line names the real cuts.
+  const declared = /^\s*(?:[-*]\s*)?Cuts:\s*(.*)$/im.exec(markdown);
+  // An unfilled template line (`Cuts: TODO ...`) is not a declaration: fall back to the table.
+  if (declared && !/TODO/.test(declared[1])) return (declared[1].match(/\d+/g) ?? []).map(Number);
   const starts = [];
   for (const line of markdown.split('\n')) {
     if (!line.trimStart().startsWith('|')) continue;
@@ -128,14 +134,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const flag = name => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
   const file = args.find(a => !a.startsWith('--') && !args[args.indexOf(a) - 1]?.startsWith('--'));
   if (!file || args.includes('--help')) {
-    console.log('node scripts/seam-check.mjs <render.mp4.motion.json> [--scenes 90,210,330 | --prompt examples/samples/<slug>/prompt.md] [--window 12] [--width 1920] [--height 1080] [--json]\nBoundaries are cut frames: --scenes lists them, --prompt reads the start of every scene-table row after the first, otherwise they are inferred from where the probe set changes. Exit 1 on errors.');
+    console.log('node scripts/seam-check.mjs <render.mp4.motion.json> [--scenes 90,210,330 | --prompt examples/samples/<slug>/prompt.md] [--window frames, default 0.4 s] [--width 1920] [--height 1080] [--json]\nBoundaries are cut frames: --scenes lists them, --prompt reads the start of every scene-table row after the first, otherwise they are inferred from where the probe set changes. Exit 1 on errors.');
     process.exit(0);
   }
   const dump = JSON.parse(readFileSync(file, 'utf8'));
   const samples = dump.samples ?? [];
   const boundaries = flag('--scenes') ? flag('--scenes').split(',').map(Number) : flag('--prompt') ? parseScenes(readFileSync(flag('--prompt'), 'utf8')) : inferBoundaries(samples, dump.from ?? 0);
-  const window = Number(flag('--window') ?? 12);
-  const report = checkSeams(samples, boundaries, {window, width: Number(flag('--width') ?? 1920), height: Number(flag('--height') ?? 1080), from: dump.from ?? 0, to: dump.to ?? Infinity});
+  const window = flag('--window') ? Number(flag('--window')) : undefined;
+  const report = checkSeams(samples, boundaries, {...(window ? {window} : {}), fps: dump.fps ?? 30, width: Number(flag('--width') ?? 1920), height: Number(flag('--height') ?? 1080), from: dump.from ?? 0, to: dump.to ?? Infinity});
   const errors = report.findings.filter(f => f.severity === 'error').length;
   if (args.includes('--json')) console.log(JSON.stringify({...report, source: file, errors}));
   else {

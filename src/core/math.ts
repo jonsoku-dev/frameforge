@@ -121,6 +121,19 @@ export function spring({frame, fps, from = 0, to = 1, delay = 0, config = {}, du
   if (config.overshootClamping) progress = to > from ? Math.min(progress, to) : Math.max(progress, to);
   return from + (to - from) * progress;
 }
+/** A value whose target changes many times, still a pure function of the frame: `from` plus one spring per change.
+ * `keys` lists each change's start frame and new target in order; each spring carries the step from the previous target,
+ * so a change that starts while the last one is still moving blends into it instead of jumping. */
+export function springTrack({frame, fps, from, keys, config = {}}: {frame: number; fps: number; from: number; keys: readonly {at: number; to: number}[]; config?: SpringConfig}): number {
+  finite(from, 'springTrack from');
+  let value = from, previous = from;
+  for (const {at, to} of keys) {
+    finite(at, 'springTrack at'); finite(to, 'springTrack to');
+    if (frame >= at) value += (to - previous) * spring({frame: frame - at, fps, config});
+    previous = to;
+  }
+  return value;
+}
 /** Frames after which the spring stays within threshold of `to`. */
 export function measureSpring({fps, config = {}, threshold = 0.005, from = 0, to = 1}: {fps: number; config?: SpringConfig; threshold?: number; from?: number; to?: number}): number {
   positive(fps, 'fps'); positive(threshold, 'threshold');

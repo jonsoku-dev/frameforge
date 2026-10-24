@@ -6,6 +6,6 @@ export type SeamReport = {boundaries: number[]; skipped: number[]; current: stri
 export const REST: number;
 export const RATIO: [number, number];
 export function seamVector(samples: SeamSample[], boundary: number, side: 'out' | 'in', window?: number, size?: {width: number; height: number}): SeamVectorReading | null;
-export function checkSeams(samples: SeamSample[], boundaries: number[], options?: {window?: number; width?: number; height?: number; from?: number; to?: number}): SeamReport;
+export function checkSeams(samples: SeamSample[], boundaries: number[], options?: {window?: number; width?: number; height?: number; from?: number; to?: number; fps?: number}): SeamReport;
 export function parseScenes(markdown: string): number[];
 export function inferBoundaries(samples: SeamSample[], from?: number): number[];

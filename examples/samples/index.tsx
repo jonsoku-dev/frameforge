@@ -11,6 +11,7 @@ import {Spot as ThreeSpin} from './three-spin/Spot';
 import {BlocksReel} from './blocks-reel/Spot';
 import {DataReel} from './data-reel/Spot';
 import {SeamReel} from './seam-reel/Spot';
+import {MorphUi} from './morph-ui/Spot';
 import {NarratedExplainer} from './narrated-explainer/Spot';
 import {TurntableSpot} from './turntable-spot/Spot';
 import {GenerativeIdent} from './generative-ident/Spot';
@@ -32,6 +33,7 @@ registerRoot(() => <>
   <Composition id="BlocksReel" component={BlocksReel} durationInFrames={900} fps={30} width={1920} height={1080} />
   <Composition id="DataReel" component={DataReel} durationInFrames={900} fps={30} width={1920} height={1080} />
   <Composition id="SeamReel" component={SeamReel} durationInFrames={900} fps={30} width={1920} height={1080} />
+  <Composition id="MorphUi" component={MorphUi} durationInFrames={960} fps={60} width={1920} height={1080} />
   <Composition id="NarratedExplainer" component={NarratedExplainer} durationInFrames={870} fps={30} width={1920} height={1080} />
   <Composition id="TurntableSpot" component={TurntableSpot} durationInFrames={720} fps={30} width={1920} height={1080} />
   <Composition id="GenerativeIdent" component={GenerativeIdent} variables={GenerativeIdent.variables} durationInFrames={540} fps={30} width={1920} height={1080} />
