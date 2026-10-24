@@ -85,7 +85,7 @@ const at = {define: n.at('define'), formula: n.at('formula')};
 | `narrationFrames(timing, fps)` | 줄마다 `startFrame`, `endFrame`, `durationInFrames`와 `total` |
 | `useNarration(timing)` | `useVideoConfig`의 fps와 `useCurrentFrame`으로 `{lines, total, current, index, progress, at(id), line(id)}`. `at`은 시작 프레임, `line`은 줄 전체. 없는 id는 오류 |
 | `<Voiceover src volume />` | `voice.wav`의 `<Audio>`. 루트에 하나 |
-| `<Subtitles timing style="rail"｜"embed" position maxChars fonts palette size radius />` | `rail`(기본): 대사를 그대로, 하단 10% 안쪽 가운데, 단어가 줄의 앞 60% 동안 차례로 나타나고(판은 드러난 단어만 감싸며 가운데 정렬), `emphasis`는 paper 글자에 accent 밑줄, 판은 ink와 paper를 82:18로 섞은 불투명 색, 모서리는 `radius`. `maxChars`(기본 24)를 넘으면 가운데 가까운 띄어쓰기에서 두 줄. 다음 줄이 오기 전 0.5초까지 남고, 마지막 줄은 목소리와 함께 사라진다. `embed`: 현재 줄의 `embed` 단어 하나를 아주 크게(기본 짧은 변의 46%) 가운데에, 10프레임 들어오고 8프레임에 나간다. 피사체 **아래**에 마운트한다 |
+| `<Subtitles timing style="rail"｜"embed" position maxChars fonts palette size radius />` | `rail`(기본): 대사를 그대로, 80% 타이틀 세이프 상자 안 아래쪽 가운데, 단어가 줄의 앞 60% 동안 차례로 나타나고(판은 드러난 단어만 감싸며 가운데 정렬), `emphasis`는 paper 글자에 accent 밑줄, 판은 ink와 paper를 82:18로 섞은 불투명 색, 모서리는 `radius`. `maxChars`(기본 24)를 넘으면 가운데 가까운 띄어쓰기에서 두 줄. 다음 줄이 오기 전 0.5초까지 남고, 마지막 줄은 목소리와 함께 사라진다. `embed`: 현재 줄의 `embed` 단어 하나를 아주 크게(기본 짧은 변의 46%) 가운데에, 10프레임 들어오고 8프레임에 나간다. 피사체 **아래**에 마운트한다 |
 | `<SubtitleLine line reveal fonts palette size radius maxChars />` | 위치 없는 레일 한 줄. 직접 배치할 때 |
 | `captionsFromTiming(timing)` | 줄마다 `Caption` 하나. `serializeSrt({lines: captions.map(c => [c])})`로 .srt |
 

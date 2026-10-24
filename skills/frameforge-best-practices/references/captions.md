@@ -11,7 +11,7 @@ Lines → voice → timing → scenes. Write `narration.json`, run `npm run voic
 | Treatment | What it is | How often |
 | --- | --- | --- |
 | **drop** | Filler the ear accepts but the eye does not need ("so", "let's see", a repeated word). It is spoken and not shown. | Freely, but the rail still shows the line verbatim; drop only by leaving it out of the written line. |
-| **rail** | The default. The line, verbatim, in a lower plate in front of everything, readable at a glance, words appearing in speaking order. Inline emphasis (`emphasis`) colours a phrase in the accent; it does not change size. | Every line. |
+| **rail** | The default. The line, verbatim, in a lower plate in front of everything, readable at a glance, words appearing in speaking order. Inline emphasis (`emphasis`) underlines a phrase in the accent; it does not change size or colour. | Every line. |
 | **embed** | The scarce promoted peak. One word, very large, behind the subject, with a designed entrance and exit. It is the picture for a moment, not a caption. | At most one per line (`embed`), never on two neighbouring lines, one or two per film. |
 
 Pick embed only for the word the film is about. If two candidates compete in one line, neither is the peak; keep both in the rail.
@@ -20,7 +20,7 @@ Pick embed only for the word the film is about. If two candidates compete in one
 
 - Verbatim. The viewer hears and reads the same words; a paraphrase makes them check twice.
 - One or two rows, centred, inside the 80% title-safe box (bottom edge at 10% of the height). Break at the space nearest the middle, never mid-word.
-- Paper text on a soft ink plate with the film's one corner radius; emphasis words in the accent, nothing else coloured.
+- Paper text on an opaque plate (ink mixed with a little paper) with the film's one corner radius; emphasis words carry an accent underline, nothing else coloured.
 - Words appear across the first part of the line, so the rail reads as speech; the full line stays until the next line starts (through a short gap), and the last line leaves with the voice so the final hold is still.
 - Size at or above the label minimum (3.5% of the short side; the default is 4%).
 
