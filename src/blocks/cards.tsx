@@ -1,13 +1,14 @@
 import type {ComponentType, CSSProperties, ReactNode} from 'react';
 import {MotionProbe} from 'frameforge';
 import type {ArtProps} from '@/assets';
-import {blockPhase, blockPlace, blockRise, blockSettle, Counter, GlyphRise, type BlockProps} from './text';
+import {blockMask, blockPhase, blockPlace, blockRise, blockSettle, Counter, GlyphRise, sampleTag, type BlockProps} from './text';
 import type {BlockEntry} from './types';
 
-/** A big Counter over a label on a paper card with the template's ink offset block; the 예시 tag sits beside the label so the number never
+/** A big Counter over a label on a paper card with the template's ink offset block; the sample-data tag (`sampleTag`) sits beside the label so the number never
  * meets the card edge. The card springs up from below and drops back out. */
-export function StatCard({value, label, unit = '', prefix = '', decimals = 0, example = true, width, height, ...props}: BlockProps & {value: number; label: string; unit?: string; prefix?: string; decimals?: number; example?: boolean; width?: number; height?: number}) {
-  const {frame, at, size, palette, fonts, fps = 30, id = `stat-${at}`} = props;
+export function StatCard({value, label, unit = '', prefix = '', decimals = 0, example = true, width, height, ...props}: BlockProps & {value: number; label: string; unit?: string; prefix?: string; decimals?: number; example?: boolean | string; width?: number; height?: number}) {
+  const {frame, at, size, palette, fonts, fps = 30, lang, id = `stat-${at}`} = props;
+  const tag = sampleTag(example, lang, label, unit);
   const w = width ?? size * 10, h = height ?? size * 5.2, offset = size * 0.4;
   const {leave, hidden} = blockPhase(props, 1, 14);
   const lift = (1 - blockSettle(frame, at, 20, fps, true) + leave) * h * 3;
@@ -18,7 +19,7 @@ export function StatCard({value, label, unit = '', prefix = '', decimals = 0, ex
       <div style={{position: 'absolute', inset: 0, background: palette.paper}}>
         <Counter {...props} id={`${id}-count`} at={at + 8} x={size * 0.6} y={size * 0.55} size={size * 2.4} to={value} unit={unit} prefix={prefix} decimals={decimals} count={36} />
         <div style={{position: 'absolute', left: size * 0.6, bottom: size * 0.55, display: 'flex', alignItems: 'center', gap: size * 0.4, fontFamily: fonts.ui, fontSize: size, fontWeight: 500, color: palette.ink, whiteSpace: 'nowrap', opacity: blockRise(frame, at + 16, 10)}}>
-          {label}{example ? <span style={{fontSize: size * 0.7, padding: '0.1em 0.5em', border: `${Math.max(2, size * 0.03)}px solid currentColor`, borderRadius: 999}}>예시</span> : null}
+          {label}{tag ? <span style={{fontSize: size * 0.7, padding: '0.1em 0.5em', border: `${Math.max(2, size * 0.03)}px solid currentColor`, borderRadius: 999}}>{tag}</span> : null}
         </div>
       </div>
     </div>
@@ -125,11 +126,14 @@ export function LogoOutro({brand, tagline, color, ...props}: BlockProps & {brand
   const {leave, hidden} = blockPhase(props, 1, 12);
   const rule = blockRise(frame, at + 14, 16) * (1 - leave);
   const tag = blockRise(frame, at + 28, 12) * (1 - leave);
-  return <div style={blockPlace(props, hidden)}>
+  return <div style={blockPlace({...props, align}, hidden)}>
     <div style={{display: 'flex', flexDirection: 'column', alignItems: {left: 'flex-start', center: 'center', right: 'flex-end'}[align], gap: size * 0.3, opacity: 1 - leave}}>
       <div style={{position: 'relative', height: size * 1.15, display: 'flex', justifyContent: 'center'}}>
         <GlyphRise {...props} id={id} x={0} y={0} text={brand} color={color} />
-        <span style={{visibility: 'hidden', fontFamily: fonts.display, fontSize: size, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em', whiteSpace: 'nowrap'}}>{brand}</span>
+        {/* The spacer repeats GlyphRise's per-glyph masks: one text run kerns and comes out narrower, which pushed the brand off the rule's centre. */}
+        <span style={{display: 'flex', visibility: 'hidden', fontFamily: fonts.display, fontSize: size, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em', whiteSpace: 'nowrap'}}>
+          {Array.from(brand).map((glyph, i) => <span key={i} style={blockMask}>{glyph === ' ' ? '\u00A0' : glyph}</span>)}
+        </span>
       </div>
       <div style={{width: size * 4, height: size * 0.12, background: palette.accent, transform: `scaleX(${rule})`, transformOrigin: align === 'left' ? 'left' : align === 'right' ? 'right' : 'center'}} />
       <div style={{fontFamily: fonts.ui, fontSize: size * 0.4, fontWeight: 500, color: color ?? palette.ink, opacity: tag, whiteSpace: 'nowrap'}}>{tagline}</div>
@@ -138,7 +142,7 @@ export function LogoOutro({brand, tagline, color, ...props}: BlockProps & {brand
 }
 
 export const CARD_BLOCKS: BlockEntry[] = [
-  {id: 'stat-card', title: 'Stat card', family: 'card', props: ['value', 'label', 'unit', 'prefix', 'decimals=0', 'example=true (tag beside the label)', 'width=size*10', 'height=size*5.2'], when: 'One number that matters, counted up on a card that springs in; two side by side for a comparison.'},
+  {id: 'stat-card', title: 'Stat card', family: 'card', props: ['value', 'label', 'unit', 'prefix', 'decimals=0', 'example=true|false|text (tag beside the label)', 'lang=en|ja|ko', 'width=size*10', 'height=size*5.2'], when: 'One number that matters, counted up on a card that springs in; two side by side for a comparison.'},
   {id: 'notification-card', title: 'Notification card', family: 'card', props: ['icon (kit component from @/assets)', 'title', 'body', 'time', 'from=top|right', 'width'], when: 'A product moment shown as a toast: an alert, a saved record, a message received.'},
   {id: 'message-thread', title: 'Message thread', family: 'card', props: ['messages[{side,name,text}]', 'step=24', 'typing=10', 'width'], when: 'A short conversation: two or three bubbles with a typing beat before each reply.'},
   {id: 'ticker', title: 'Ticker', family: 'card', props: ['items[]', 'speed=4', 'cell=size*9', 'height=size*2.2'], when: 'A strip of many short items (cities, features, prices) scrolling without end.'},

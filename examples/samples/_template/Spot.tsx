@@ -7,7 +7,7 @@ const W = 1920;
 const H = 1080;
 const S = Math.min(W, H);
 // Minimums from docs/samples/rules.md (구성 최소치). Go bigger, never smaller.
-const SIZES = {headline: S * 0.1, label: S * 0.035, icon: S * 0.06, hero: S * 0.35, marginX: W * 0.05, marginY: H * 0.05};
+const SIZES = {headline: S * 0.1, label: Math.ceil(S * 0.035), icon: S * 0.06, hero: S * 0.35, marginX: W * 0.05, marginY: H * 0.05};
 const display = googleFont('Gothic A1', {weights: [900], fallback: 'sans-serif'});
 const ui = googleFont('Noto Sans KR', {weights: [500], fallback: 'sans-serif'});
 const ink = '#111111';
@@ -43,9 +43,9 @@ function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 
     {Array.from(text).map((glyph, index, glyphs) => {
       if (index > 0 && glyphs[index - 1] === ' ' && glyph !== ' ') word++;
       const rise = span(frame, at + word * stagger, 8);
-      // Gothic A1 ink rises 0.87em above the baseline but the 1em line box only holds 0.8em, so the mask grows upward without moving the glyph.
-      return <span key={index} style={{display: 'inline-block', overflow: 'hidden', height: '1.15em', paddingTop: '0.1em', marginTop: '-0.1em', paddingInline: '0.06em', marginInline: '-0.06em'}}>
-        <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * 120}%)`, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? '\u00A0' : glyph}</span>
+      // Gothic A1 ink rises 0.87em above the baseline but the 1em line box only holds 0.8em, so the mask grows 0.1em up and 0.25em down (descenders) without moving the glyph; hidden glyphs wait at 150 %, past its clip edge.
+      return <span key={index} style={{display: 'inline-block', overflow: 'hidden', height: '1.4em', paddingTop: '0.1em', marginTop: '-0.1em', marginBottom: '-0.25em', paddingInline: '0.06em', marginInline: '-0.06em'}}>
+        <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * 150}%)`, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? '\u00A0' : glyph}</span>
       </span>;
     })}
   </span>;
@@ -90,11 +90,12 @@ function Callout({frame, at, end, rect: [x, y, w, h], text, icon}: {frame: numbe
 }
 
 function Hook({frame}: {frame: number}) {
-  const hero = pop(frame, AT.hook, 18) * SIZES.hero;
+  // The hook fills the frame from frame 0: an accent disc wider than the screen is already contracting into the hero, never a dot growing on black.
+  const hero = SIZES.hero + (W * 1.1 - SIZES.hero) * (1 - pop(frame, AT.hook, 36, true));
   return <AbsoluteFill style={{background: ink}}>
     <MotionProbe id="hero" value={hero} family="shape" axis="scale" />
     <div data-subject="hero" style={{position: 'absolute', right: SIZES.marginX + S * 0.05, top: (H - SIZES.hero) / 2, width: SIZES.hero, height: SIZES.hero, ...center, transform: float(frame)}}>
-      <div style={{width: hero * breathe(frame, 60, 0.03), height: hero * breathe(frame, 60, 0.03), borderRadius: '50%', background: accent}} />
+      <div style={{width: hero * breathe(frame, 60, 0.03), height: hero * breathe(frame, 60, 0.03), flex: 'none', borderRadius: '50%', background: accent}} />
     </div>
     <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.34, display: 'flex', flexDirection: 'column', gap: S * 0.02}}>
       <Glyphs text="TODO 질문 한 줄" frame={frame} at={AT.hook + 10} color={paper} />
@@ -118,12 +119,15 @@ function Beat({frame, at, title, items}: {frame: number; at: number; title: stri
 function ScreenBeat({frame}: {frame: number}) {
   const at = AT.beat2;
   return <AbsoluteFill style={{background: accent}}>
+    {/* The screen and its callout float together, so the shot never freezes while the callout reads; no scale, so the label stays at the minimum size. */}
+    <AbsoluteFill style={{transform: drift(frame + 30, {x: 10, y: 6, scale: 0, period: 240})}}>
     <Screen frame={frame} at={at}>
       {/* Swap for <Img src={staticFile('/screens/<slug>/<name>.png')} style={{width: '100%', height: '100%'}} /> when a capture exists. */}
       <div style={{position: 'absolute', left: '6%', top: '10%', width: '50%', height: '12%', background: ink}} />
       <div style={{position: 'absolute', left: '6%', top: '34%', width: '88%', height: '50%', background: accent, opacity: 0.25}} />
     </Screen>
     <Callout frame={frame} at={at + 40} end={AT.promise - 4} rect={[W * 0.15 + W * 0.7 * 0.06, H * 0.15 + H * 0.7 * 0.1, W * 0.7 * 0.5, H * 0.7 * 0.12]} text="TODO 이 버튼이 하는 일" icon={Cup} />
+    </AbsoluteFill>
   </AbsoluteFill>;
 }
 

@@ -21,7 +21,7 @@ The repository root is the folder that holds `package.json` with `"name": "frame
 ## Hard rules
 
 - Deterministic frames only: no `Math.random`, wall clock, timers, CSS animations. Use `random(seed)`.
-- Korean copy for Korean briefs; fictional brands; numbers labelled 예시; real screens only in explainers, unmodified, with trademark notes in `prompt.md`.
+- Copy in the brief's language; fictional brands with plausible, specific names (never "Client A"); sample numbers labelled once, small, in the film's language ("Sample data", "サンプルデータ", "샘플 데이터"; blocks pick the word from `lang` or their copy); real screens only in explainers, unmodified, with trademark notes in `prompt.md`.
 - No shared audio or asset files committed: everything under `public/audio/generated/` and `public/assets/generated/` is produced on demand from the specs.
 - Never show text in a garbled intermediate state: a reveal shows only whole glyphs at full opacity or none (word-level mask rises of ≤ 8 frames are the allowed motion). No scramble effects.
 - Craft tools are allowed with a one-line reason in `prompt.md` Build: one soft glow or vignette, film grain or halftone (`grainEffect`, `<Generative system="halftone">`), a second gradient for depth, purposeful particles (never dust), small HUD or metadata text in corners when it is part of the design language. Still banned: an icon library for heroes, off-palette colours, clip-art, stock gloss.

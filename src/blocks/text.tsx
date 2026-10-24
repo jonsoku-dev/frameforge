@@ -7,7 +7,20 @@ export type BlockFonts = {display: string; ui: string};
 /** The contract every block shares: the scene passes its frame; `at` starts the entry, `out` (or `at + duration`) starts the exit,
  * which reverses the entry on the same axis; `size` is the block's main font size in px (secondary text is 0.7×, so pass ≥ 5 % of
  * the short side when a block has secondary text, ≥ 10 % for headlines); `x`/`y` place in px, else `align` inside the 5 % safe area. */
-export type BlockProps = {frame: number; at: number; out?: number; duration?: number; fps?: number; palette: BlockPalette; fonts: BlockFonts; size: number; x?: number; y?: number; align?: 'left' | 'center' | 'right'; id?: string};
+export type BlockProps = {frame: number; at: number; out?: number; duration?: number; fps?: number; palette: BlockPalette; fonts: BlockFonts; size: number; x?: number; y?: number; align?: 'left' | 'center' | 'right'; id?: string; lang?: FilmLang};
+
+/** The film's language; it picks the sample-data tag's word. */
+export type FilmLang = 'en' | 'ja' | 'ko';
+const SAMPLE: Record<FilmLang, string> = {en: 'Sample', ja: 'サンプル', ko: '예시'};
+
+/** Text of the sample-data tag, or null for none: a string `example` as written, else the word for `lang`, else for the script of the
+ * block's own copy (Hangul → 예시, kana → サンプル, anything else → Sample). */
+export function sampleTag(example: boolean | string | undefined, lang: FilmLang | undefined, ...copy: (string | undefined)[]): string | null {
+  if (!example) return null;
+  if (typeof example === 'string') return example;
+  const text = copy.join(' ');
+  return SAMPLE[lang ?? (/[\u3040-\u30ff]/.test(text) ? 'ja' : /[\uac00-\ud7af]/.test(text) ? 'ko' : 'en')];
+}
 
 const CLAMP = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 const OUT = Easing.bezier(0.16, 1, 0.3, 1);
@@ -38,8 +51,11 @@ export function blockPlace({x, y, align = 'left'}: Pick<BlockProps, 'x' | 'y' | 
     ...(y === undefined ? {top: 0, bottom: 0, alignItems: 'center'} : {top: y})};
 }
 
-/** Glyph mask of the template: the line box is 0.8em but the ink rises 0.87em, so the mask grows 0.1em up and 0.06em out without moving the glyph. */
-export const blockMask: CSSProperties = {display: 'inline-block', overflow: 'hidden', height: '1.15em', paddingTop: '0.1em', marginTop: '-0.1em', paddingInline: '0.06em', marginInline: '-0.06em'};
+/** Glyph mask of the template: the line box is 0.8em but the ink rises 0.87em, so the mask grows 0.1em up, 0.25em down (descenders
+ * of g, j, p, y) and 0.06em out without moving the glyph. Its clip edge sits at most 1.4em below the line top (either box-sizing), so a hidden glyph waits at
+ * `MASK_DROP` % of its 1em box, past that edge. */
+export const blockMask: CSSProperties = {display: 'inline-block', overflow: 'hidden', height: '1.4em', paddingTop: '0.1em', marginTop: '-0.1em', marginBottom: '-0.25em', paddingInline: '0.06em', marginInline: '-0.06em'};
+export const MASK_DROP = 150;
 
 const nbsp = (glyph: string) => glyph === ' ' ? ' ' : glyph;
 
@@ -62,7 +78,7 @@ export function GlyphRise({text, stagger = 1, rise = 8, by = 'word', color, weig
     <MotionProbe id={id} value={(1 - lift(0)) * 120} family="text" axis="y" />
     <span style={{display: 'flex', color: color ?? palette.ink, fontFamily: fonts.display, fontSize: size, fontWeight: weight, lineHeight: 1, letterSpacing: '-0.04em', whiteSpace: 'nowrap'}}>
       {glyphs.map((glyph, i) => <span key={i} style={blockMask}>
-        <span style={{display: 'inline-block', transform: `translateY(${(1 - lift(i)) * 120}%)`, visibility: lift(i) <= 0 ? 'hidden' : 'visible'}}>{nbsp(glyph)}</span>
+        <span style={{display: 'inline-block', transform: `translateY(${(1 - lift(i)) * MASK_DROP}%)`, visibility: lift(i) <= 0 ? 'hidden' : 'visible'}}>{nbsp(glyph)}</span>
       </span>)}
     </span>
   </div>;
@@ -83,7 +99,7 @@ export function WordCascade({lines, stagger = 4, color, weight = 900, ...props}:
     <div style={{display: 'flex', flexDirection: 'column', gap: size * 0.18, alignItems: {left: 'flex-start', center: 'center', right: 'flex-end'}[align], color: color ?? palette.ink, fontFamily: fonts.display, fontSize: size, fontWeight: weight, lineHeight: 1, letterSpacing: '-0.04em'}}>
       {words.map((line, li) => <div key={li} style={{display: 'flex', gap: '0.28em', whiteSpace: 'nowrap'}}>
         {line.map((word, wi) => <span key={wi} style={blockMask}>
-          <span style={{display: 'inline-block', transform: `translateY(${(1 - lift(word)) * 120}%)`, visibility: lift(word) <= 0 ? 'hidden' : 'visible'}}>{word.word}</span>
+          <span style={{display: 'inline-block', transform: `translateY(${(1 - lift(word)) * MASK_DROP}%)`, visibility: lift(word) <= 0 ? 'hidden' : 'visible'}}>{word.word}</span>
         </span>)}
       </div>)}
     </div>
@@ -167,9 +183,10 @@ export function formatNumber(value: number, decimals: number): string {
   return whole!.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction ? `.${fraction}` : '');
 }
 
-/** Counts `from`→`to` over `count` frames with a cubic ease-out; tabular digits keep the width still. `example` adds the 예시 tag. */
-export function Counter({from = 0, to, decimals = 0, prefix = '', unit = '', count = 40, example = false, color, weight = 900, ...props}: Text & {from?: number; to: number; decimals?: number; prefix?: string; unit?: string; count?: number; example?: boolean}) {
-  const {frame, at, size, palette, fonts, id = `count-${at}`} = props;
+/** Counts `from`→`to` over `count` frames with a cubic ease-out; tabular digits keep the width still. `example` adds the sample-data tag (`sampleTag`). */
+export function Counter({from = 0, to, decimals = 0, prefix = '', unit = '', count = 40, example = false, color, weight = 900, ...props}: Text & {from?: number; to: number; decimals?: number; prefix?: string; unit?: string; count?: number; example?: boolean | string}) {
+  const {frame, at, size, palette, fonts, lang, id = `count-${at}`} = props;
+  const tag = sampleTag(example, lang, prefix, unit);
   const {p, hidden} = blockPhase(props, 10, 10);
   const t = blockRise(frame, at, count, Easing.out(Easing.cubic));
   const value = from + (to - from) * t;
@@ -178,7 +195,7 @@ export function Counter({from = 0, to, decimals = 0, prefix = '', unit = '', cou
     <span style={{display: 'inline-flex', alignItems: 'baseline', gap: size * 0.18, color: color ?? palette.ink, fontFamily: fonts.display, fontSize: size, fontWeight: weight, lineHeight: 1, letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', opacity: p, transform: `translateY(${(1 - p) * 0.25}em)`}}>
       <span>{prefix}{formatNumber(value, decimals)}</span>
       {unit ? <span style={{fontSize: size * 0.5}}>{unit}</span> : null}
-      {example ? <span style={{fontFamily: fonts.ui, fontSize: size * 0.35, fontWeight: 500, letterSpacing: 0, padding: '0.1em 0.5em', border: `${Math.max(2, size * 0.02)}px solid currentColor`, borderRadius: 999, alignSelf: 'center'}}>예시</span> : null}
+      {tag ? <span style={{fontFamily: fonts.ui, fontSize: size * 0.35, fontWeight: 500, letterSpacing: 0, padding: '0.1em 0.5em', border: `${Math.max(2, size * 0.02)}px solid currentColor`, borderRadius: 999, alignSelf: 'center'}}>{tag}</span> : null}
     </span>
   </div>;
 }
@@ -189,5 +206,5 @@ export const TEXT_BLOCKS: BlockEntry[] = [
   {id: 'zoom-swap', title: 'Zoom swap', family: 'text', props: ['words[]', 'hold=36', 'swap=16', 'color', 'weight=900'], when: 'One slot cycling through alternatives (times, places, verbs): a Z-axis swap through blur, never two readable at once.'},
   {id: 'typewriter', title: 'Typewriter', family: 'text', props: ['text', 'speed=4', 'blink=15', "by='word'|'glyph'", 'color', 'weight=500'], when: 'A sentence being written: whole words arrive behind a blinking block caret; the exit deletes them.'},
   {id: 'highlight-sweep', title: 'Highlight sweep', family: 'text', props: ['before', 'word', 'after', 'delay=12', 'sweep=14', 'color', 'weight=900'], when: 'Stress one word in a sentence: an accent bar sweeps behind it and the word turns paper.'},
-  {id: 'counter', title: 'Counter', family: 'text', props: ['to', 'from=0', 'decimals=0', 'prefix', 'unit', 'count=40', 'example=false', 'color', 'weight=900'], when: 'A number that counts up with tabular digits and an optional unit, prefix and 예시 tag.'},
+  {id: 'counter', title: 'Counter', family: 'text', props: ['to', 'from=0', 'decimals=0', 'prefix', 'unit', 'count=40', 'example=false|true|text', 'lang=en|ja|ko', 'color', 'weight=900'], when: 'A number that counts up with tabular digits and an optional unit, prefix and sample-data tag in the film\'s language.'},
 ];

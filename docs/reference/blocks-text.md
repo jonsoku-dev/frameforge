@@ -110,7 +110,8 @@ import {LowerThird, GlyphRise, StatCard} from '@/blocks';
 | `decimals` | 0 | 소수 자리 |
 | `prefix`, `unit` | '' | 앞·뒤 붙는 글자(단위는 0.5×) |
 | `count` | 40 | 세는 프레임 |
-| `example` | false | `예시` 태그(0.35×, 그래서 size는 108 이상) |
+| `example` | false | 샘플 데이터 태그(0.35×, 그래서 size는 108 이상). `true`면 `lang` 또는 글자의 문자 체계로 Sample, サンプル, 예시를 고르고, 문자열이면 그 글자를 쓴다 |
+| `lang` | 없음 | `'en' \| 'ja' \| 'ko'`. 태그 글자의 언어 |
 
 ```tsx
 <Counter frame={frame} at={446} align="center" size={S * 0.26} palette={palette} fonts={fonts} color={palette.paper} to={1284} unit="일" example />
@@ -153,7 +154,8 @@ import {LowerThird, GlyphRise, StatCard} from '@/blocks';
 | --- | --- | --- |
 | `value`, `label` | | 숫자, 라벨 |
 | `unit`, `prefix`, `decimals` | | Counter에 그대로 |
-| `example` | true | 예시 태그 |
+| `example` | true | 샘플 데이터 태그(`true`, `false`, 글자). 작품에서 한 번만 켠다 |
+| `lang` | 없음 | `'en' \| 'ja' \| 'ko'`. 태그 글자의 언어 |
 | `width`, `height` | size×10, size×5.2 | 카드 크기 |
 
 ```tsx

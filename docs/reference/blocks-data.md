@@ -18,7 +18,8 @@
 | `radius` | 모서리 반지름 하나. 기본 `size × 0.4` |
 | `x`, `y`, `width`, `height` | 부모 안의 절대 위치와 크기(px). 블록은 `position: absolute` 상자다 |
 | `id` | 선택. `MotionProbe` 키. 기본 `<block>-<at>`. 같은 `at`에 같은 블록을 둘 두면 지정한다 |
-| `example` | 차트만. 기본 `true`, 오른쪽 위에 `예시` 알약을 붙인다. 실제 수치는 금지이므로 한국어 작품에서는 켜 둔다 |
+| `example` | 차트만. 기본 `true`, 오른쪽 위에 샘플 태그 알약을 붙인다. 글자는 `lang` 또는 차트 라벨의 문자 체계로 Sample, サンプル, 예시 중 하나이고, 문자열을 주면 그 글자다. 작품에서 한 번만 켜거나 각주 하나로 대신한다 |
+| `lang` | 차트만. `'en' \| 'ja' \| 'ko'`. 태그 글자의 언어 |
 
 모든 움직임은 `frameforge`의 `interpolate`, `spring`, `Easing`에서 나오고, 선은 `evolvePath`로 길이를 따라 그려집니다. 글자는 `<svg>` 밖의 HTML에 두어 글자 잘림 검사가 걸리지 않게 했고, 숫자는 `tabular-nums`입니다. 막대·경로는 `MotionProbe` family `shape`, 패널·행은 `card`로 보고하므로 `<MotionSound families={['shape', 'card']}>`가 소리를 받습니다.
 

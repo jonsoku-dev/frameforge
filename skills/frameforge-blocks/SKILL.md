@@ -48,7 +48,7 @@ Helpers exported from `@/blocks` for your own scene code: `blockRise(frame, from
 | `zoom-swap` | `ZoomSwap` | text | `words[]`, `hold=36`, `swap=16` | one slot cycling alternatives; Z-axis swap through blur, never two readable |
 | `typewriter` | `Typewriter` | text | `text`, `speed=4`, `blink=15`, `by='word'\|'glyph'` | a sentence being written word by word behind a block caret; the exit deletes it |
 | `highlight-sweep` | `HighlightSweep` | text | `before`, `word`, `after`, `delay=12`, `sweep=14` | stress one word; an accent bar sweeps behind it and it turns paper |
-| `counter` | `Counter` | text | `to`, `from=0`, `decimals`, `prefix`, `unit`, `count=40`, `example` | a number counting up with tabular digits and the 예시 tag |
+| `counter` | `Counter` | text | `to`, `from=0`, `decimals`, `prefix`, `unit`, `count=40`, `example`, `lang` | a number counting up with tabular digits and a sample-data tag in the film's language |
 | `lower-third` | `LowerThird` | lower-third | `variant` (`clean-bar`, `bold-block`, `kicker-name`, `soft-pill`, `mask-reveal`, `side-rule`), `name`, `role`, `side`, `enter=16`, `exit=12` | who or what is on screen, over a running scene, in the lower corner of the safe area |
 | `stat-card` | `StatCard` | card | `value`, `label`, `unit`, `prefix`, `decimals`, `example=true`, `width`, `height` | one number that matters on a card with the ink offset block; two side by side to compare |
 | `notification-card` | `NotificationCard` | card | `icon` (kit component from `@/assets`), `title`, `body`, `time`, `from=top｜right`, `width` | a product moment as an OS-neutral toast that slides in, holds, slides out |

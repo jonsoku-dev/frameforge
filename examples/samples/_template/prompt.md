@@ -9,7 +9,7 @@ The six sections follow `docs/samples/rules.md` "기획 구조". The table alone
 Ask for these before anything else; the defaults stand when nobody answers.
 
 - Purpose: TODO one sentence. Who watches it and what they should do after.
-- Fictional brand: TODO name. Not a real company, product or logo. Numbers are labelled "예시" or "샘플 데이터".
+- Fictional brand: TODO name. Not a real company, product or logo. Invented names are plausible and specific (never "Client A"). Sample numbers carry one small footnote in the film's language ("Sample data", "サンプルデータ", "샘플 데이터"), not a tag on every stat.
 - States the hero becomes: TODO 6–12 (e.g. button, loader, check, toggle, slider, chart, card, toast).
 - Palette: ink #111111 (TODO role), paper #F4F4F1 (TODO role), accent #2F5BFF (TODO role). Four colours at most.
 - Fonts: TODO one display, one UI (Google Fonts).
@@ -27,7 +27,7 @@ TODO BPM, TODO bars, something happens on every beat (one beat = 60 / BPM s = TO
 
 | Frames | Beat | The hero becomes | The camera fills the frame with | Text |
 |---|---|---|---|---|
-| 0-90 | 1–3 | Hook: TODO | TODO | TODO |
+| 0-90 | 1–3 | Hook: TODO a striking, frame-filling image or action by frame 30 (macro crop, full-bleed texture, a move under way), never a small mark on an empty field | TODO | TODO |
 | 90-210 | 4–7 | TODO | TODO | TODO |
 | 210-330 | 8–11 | TODO | TODO | TODO |
 | 330-450 | 12–15 | TODO | TODO | TODO |
