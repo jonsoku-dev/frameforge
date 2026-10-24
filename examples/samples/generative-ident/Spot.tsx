@@ -20,7 +20,11 @@ const ease = Easing.bezier(0.16, 1, 0.3, 1);
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} satisfies {extrapolateLeft: 'clamp'; extrapolateRight: 'clamp'};
 const center: CSSProperties = {display: 'flex', alignItems: 'center', justifyContent: 'center'};
 // Absolute scene starts; the last 60 frames are the still hold.
-const AT = {open: 0, flow: 120, seam: 240, statement: 246, name: 390, hold: 480, end: 540};
+const AT = {open: 0, flow: 120, seam: 240, statement: 252, name: 390, hold: 480, end: 540};
+// Wave sizes: the kit drawing's ink fills about 64 % of its box, so 640 px shows 410 px of wave (35 % of the short side is 378).
+const HERO = 640;
+const FLOW_WAVE = 560;
+const STATEMENT_WAVE = 600;
 
 /** Studio tune tab: the aurora's seed and two of its parameters, taken from the system's own schema so the ranges stay in one place. */
 export const variables = [
@@ -56,25 +60,33 @@ function Line({children}: {children: ReactNode}) {
   return <span style={{display: 'flex', alignItems: 'baseline'}}>{children}</span>;
 }
 
+/** The headline band cut out of a background (evenodd hole) as the flow headline rises, so no band or stroke runs through the glyphs. */
+function headlineHole(frame: number): string | undefined {
+  const hole = span(frame, AT.flow + 26, 12);
+  if (hole === 0) return undefined;
+  const hx = SIZES.marginX - S * 0.04, hy = H * 0.36 - S * 0.05, hw = (S * 0.1 * 6.4 + S * 0.08) * hole, hh = S * 0.1 * 2.3 + S * 0.09;
+  return `polygon(evenodd, 0 0, ${W}px 0, ${W}px ${H}px, 0 ${H}px, 0 0, ${hx}px ${hy}px, ${hx + hw}px ${hy}px, ${hx + hw}px ${hy + hh}px, ${hx}px ${hy + hh}px, ${hx}px ${hy}px)`;
+}
+
 /** The aurora runs under the open and the flow; its seed and two parameters are the film's tunable variables. */
-function Sky({bands, speed, seed}: {bands: number; speed: number; seed: string}) {
-  return <Generative system="aurora" seed={seed} width={W} height={H} fit="fill" palette={palette} params={{bands, speed, height: 0.2, amplitude: 0.08, scale: 1.1}} style={{position: 'absolute', left: 0, top: 0}} />;
+function Sky({bands, speed, seed, frame}: {bands: number; speed: number; seed: string; frame: number}) {
+  return <Generative system="aurora" seed={seed} width={W} height={H} fit="fill" palette={palette} params={{bands, speed, height: 0.16, amplitude: 0.07, scale: 1.1}} style={{position: 'absolute', left: 0, top: 0, clipPath: headlineHole(frame)}} />;
 }
 
 /** The wave enters at the centre, then shrinks into the top-left mark as the flow scene starts. */
 function Hero({frame}: {frame: number}) {
   const enter = pop(frame, AT.open, 26);
   const shrink = span(frame, AT.flow, 30);
-  const size = SIZES.hero * 1.35 * (1 - shrink) + SIZES.icon * 2.6 * shrink;
-  const left = (W - SIZES.hero * 1.35) / 2 * (1 - shrink) + SIZES.marginX * shrink;
-  const top = (H - SIZES.hero * 1.35) / 2 * (1 - shrink) + SIZES.marginY * shrink;
+  const size = HERO * (1 - shrink) + FLOW_WAVE * shrink;
+  const left = (W - HERO) / 2 * (1 - shrink) + (W - SIZES.marginX - FLOW_WAVE) * shrink;
+  const top = (H - HERO) / 2 * (1 - shrink) + (H - FLOW_WAVE) / 2 * shrink;
   return <>
     <MotionProbe id="hero-enter" value={enter * SIZES.hero} family="shape" axis="scale" />
     <MotionProbe id="hero-shrink" value={shrink * W} family="card" axis="x" />
     <div style={{position: 'absolute', left, top, width: size, height: size, transform: `scale(${enter})`, visibility: enter === 0 ? 'hidden' : 'visible'}}>
-      <Wave size={size} ink={paper} accent={accent} soft={soft} paper={paper} stroke={STROKE * size / (SIZES.hero * 1.35)} radius={RADIUS} draw={span(frame, AT.open + 8, 50)} />
+      <Wave size={size} ink={paper} accent={accent} soft={soft} paper={paper} stroke={STROKE * size / HERO} radius={RADIUS} draw={span(frame, AT.open + 8, 50)} />
     </div>
-    {frame < AT.flow ? <div style={{position: 'absolute', left: 0, right: 0, top: (H + SIZES.hero * 1.35) / 2 + S * 0.03, ...center, fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.3, color: soft, opacity: span(frame, AT.open + 66, 14) * (1 - span(frame, AT.flow - 12, 12))}}>흐름을 그리는 스튜디오 · 가상 브랜드</div> : null}
+    {frame < AT.flow ? <div style={{position: 'absolute', left: 0, right: 0, top: (H + HERO) / 2 + S * 0.01, ...center, fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.3, color: soft, opacity: span(frame, AT.open + 66, 14) * (1 - span(frame, AT.flow - 12, 12))}}>흐름을 그리는 스튜디오 · 가상 브랜드</div> : null}
   </>;
 }
 
@@ -82,7 +94,7 @@ function Flow({frame}: {frame: number}) {
   const highlight = span(frame, AT.flow + 72, 22);
   return <>
     <Sequence from={AT.flow} durationInFrames={AT.statement - AT.flow} layout="none">
-      <Generative system="flowField" seed="mulgyeol-flow" width={W} height={H} fit="fill" palette={{...palette, accent: soft}} params={{lines: 130, steps: 110, stepLength: 0.005, scale: 2.2, grow: 3.2, strokeWidth: 0.0022}} style={{position: 'absolute', left: 0, top: 0, opacity: 0.75}} />
+      <Generative system="flowField" seed="mulgyeol-flow" width={W} height={H} fit="fill" palette={{...palette, accent: paper}} params={{lines: 90, steps: 220, stepLength: 0.004, scale: 1.6, grow: 3.4, strokeWidth: 0.0024}} style={{position: 'absolute', left: 0, top: 0, clipPath: headlineHole(frame)}} />
     </Sequence>
     <MotionProbe id="highlight" value={highlight} family="text" axis="progress" />
     <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.36, display: 'flex', flexDirection: 'column', gap: S * 0.025}}>
@@ -96,22 +108,22 @@ function Flow({frame}: {frame: number}) {
 }
 
 function Statement({frame}: {frame: number}) {
-  const wipe = span(frame, AT.seam, 18);
+  const wipe = span(frame, AT.seam, 10);
   const underline = span(frame, AT.statement + 18, 16);
   const circle = span(frame, AT.statement + 34, 26);
-  const parts = 1 + Math.floor(span(frame, AT.statement + 4, 44) * 3.999);
-  const rise = pop(frame, AT.seam, 22, true);
-  const size = SIZES.hero * 1.3;
+  const parts = 1 + Math.floor(span(frame, AT.statement + 4, 28) * 3.999);
+  const rise = pop(frame, AT.statement, 22, true);
+  const size = STATEMENT_WAVE;
   return <AbsoluteFill style={{background: paper, clipPath: `inset(0 ${(1 - wipe) * 100}% 0 0)`}}>
     <MotionProbe id="paper-wipe" value={wipe} family="wipe" axis="progress" />
     <MotionProbe id="circle" value={circle} family="text" axis="progress" />
     <MotionProbe id="wave-rise" value={(1 - rise) * H} family="card" axis="y" />
-    <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.3, display: 'flex', flexDirection: 'column', gap: S * 0.04}}>
-      <Line><Underline progress={underline} color={accent} seed="small" roughness={0.6} strokeWidth={10}><Glyphs text="작은 결이" frame={frame} at={AT.statement + 2} /></Underline></Line>
-      <Line><Encircle progress={circle} color={accent} seed="big" roughness={0.7} strokeWidth={10} padding={26}><Glyphs text="큰 물결로" frame={frame} at={AT.statement + 14} /></Encircle></Line>
+    <div style={{position: 'absolute', left: SIZES.marginX + S * 0.13, top: H * 0.3, display: 'flex', flexDirection: 'column', gap: S * 0.04}}>
+      <Line><Underline progress={underline} color={accent} seed="small" roughness={0.4} strokeWidth={10} padding={SIZES.headline * 0.08}><Glyphs text="작은 결이" frame={frame} at={AT.statement + 2} /></Underline></Line>
+      <Line><Encircle progress={circle} color={accent} seed="big" roughness={0.35} strokeWidth={10} padding={SIZES.headline * 0.12}><Glyphs text="큰 물결로" frame={frame} at={AT.statement + 14} /></Encircle></Line>
     </div>
     <div style={{position: 'absolute', right: SIZES.marginX, top: (H - size) / 2, width: size, height: size, transform: `translateY(${(1 - rise) * H * 0.4}px)`, opacity: Math.min(1, rise * 2)}}>
-      <Wave size={size} ink={ink} accent={accent} soft={soft} paper={paper} stroke={STROKE * size / (SIZES.hero * 1.35)} radius={RADIUS} parts={parts} />
+      <Wave size={size} ink={ink} accent={accent} soft={soft} paper={paper} stroke={STROKE * size / HERO} radius={RADIUS} parts={parts} />
     </div>
   </AbsoluteFill>;
 }
@@ -124,7 +136,7 @@ function Name({frame}: {frame: number}) {
   const mark = SIZES.icon * 3.2;
   return <AbsoluteFill style={{background: ink, clipPath: `inset(0 0 0 ${(1 - wipe) * 100}%)`, transform: `scale(${camera})`, ...center, flexDirection: 'column', gap: S * 0.035}}>
     <MotionProbe id="ink-wipe" value={wipe} family="wipe" axis="progress" />
-    <Wave size={mark} ink={paper} accent={accent} soft={soft} paper={paper} stroke={STROKE * mark / (SIZES.hero * 1.35)} radius={RADIUS} style={{opacity: span(frame, AT.name + 6, 14)}} />
+    <Wave size={mark} ink={paper} accent={accent} soft={soft} paper={paper} stroke={STROKE * mark / HERO} radius={RADIUS} style={{opacity: span(frame, AT.name + 6, 14)}} />
     <Glyphs text="물결 스튜디오" frame={frame} at={AT.name + 8} size={SIZES.headline * 1.5} color={paper} />
     <div style={{width: W * 0.34, height: S * 0.016, background: accent, transform: `scaleX(${bar})`}} />
     <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.3, color: soft, opacity: span(frame, AT.name + 48, 12)}}>흐름을 그리는 스튜디오 · 가상 브랜드</div>
@@ -133,19 +145,19 @@ function Name({frame}: {frame: number}) {
 
 function GenerativeIdentSpot({auroraSeed = 'mulgyeol', auroraBands = 4, auroraSpeed = 0.06}: GenerativeIdentProps) {
   const frame = useCurrentFrame();
-  const leak = interpolate(frame, [AT.seam - 4, AT.seam + 22], [0, 1], clamp);
+  const leak = interpolate(frame, [AT.seam - 4, AT.seam + 14], [0, 1], clamp);
   return <AbsoluteFill style={{background: ink, overflow: 'hidden'}}>
     <Audio src="/audio/generated/generative-ident/music.wav" volume={0.9} />
     <MotionSound src="/audio/generated/generative-ident/whoosh.wav" role="move" families={['wipe', 'card']} quiet={[AT.flow, AT.name]} />
     <MotionSound src="/audio/generated/generative-ident/impact.wav" role="land" families={['shape', 'card']} quiet={[AT.flow, AT.name]} />
     <MotionSound src="/audio/generated/generative-ident/stroke.wav" role="appear" families={['text']} quiet={[AT.flow, AT.name]} />
     <AbsoluteFill>
-      {frame < AT.statement ? <Sky bands={auroraBands} speed={auroraSpeed} seed={auroraSeed} /> : null}
+      {frame < AT.statement ? <Sky bands={auroraBands} speed={auroraSpeed} seed={auroraSeed} frame={frame} /> : null}
       {frame >= AT.flow && frame < AT.statement ? <Flow frame={frame} /> : null}
       {frame < AT.statement ? <Hero frame={frame} /> : null}
       {frame >= AT.seam && frame < AT.name + 16 ? <Statement frame={frame} /> : null}
       {frame >= AT.name ? <Name frame={frame} /> : null}
-      {leak > 0 && leak < 1 ? <Solid width={W} height={H} effects={[lightLeakEffect({seed: 'seam', progress: leak, intensity: 0.9})]} style={{position: 'absolute', left: 0, top: 0}} /> : null}
+      {leak > 0 && leak < 1 ? <Solid width={W} height={H} effects={[lightLeakEffect({seed: 'seam', progress: leak, intensity: 0.8, colors: [accent, soft]})]} style={{position: 'absolute', left: 0, top: 0}} /> : null}
       {/* The final card's film look; the grain frame stops at the hold so the last two seconds are pixel-identical. */}
       {frame >= AT.name ? <Solid width={W} height={H} effects={[vignetteEffect({amount: 0.55, softness: 0.6}), grainEffect({seed: 'card', frame: Math.min(frame, AT.hold), amount: 0.1, size: 2})]} style={{position: 'absolute', left: 0, top: 0}} /> : null}
     </AbsoluteFill>

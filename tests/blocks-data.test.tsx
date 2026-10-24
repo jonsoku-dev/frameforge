@@ -59,6 +59,10 @@ test('bar chart race: rows follow the last snapshot once settled', () => {
   assert.deepEqual(rows, ['z', 'y', 'x']);
   const start = [...render(100, blocks.BarChartRace!).matchAll(/data-row="(\w+)"[^>]*top:([\d.]+)px/g)].map(m => [m[1], Number(m[2])] as const).sort((p, q) => p[1] - q[1]).map(r => r[0]);
   assert.deepEqual(start, ['x', 'y', 'z']);
+  const barH = (markup: string, name: string) => Number(new RegExp(`data-row="${name}".*?height:([\\d.]+)px;width:`).exec(markup)![1]);
+  const frames = Array.from({length: 89}, (_, i) => render(101 + i, blocks.BarChartRace!));
+  assert.ok(Math.min(...frames.map(m => barH(m, 'x'))) < barH(frames[0]!, 'y') * 0.5, 'a bar moving down thins while it crosses another');
+  assert.ok(frames.every(m => barH(m, 'z') === barH(m, 'y')), 'the rising bar keeps its height');
 });
 
 test('donut and line chart counters land on the data', () => {

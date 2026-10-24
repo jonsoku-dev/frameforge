@@ -37,7 +37,7 @@ export function BarChart(b: BarChartProps) {
   const {size, stroke, radius, W, H} = dims(b);
   const duration = b.duration ?? 60;
   const max = b.max ?? Math.max(...data.map(d => d.value), target ?? 0) * 1.1;
-  const top = size * 2.8, base = H - size * 1.7, plotH = base - top, plotW = target === undefined ? W : W - size * 4, slot = plotW / data.length, barW = slot * 0.62;
+  const top = size * 3.2, base = H - size * 1.7, plotH = base - top, plotW = target === undefined ? W : W - size * 4, slot = plotW / data.length, barW = slot * 0.62;
   const stagger = Math.min(5, (duration * 0.4) / data.length), grow = duration * 0.5;
   const heights = data.map((d, i) => ({p: pop(frame, at + i * stagger, grow, fps), h: (d.value / max) * plotH}));
   const landed = at + (data.length - 1) * stagger + grow * 0.6;
@@ -110,18 +110,23 @@ export function BarChartRace(b: BarChartRaceProps) {
   const ra = rank(a), rz = rank(z);
   const lerp = (p: number, q: number) => p + (q - p) * f;
   const peak = lerp(a.values[ra[0]!] ?? 1, z.values[rz[0]!] ?? 1);
-  const labelW = size * 4.2, plotW = W - labelW - size * 4, top = example ? size * 1.6 : 0, rowH = (H - top - size * 1.2) / rows, barH = rowH * 0.66, open = span(frame, at, 20);
-  const bars = names.map(name => ({name, y: lerp(ra.indexOf(name), rz.indexOf(name)) * rowH, v: lerp(a.values[name] ?? 0, z.values[name] ?? 0)}));
+  const labelW = size * 4.2, plotW = W - labelW - size * 4, top = example ? size * 2 : 0, rowH = (H - top - size * 1.2) / rows, barH = rowH * 0.66, open = span(frame, at, 20);
+  const bars = names.map(name => ({name, y: lerp(ra.indexOf(name), rz.indexOf(name)) * rowH, v: lerp(a.values[name] ?? 0, z.values[name] ?? 0), down: rz.indexOf(name) > ra.indexOf(name)}));
+  // A bar moving down passes behind the one it swaps with: it thins and loses its labels while within a row of another bar, so bars never fuse.
+  const crossing = (r: typeof bars[number]) => (r.down ? Math.max(0, ...bars.filter(o => o !== r).map(o => 1 - Math.abs(o.y - r.y) / rowH)) : 0);
   const lead = bars.reduce((m, r) => (r.v > m ? r.v : m), 0);
   return <Box b={b}>
     <MotionProbe id={b.id ?? `bar-chart-race-${at}`} value={(lead / peak) * plotW * open} family="shape" axis="x" />
     {example ? <Pill b={b} text="예시" /> : null}
-    <div style={{position: 'absolute', right: 0, bottom: 0, color: ink, fontFamily: fonts.display, fontSize: size * 2.2, opacity: 0.35, ...tabular}}>{f < 0.5 ? a.label : z.label}</div>
-    {bars.filter(r => r.y < rows * rowH - 1).map(r => <div key={r.name} data-row={r.name} style={{position: 'absolute', left: 0, top: top + r.y + (rowH - barH) / 2, width: W, height: barH, opacity: Math.min(1, (rows - r.y / rowH) * 1.5)}}>
-      <div style={{position: 'absolute', right: W - labelW + size * 0.5, top: 0, height: barH, display: 'flex', alignItems: 'center', color: ink, fontFamily: fonts.ui, fontSize: size, whiteSpace: 'nowrap'}}>{r.name}</div>
-      <div style={{position: 'absolute', left: labelW, top: 0, height: barH, width: Math.max(0, (r.v / peak) * plotW * open), borderRadius: radius, background: accent}} />
-      <div style={{position: 'absolute', left: labelW + (r.v / peak) * plotW * open + size * 0.5, top: 0, height: barH, display: 'flex', alignItems: 'center', color: ink, fontFamily: fonts.display, fontSize: size * 1.05, ...tabular}}>{fmt(r.v)}{unit}</div>
-    </div>)}
+    <div style={{position: 'absolute', right: size * 0.6, bottom: size * 0.4, color: ink, fontFamily: fonts.display, fontSize: size * 2.2, opacity: 0.35, ...tabular}}>{f < 0.5 ? a.label : z.label}</div>
+    {bars.filter(r => r.y < rows * rowH - 1).map(r => {
+      const cross = crossing(r), h = barH * (1 - 0.6 * cross), end = labelW + (r.v / peak) * plotW * open;
+      return <div key={r.name} data-row={r.name} style={{position: 'absolute', left: 0, top: top + r.y + (rowH - barH) / 2, width: W, height: barH, opacity: Math.min(1, (rows - r.y / rowH) * 1.5)}}>
+        <div style={{position: 'absolute', right: W - labelW + size * 0.5, top: 0, height: barH, display: 'flex', alignItems: 'center', color: ink, fontFamily: fonts.ui, fontSize: size, whiteSpace: 'nowrap', opacity: 1 - cross}}>{r.name}</div>
+        <div style={{position: 'absolute', left: labelW, top: (barH - h) / 2, height: h, width: Math.max(0, end - labelW), borderRadius: radius, background: accent, opacity: 1 - 0.5 * cross}} />
+        <div style={{position: 'absolute', left: end + size * 0.5, top: 0, height: barH, display: 'flex', alignItems: 'center', color: ink, fontFamily: fonts.display, fontSize: size * 1.05, opacity: 1 - cross, ...tabular}}>{fmt(r.v)}{unit}</div>
+      </div>;
+    })}
   </Box>;
 }
 
@@ -131,18 +136,19 @@ export function Donut(b: DonutProps) {
   const {frame, at, value, max = 100, unit = '%', label, palette: {ink, accent, soft}, fonts, example = true} = b;
   const {size, W, H} = dims(b);
   const duration = b.duration ?? 45, thickness = b.thickness ?? size * 0.8;
-  const s = Math.min(W, H), r = s / 2 - thickness / 2, p = span(frame, at, duration);
+  // The ring keeps clear of the 예시 pill band at the top.
+  const band = example ? size * 2 : 0, s = Math.min(W, H - band), r = s / 2 - thickness / 2, p = span(frame, at, duration);
   const ring = makePie({radius: r, progress: (value / max) * p, closePath: false});
   return <Box b={b}>
     <MotionProbe id={b.id ?? `donut-${at}`} value={p} family="shape" axis="progress" />
     {example ? <Pill b={b} text="예시" /> : null}
     <svg width={W} height={H} style={{position: 'absolute', left: 0, top: 0}}>
-      <g transform={`translate(${(W - s) / 2 + thickness / 2} ${(H - s) / 2 + thickness / 2})`}>
+      <g transform={`translate(${(W - s) / 2 + thickness / 2} ${band + (H - band - s) / 2 + thickness / 2})`}>
         <circle cx={r} cy={r} r={r} fill="none" stroke={soft} strokeWidth={thickness} />
         {p > 0 ? <path d={ring.path} fill="none" stroke={accent} strokeWidth={thickness} strokeLinecap="round" /> : null}
       </g>
     </svg>
-    <div style={{position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: size * 0.4}}>
+    <div style={{position: 'absolute', left: 0, right: 0, top: band, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: size * 0.4}}>
       <div style={{color: ink, fontFamily: fonts.display, fontSize: size * 2.4, ...tabular}}>{fmt(value * p)}{unit}</div>
       {label ? <div style={{color: ink, fontFamily: fonts.ui, fontSize: size, opacity: span(frame, at + duration * 0.5, duration * 0.4), lineHeight: 1, whiteSpace: 'nowrap'}}>{label}</div> : null}
     </div>
@@ -156,7 +162,7 @@ export function Heatmap(b: HeatmapProps) {
   const {size, stroke, radius, W, H} = dims(b);
   const duration = b.duration ?? 60;
   const cols = Math.max(...rows.map(r => r.length)), max = b.max ?? Math.max(...rows.flat());
-  const left = rowLabels.length ? size * 3.4 : 0, band = example ? size * 1.5 : 0, top = band + (colLabels.length ? size * 1.6 : 0), gap = stroke * 0.5;
+  const left = rowLabels.length ? size * 3.4 : 0, band = example ? size * 2 : 0, top = band + (colLabels.length ? size * 1.6 : 0), gap = stroke * 0.5;
   const cw = (W - left - gap * (cols - 1)) / cols, ch = (H - top - gap * (rows.length - 1)) / rows.length;
   const cells = rows.flatMap((r, ri) => r.map((v, ci) => ({ri, ci, v, k: ri * cols + ci})));
   const slot = [...cells].sort((p, q) => (order === 'seeded' ? random(`${seed}-${p.k}`) - random(`${seed}-${q.k}`) : p.k - q.k)).map(c => c.k);

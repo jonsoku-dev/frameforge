@@ -45,9 +45,9 @@
 
 `lutEffect({lut, intensity = 1})`는 삼선형 보간으로 찾고 `intensity`(0..1)만큼 섞는다. `sampleLut(lut, r, g, b)`(0..1 입력)와 `applyLut(pixels, {lut, intensity})`를 내보낸다. `.cube` 텍스트는 문자열 상수로 두거나 번들러의 raw 가져오기로 읽어 모듈 상단에서 한 번만 파싱한다. 프레임마다 `fetch`하거나 파싱하지 않는다.
 
-## lightLeakEffect({seed, progress, hueShift, intensity})
+## lightLeakEffect({seed, progress, hueShift, intensity, colors})
 
-절차적 빛샘. `seed`로 2–4개의 따뜻한(색상 8–48도 + `hueShift`) 방사형 그라데이션을 정하고, `progress` 0..1 동안 가로질러 쓸고 지나가며 `sin(π·progress)` 포락선으로 나타났다 사라진다. `progress` 0과 1에서는 아무것도 그리지 않는다. 소스 위에 `screen`으로 섞으므로 투명 `Solid`에 얹으면 알파 있는 빛 덩어리만 남아 장면 이음새에 쓸 수 있다. 기하는 `lightLeakBlobs(params) → {x, y, r, hue, alpha}[]`(단위 좌표)로 따로 내보낸다.
+절차적 빛샘. `seed`로 2–4개의 따뜻한(색상 8–48도 + `hueShift`) 방사형 그라데이션을 정하고, `progress` 0..1 동안 가로질러 쓸고 지나가며 `sin(π·progress)` 포락선으로 나타났다 사라진다. `progress` 0과 1에서는 아무것도 그리지 않는다. 소스 위에 `screen`으로 섞으므로 투명 `Solid`에 얹으면 알파 있는 빛 덩어리만 남아 장면 이음새에 쓸 수 있다. `colors`에 `#rgb`/`#rrggbb` 색 목록을 주면 따뜻한 색상 대신 그 색을 덩어리마다 돌려 쓰므로 작품의 네 색 안에 머문다(`colors: [accent, soft]`). 다른 표기는 오류다. 빛샘은 짧게(한 장면 이음새 20프레임 안팎) 쓴다. 길면 금지된 글로우처럼 읽힌다. 기하는 `lightLeakBlobs(params) → {x, y, r, hue, alpha, color?}[]`(단위 좌표)로 따로 내보낸다.
 
 ## vignetteEffect({amount, softness, roundness})
 

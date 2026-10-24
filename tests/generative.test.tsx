@@ -61,7 +61,11 @@ test('annotation markup is deterministic, progress 0 draws nothing, roughness 0 
   assert.equal(one, render(0, <Highlight progress={0.5} seed="k" color="#ff0">글</Highlight>));
   assert.ok(one.includes('stroke-dashoffset="0.5"') && one.includes('z-index:-1') && one.includes('stroke-width="85"') && !one.includes('non-scaling-stroke'));
   assert.ok(!render(0, <Underline progress={0}>글</Underline>).includes('<svg'));
-  assert.ok(render(0, <Underline progress={0.01} seed={2} roughness={0}>글</Underline>).includes('d="M0 94L25 94L50 94L75 94L100 94"'));
+  assert.ok(render(0, <Underline progress={0.01} seed={2} roughness={0}>글</Underline>).includes('d="M0 100L25 100L50 100L75 100L100 100"'));
+  const under = render(0, <Underline progress={1} padding={8}>글</Underline>);
+  assert.ok(under.includes('top:calc(0% - 0px)') && under.includes('height:calc(100% + 8px)'), under);
+  const circled = render(0, <Encircle progress={1} padding={4}>글</Encircle>);
+  assert.ok(circled.includes('left:calc(-20.7% - 4px)') && circled.includes('width:calc(141.4% + 8px)'), circled);
   assert.equal(annotationPath('strike', 5, 0), 'M0 52L25 52L50 52L75 52L100 52');
   assert.equal(annotationPath('box', 5, 0), 'M0 0L100 0L100 100L0 100Z');
   assert.notEqual(annotationPath('underline', 'a', 1), annotationPath('underline', 'b', 1));
@@ -70,7 +74,7 @@ test('annotation markup is deterministic, progress 0 draws nothing, roughness 0 
   assert.notEqual(annotationPath('circle', 'a', 0.8), annotationPath('circle', 'b', 0.8));
   for (const side of ['left', 'right', 'top', 'bottom'] as const) assert.ok(render(0, <Bracket side={side} progress={1} roughness={0}>글</Bracket>).includes(annotationPath(`bracket-${side}`, 1, 0)));
   const box = render(0, <Box progress={1} padding={10} strokeWidth={4}>글</Box>);
-  assert.ok(box.includes('left:-10px') && box.includes('vector-effect="non-scaling-stroke"') && box.includes('stroke-width="4"') && box.includes('z-index:1'));
+  assert.ok(box.includes('left:calc(0% - 10px)') && box.includes('vector-effect="non-scaling-stroke"') && box.includes('stroke-width="4"') && box.includes('z-index:1'));
   assert.ok(render(0, <Encircle progress={1}>글</Encircle>).includes('C') && render(0, <StrikeThrough progress={1} roughness={0}>글</StrikeThrough>).includes('L100 52'));
   assert.throws(() => render(0, <Underline progress={2}>글</Underline>), /progress/);
 });

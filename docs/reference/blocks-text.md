@@ -18,7 +18,7 @@ import {LowerThird, GlyphRise, StatCard} from '@/blocks';
 | `fps` | 기본 30. 스프링 계산에 쓴다 |
 | `palette` | `{ink, paper, accent, soft}`. 어두운 장면에서는 `{...palette, ink: paper, paper: ink}`처럼 바꿔 넘긴다 |
 | `fonts` | `{display, ui}`. `googleFont()`가 돌려준 font-family 문자열 |
-| `size` | 블록의 주 글자 크기(px). 호출자가 짧은 변에서 정한다. 보조 글자는 0.7×이므로 보조 글자가 있는 블록은 짧은 변의 5% 이상, 헤드라인 블록은 10% 이상 |
+| `size` | 블록의 주 글자 크기(px). 호출자가 짧은 변에서 정한다. 보조 글자는 0.7×(토스트 본문·시간과 말풍선 이니셜은 0.8×)이므로 보조 글자가 있는 블록은 짧은 변의 5% 이상, 헤드라인 블록은 10% 이상 |
 | `x`, `y` | px 위치. 없으면 `align`(`left`·`center`·`right`)으로 세이프 영역(좌우 5%) 안에 세로 가운데 놓는다. 로어서드와 티커는 기본이 아래 8% |
 | `id` | 모션 프로브 키. 기본 `<블록>-<at>`. 같은 프레임에 같은 블록을 둘 두면 다르게 준다 |
 
@@ -145,14 +145,14 @@ import {LowerThird, GlyphRise, StatCard} from '@/blocks';
 
 ### StatCard
 
-큰 Counter와 라벨이 든 종이 카드. 템플릿 `Screen`처럼 잉크 오프셋 블록이 뒤에 있고, 스프링으로 아래에서 올라옵니다. `size`는 라벨 크기, 숫자는 2.4×.
+큰 Counter와 라벨이 든 종이 카드. 템플릿 `Screen`처럼 잉크 오프셋 블록이 뒤에 있고, 스프링으로 아래에서 올라옵니다. `size`는 라벨 크기, 숫자는 2.4×, `예시` 태그(0.7×)는 숫자가 아니라 라벨 옆에 붙어 카드 가장자리와 만나지 않습니다.
 
 | prop | 기본 | 뜻 |
 | --- | --- | --- |
 | `value`, `label` | | 숫자, 라벨 |
 | `unit`, `prefix`, `decimals` | | Counter에 그대로 |
 | `example` | true | 예시 태그 |
-| `width`, `height` | size×9, size×5.2 | 카드 크기 |
+| `width`, `height` | size×10, size×5.2 | 카드 크기 |
 
 ```tsx
 <StatCard frame={frame} at={504} out={582} x={W * 0.1} y={H * 0.3} size={S * 0.06} palette={palette} fonts={fonts} value={1284} unit="일" label="이어진 날" />
@@ -160,7 +160,7 @@ import {LowerThird, GlyphRise, StatCard} from '@/blocks';
 
 ### NotificationCard
 
-OS 중립 토스트. 키트 에셋 컴포넌트를 아이콘 자리에 받아(`import {Bell} from '@/assets'`) soft 슬롯 안에 그려 넣고, 제목·본문·시간을 놓습니다. 위 또는 오른쪽에서 미끄러져 들어와 머물다 같은 길로 나갑니다. `duration`으로 머무는 길이를 정합니다.
+OS 중립 토스트. 키트 에셋 컴포넌트를 아이콘 자리에 받아(`import {Bell} from '@/assets'`) soft 슬롯 안에 그려 넣고, 제목·본문·시간(0.8×)을 놓습니다. 화면의 60% 폭이 자연스럽습니다(`width={W * 0.6}`). 위 또는 오른쪽에서 미끄러져 들어와 머물다 같은 길로 나갑니다. `duration`으로 머무는 길이를 정합니다.
 
 | prop | 기본 | 뜻 |
 | --- | --- | --- |

@@ -40,7 +40,7 @@ Blender 4.2 이상이 필요하다(`blender`가 PATH에 있거나 `BLENDER_PATH`
 | `light.preset` | `studio`(기본) / `sunset` / `hdri` | studio는 키·필·림 면광원 셋, sunset은 낮은 따뜻한 태양과 하늘빛 면광원, hdri는 `light.hdri`의 .hdr을 환경으로 쓴다. 모든 광원은 피사체 중심을 향한다 |
 | `light.strength` | 숫자, 기본 1 | 프리셋 전체의 배율 |
 | `background` | `#rrggbb` 또는 `transparent` | 카메라가 보는 색. 조명은 프리셋이 주고(hdri면 HDRI), 카메라 광선만 이 색을 본다 |
-| `shadowCatcher` | 불리언 | 피사체 바닥에 그림자만 남는 판을 둔다. Cycles는 자체 shadow catcher, EEVEE는 Ambient Occlusion 노드로 만든 접촉 그림자(알파 최대 55 %) |
+| `shadowCatcher` | 불리언 | 피사체 바닥에 그림자만 남는 판을 둔다. Cycles는 자체 shadow catcher, EEVEE는 Ambient Occlusion 노드로 만든 접촉 그림자(알파 최대 80 %) |
 
 경로는 두 가지 기준이다. `subject.src`와 `light.hdri`는 `public/assets/generated/<slug>/` 기준(`models/vase/vase.gltf`처럼 `npm run models`가 쓴 경로), `subject.script`는 3d.json 옆 기준이다.
 

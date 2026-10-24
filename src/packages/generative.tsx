@@ -84,7 +84,7 @@ export function flowFieldLines(seed: string | number, params: FlowFieldParams, t
 }
 export const flowField: GenerativeSystem<FlowFieldParams, number[][]> = {
   id: 'flowField', title: 'Flow field',
-  schema: [num('lines', '선 수', 140, 10, 600, 10), num('steps', '선 길이(단계)', 90, 10, 400, 10), num('stepLength', '단계 길이', 0.006, 0.001, 0.03, 0.001), num('scale', '노이즈 배율', 2.4, 0.5, 8, 0.1), num('grow', '다 자라는 시간(초)', 4, 0.5, 20, 0.5), num('strokeWidth', '선 굵기(단위 비율)', 0.0025, 0.0005, 0.01, 0.0005)],
+  schema: [num('lines', '선 수', 90, 10, 600, 10), num('steps', '선 길이(단계)', 220, 10, 600, 10), num('stepLength', '단계 길이', 0.004, 0.001, 0.03, 0.001), num('scale', '노이즈 배율', 1.6, 0.5, 8, 0.1), num('grow', '다 자라는 시간(초)', 4, 0.5, 20, 0.5), num('strokeWidth', '선 굵기(단위 비율)', 0.0025, 0.0005, 0.01, 0.0005)],
   geometry: flowFieldLines,
   paint: (context, args, lines) => {
     context.lineCap = 'round'; context.lineJoin = 'round'; context.lineWidth = args.strokeWidth * args.unit;
@@ -308,7 +308,8 @@ export const aurora: GenerativeSystem<AuroraParams, Band[]> = {
     for (const band of bands) {
       const top = point(args, 0, band.base - band.height).y, bottom = point(args, 0, band.base).y;
       const gradient = context.createLinearGradient(0, top, 0, bottom);
-      gradient.addColorStop(0, withAlpha(tones[band.tone]!, 0)); gradient.addColorStop(0.3, withAlpha(tones[band.tone]!, 0.42)); gradient.addColorStop(1, withAlpha(tones[band.tone]!, 0));
+      // Opaque at the upper edge so the band reads as the palette colour, then straight to transparent over the ink.
+      gradient.addColorStop(0, withAlpha(tones[band.tone]!, 1)); gradient.addColorStop(0.35, withAlpha(tones[band.tone]!, 0.85)); gradient.addColorStop(1, withAlpha(tones[band.tone]!, 0));
       context.fillStyle = gradient;
       context.beginPath();
       band.edge.forEach((y, s) => { const p = point(args, s / (band.edge.length - 1), y); if (s === 0) context.moveTo(p.x, p.y); else context.lineTo(p.x, p.y); });

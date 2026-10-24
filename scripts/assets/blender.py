@@ -23,7 +23,7 @@ import blender_scene as scene  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, 'public', 'assets', 'generated')
-GENERATION = '3d-1'  # bump to re-render every shot
+GENERATION = '3d-2'  # bump to re-render every shot
 CANDIDATES = ('/opt/homebrew/bin/blender', '/Applications/Blender.app/Contents/MacOS/Blender', '/usr/bin/blender', '/snap/bin/blender')
 HEX = re.compile(r'#[0-9a-fA-F]{6}')
 NAME = re.compile(r'[a-z0-9][a-z0-9-]*')

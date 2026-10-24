@@ -440,21 +440,21 @@
           "frame_check": "PASS",
           "flash_worst_second": 1,
           "seam_check": "PASS (0 measured)",
-          "seconds": 52
+          "seconds": 51
         },
         "data-reel": {
           "frames": 900,
           "frame_check": "PASS",
           "flash_worst_second": 0,
           "seam_check": "PASS (0 measured)",
-          "seconds": 56
+          "seconds": null
         },
         "seam-reel": {
           "frames": 900,
           "frame_check": "PASS",
-          "flash_worst_second": 1,
+          "flash_worst_second": 0,
           "seam_check": "PASS (5 seams, current x-)",
-          "seconds": 82
+          "seconds": 51
         },
         "narrated-explainer": {
           "frames": 870,
@@ -465,14 +465,14 @@
         "turntable-spot": {
           "frames": 720,
           "frame_check": "PASS",
-          "flash_worst_second": 1,
-          "seconds": 62
+          "flash_worst_second": 0,
+          "seconds": 101
         },
         "generative-ident": {
           "frames": 540,
           "frame_check": "PASS",
           "flash_worst_second": 0,
-          "seconds": 65
+          "seconds": 112
         },
         "showcase-spot": {
           "frames": 720,
@@ -480,10 +480,11 @@
           "flash_worst_second": 0,
           "seam_check": "PASS (6 seams, current x-)",
           "narration_check": "PASS (7 lines)",
-          "seconds": 77
+          "seconds": 72
         }
       },
-      "first_pass_failures": "5 of 7 failed before fixes: static runs over 120 frames, clipped text inside an overflow box, thin share 0.093, text outside the safe area, text overlap"
+      "first_pass_failures": "5 of 7 failed before fixes: static runs over 120 frames, clipped text inside an overflow box, thin share 0.093, text outside the safe area, text overlap",
+      "note": "numbers are from the renders after the cross-model review round; data-reel and narrated-explainer render times were not captured in that round"
     },
     "alpha_outputs": {
       "mov": "prores profile 4444 yuva444p12le, alpha plane YMIN 256 YMAX 3773",
@@ -515,6 +516,13 @@
       "vp9 alpha plane pixels",
       "kokoro and ElevenLabs voice paths",
       "studio playback of the new samples"
-    ]
+    ],
+    "cross_model_review": {
+      "date": "2026-10-24",
+      "reviewer": "general-purpose agent on sonnet, sheets of the seven films plus rules.md, seams.md, captions.md",
+      "findings": "about 30 across the seven films (weakest turntable-spot: default primitives, empty frames; showcase: hero over the brand name, captions over the donut; narrated: inconsistent rail plates; generative: off-palette leak and aurora; blocks/data: collisions and underfilled cards; seam-reel: stage colour border at seams)",
+      "resolution": "every finding addressed by the owning workstream, then each film re-rendered in full and re-checked (table in docs/samples/README.md); engine changes: Model color prop and shadow floor, EEVEE contact shadow 80%, lightLeakEffect colors, aurora and flowField palette-only tones, annotation geometry, Subtitles plate per revealed words with accent underline emphasis, Seam fromBackground/toBackground bleed, waterfallCut shared offset, StatCard/NotificationCard/MessageThread sizes, BarChartRace crossing, Timeline label clearance",
+      "second_review": "not run"
+    }
   }
 }

@@ -4,10 +4,11 @@ import type {ArtProps} from '@/assets';
 import {blockPhase, blockPlace, blockRise, blockSettle, Counter, GlyphRise, type BlockProps} from './text';
 import type {BlockEntry} from './types';
 
-/** A big Counter over a label on a paper card with the template's ink offset block; the card springs up from below and drops back out. */
+/** A big Counter over a label on a paper card with the template's ink offset block; the 예시 tag sits beside the label so the number never
+ * meets the card edge. The card springs up from below and drops back out. */
 export function StatCard({value, label, unit = '', prefix = '', decimals = 0, example = true, width, height, ...props}: BlockProps & {value: number; label: string; unit?: string; prefix?: string; decimals?: number; example?: boolean; width?: number; height?: number}) {
   const {frame, at, size, palette, fonts, fps = 30, id = `stat-${at}`} = props;
-  const w = width ?? size * 9, h = height ?? size * 5.2, offset = size * 0.4;
+  const w = width ?? size * 10, h = height ?? size * 5.2, offset = size * 0.4;
   const {leave, hidden} = blockPhase(props, 1, 14);
   const lift = (1 - blockSettle(frame, at, 20, fps, true) + leave) * h * 3;
   return <div style={blockPlace(props, hidden)}>
@@ -15,14 +16,16 @@ export function StatCard({value, label, unit = '', prefix = '', decimals = 0, ex
     <div style={{position: 'relative', width: w, height: h, transform: `translateY(${lift}px)`}}>
       <div style={{position: 'absolute', left: offset, top: offset, width: w, height: h, background: palette.ink}} />
       <div style={{position: 'absolute', inset: 0, background: palette.paper}}>
-        <Counter {...props} id={`${id}-count`} at={at + 8} x={size * 0.6} y={size * 0.55} size={size * 2.4} to={value} unit={unit} prefix={prefix} decimals={decimals} example={example} count={36} />
-        <div style={{position: 'absolute', left: size * 0.6, bottom: size * 0.55, fontFamily: fonts.ui, fontSize: size, fontWeight: 500, color: palette.ink, whiteSpace: 'nowrap', opacity: blockRise(frame, at + 16, 10)}}>{label}</div>
+        <Counter {...props} id={`${id}-count`} at={at + 8} x={size * 0.6} y={size * 0.55} size={size * 2.4} to={value} unit={unit} prefix={prefix} decimals={decimals} count={36} />
+        <div style={{position: 'absolute', left: size * 0.6, bottom: size * 0.55, display: 'flex', alignItems: 'center', gap: size * 0.4, fontFamily: fonts.ui, fontSize: size, fontWeight: 500, color: palette.ink, whiteSpace: 'nowrap', opacity: blockRise(frame, at + 16, 10)}}>
+          {label}{example ? <span style={{fontSize: size * 0.7, padding: '0.1em 0.5em', border: `${Math.max(2, size * 0.03)}px solid currentColor`, borderRadius: 999}}>예시</span> : null}
+        </div>
       </div>
     </div>
   </div>;
 }
 
-/** An OS-neutral toast: a drawn kit icon in a soft slot, title, body and time. Slides in from the top or the right, holds, slides back out. */
+/** An OS-neutral toast: a drawn kit icon in a soft slot, title, body and time (0.8×). Slides in from the top or the right, holds, slides back out. */
 export function NotificationCard({icon: Icon, title, body, time, from = 'top', width, ...props}: BlockProps & {icon: ComponentType<ArtProps>; title: string; body: string; time: string; from?: 'top' | 'right'; width?: number}) {
   const {frame, at, size, palette, fonts, fps = 30, x, y, id = `toast-${at}`} = props;
   const w = width ?? size * 11, pad = size * 0.5;
@@ -39,9 +42,9 @@ export function NotificationCard({icon: Icon, title, body, time, from = 'top', w
       </div>
       <div style={{display: 'flex', flexDirection: 'column', gap: size * 0.18, flex: 1, minWidth: 0}}>
         <div style={{fontFamily: fonts.display, fontSize: size, fontWeight: 900, lineHeight: 1.1, whiteSpace: 'nowrap'}}>{title}</div>
-        <div style={{fontFamily: fonts.ui, fontSize: size * 0.7, fontWeight: 500, lineHeight: 1.25, whiteSpace: 'nowrap'}}>{body}</div>
+        <div style={{fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500, lineHeight: 1.25, whiteSpace: 'nowrap'}}>{body}</div>
       </div>
-      <div style={{fontFamily: fonts.ui, fontSize: size * 0.7, fontWeight: 500, alignSelf: 'flex-start', opacity: 0.6, whiteSpace: 'nowrap'}}>{time}</div>
+      <div style={{fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500, alignSelf: 'flex-start', opacity: 0.6, whiteSpace: 'nowrap'}}>{time}</div>
     </div>
   </div>;
 }
@@ -53,7 +56,7 @@ export function MessageThread({messages, step = 24, typing = 10, width, ...props
   const {frame, at, size, palette, fonts, fps = 30, id = `thread-${at}`} = props;
   const {leave, hidden} = blockPhase(props, 1, 12);
   const pops = messages.map((_, i) => blockSettle(frame, at + i * step, 14, fps));
-  const avatar = (m: Message) => <div style={{width: size * 1.3, height: size * 1.3, borderRadius: '50%', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.side === 'left' ? palette.ink : palette.accent}}><span style={{color: palette.paper, fontFamily: fonts.ui, fontSize: size * 0.7, fontWeight: 500}}>{Array.from(m.name)[0]}</span></div>;
+  const avatar = (m: Message) => <div style={{width: size * 1.3, height: size * 1.3, borderRadius: '50%', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.side === 'left' ? palette.ink : palette.accent}}><span style={{color: palette.paper, fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500}}>{Array.from(m.name)[0]}</span></div>;
   const bubble = (m: Message, inner: CSSProperties, children: ReactNode) => <div style={{padding: `${size * 0.45}px ${size * 0.8}px`, borderRadius: size * 0.9, background: m.side === 'left' ? palette.soft : palette.accent, color: m.side === 'left' ? palette.ink : palette.paper, fontFamily: fonts.ui, fontSize: size, fontWeight: 500, lineHeight: 1.3, maxWidth: '80%', wordBreak: 'keep-all', transformOrigin: m.side === 'left' ? 'bottom left' : 'bottom right', ...inner}}>{children}</div>;
   return <div style={blockPlace(props, hidden)}>
     <MotionProbe id={id} value={pops.reduce((sum, pop) => sum + pop, 0)} family="card" axis="scale" />
@@ -134,7 +137,7 @@ export function LogoOutro({brand, tagline, color, ...props}: BlockProps & {brand
 }
 
 export const CARD_BLOCKS: BlockEntry[] = [
-  {id: 'stat-card', title: 'Stat card', family: 'card', props: ['value', 'label', 'unit', 'prefix', 'decimals=0', 'example=true', 'width', 'height'], when: 'One number that matters, counted up on a card that springs in; two side by side for a comparison.'},
+  {id: 'stat-card', title: 'Stat card', family: 'card', props: ['value', 'label', 'unit', 'prefix', 'decimals=0', 'example=true (tag beside the label)', 'width=size*10', 'height=size*5.2'], when: 'One number that matters, counted up on a card that springs in; two side by side for a comparison.'},
   {id: 'notification-card', title: 'Notification card', family: 'card', props: ['icon (kit component from @/assets)', 'title', 'body', 'time', 'from=top|right', 'width'], when: 'A product moment shown as a toast: an alert, a saved record, a message received.'},
   {id: 'message-thread', title: 'Message thread', family: 'card', props: ['messages[{side,name,text}]', 'step=24', 'typing=10', 'width'], when: 'A short conversation: two or three bubbles with a typing beat before each reply.'},
   {id: 'ticker', title: 'Ticker', family: 'card', props: ['items[]', 'speed=4', 'cell=size*9', 'height=size*2.2'], when: 'A strip of many short items (cities, features, prices) scrolling without end.'},

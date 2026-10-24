@@ -28,7 +28,7 @@ export function Flowchart(b: FlowchartProps) {
   const {size, stroke, radius, W, H} = dims(b);
   const edges = b.edges ?? nodes.slice(1).map((n, i) => [nodes[i]!.id, n.id] as [string, string]);
   const n = nodes.length, row = direction === 'row', gap = size * 2.4, stagger = 7, grow = 18;
-  const nodeW = row ? (W - gap * (n - 1)) / n : W, nodeH = row ? Math.min(H, size * 3.4) : (H - gap * (n - 1)) / n;
+  const nodeW = row ? (W - gap * (n - 1)) / n : W, nodeH = row ? Math.min(H, size * 4.5) : (H - gap * (n - 1)) / n;
   const box = (i: number) => ({x: row ? i * (nodeW + gap) : 0, y: row ? (H - nodeH) / 2 : i * (nodeH + gap)});
   const index = (id: string) => nodes.findIndex(node => node.id === id);
   const pops = nodes.map((_, i) => pop(frame, at + i * stagger, grow, fps));
@@ -102,7 +102,7 @@ export function Timeline(b: TimelineProps) {
     </svg>
     {items.map((item, i) => {
       const x = left + i * step, up = i % 2 === 0, reach = at + 10 + ((i / Math.max(1, n - 1)) * (duration - 10)) * 0.92, p = pop(frame, reach, 14, fps);
-      return <div key={i} style={{position: 'absolute', left: x - step / 2, width: step, top: up ? y - size * 1.5 - size * 2.6 : y + size * 1.5, display: 'flex', flexDirection: up ? 'column-reverse' : 'column', alignItems: 'center', gap: size * 0.3, opacity: p, transform: `translateY(${(1 - p) * (up ? size * 0.5 : -size * 0.5)}px)`}}>
+      return <div key={i} style={{position: 'absolute', left: x - step / 2, width: step, top: up ? y - size * 1.9 - size * 2.3 : y + size * 1.9, display: 'flex', flexDirection: up ? 'column-reverse' : 'column', alignItems: 'center', gap: size * 0.3, opacity: p, transform: `translateY(${(1 - p) * (up ? size * 0.5 : -size * 0.5)}px)`}}>
         <div style={label(b, fonts.display, {color: accent, fontVariantNumeric: 'tabular-nums'})}>{item.date}</div>
         <div style={label(b, fonts.ui)}>{item.label}</div>
       </div>;

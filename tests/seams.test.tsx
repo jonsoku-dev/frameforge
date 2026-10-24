@@ -49,11 +49,16 @@ test('waterfallCut staggers words and keeps the last exit as fast as the first e
   const at = 0, duration = 30, words = 4;
   const word = (frame: number) => waterfallCut({frame, at, duration, words, stagger: 2});
   assert.equal(word(0).length, 4);
-  assert.equal(word(0)[3]!.cut, 21);
+  assert.equal(word(0)[3]!.cut, 15);
   const lastExit = values(frame => word(frame)[3]!.exit.value, 0, 15);
   const firstEntry = values(frame => word(frame)[0]!.entry.value, 15, 30);
   assert.ok(within(steps(lastExit).at(-1)!, steps(firstEntry)[0]!, 0.1));
-  assert.ok(word(4)[0]!.exit.value < word(4)[3]!.exit.value, 'the first word is ahead of the last');
+  // The row shares one offset (spacing never changes); only the dissolve is staggered.
+  assert.equal(word(6)[0]!.exit.value, word(6)[3]!.exit.value);
+  assert.ok(word(6)[0]!.exit.opacity < word(6)[3]!.exit.opacity, 'the first word dissolves first');
+  assert.equal(word(9)[0]!.exit.opacity, 0);
+  assert.equal(word(6)[3]!.exit.filter, 'none');
+  assert.ok(word(17)[0]!.entry.opacity > word(17)[3]!.entry.opacity, 'the first word sharpens first');
   assert.throws(() => waterfallCut({frame: 0, at, duration: 10, words: 6, stagger: 2}), /do not fit/);
   const slide = values(frame => nudge({frame, at: 10, duration: 40, from: 0, to: 100}), 10, 50);
   assert.equal(slide[0], 0);
@@ -75,6 +80,11 @@ test('<Seam> markup is deterministic per frame, shows the right side, and its pr
   assert.match(render(51), /translateX\(.*<b>A<\/b>/);
   assert.match(render(52), /translateX\(230\.4px\).*<i>B<\/i>/);
   assert.doesNotMatch(render(52), /<b>A/);
+  // A named background bleeds past the frame by the travel distance, so the stage never shows as a border.
+  const bled = renderToStaticMarkup(<FrameProvider config={config} frame={52}><Seam at={40} duration={24} id="b" fromBackground="#111" toBackground="#eee" from={<b>A</b>} to={<i>B</i>} /></FrameProvider>);
+  assert.match(bled, /left:-230\.4px;top:-230\.4px;right:-230\.4px;bottom:-230\.4px;background:#eee/);
+  const zoomBled = renderToStaticMarkup(<FrameProvider config={config} frame={40}><Seam at={40} duration={24} technique="zoomThrough" id="b" fromBackground="#111" from={<b>A</b>} to={<i>B</i>} /></FrameProvider>);
+  assert.match(zoomBled, /left:-230\.4px;top:-129\.6px;.*background:#111/);
   collectMotion();
   for (let frame = 0; frame < 100; frame++) render(frame);
   const samples = collectMotion() as SeamSample[];

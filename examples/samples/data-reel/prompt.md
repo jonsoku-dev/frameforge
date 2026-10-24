@@ -11,10 +11,10 @@
 
 ## Palette (four colours, no others)
 
-- ink `#1B1F3B` (hook and name background, lines, text, the code panel)
+- ink `#1B1F3B` (hook and name background, every second middle field, lines, text, the code panel)
 - paper `#F5F2EA` (the stage card the blocks sit on, 1696×828 at 112,212)
 - accent `#E4572E` (bars, lines, rings, checks, pills, arrows' fills)
-- soft `#F6D5C8` (the field around the stage card in the middle scenes, tracks, rect nodes, heatmap base, table stripes)
+- soft `#F6D5C8` (the other middle field, tracks, rect nodes, heatmap base, table stripes)
 
 ## Fonts
 
@@ -25,14 +25,14 @@
 
 ## Blocks
 
-All from `@/blocks` with the shared contract (`frame`, `at`, `out`, `palette`, `fonts`, `size` 43 px, placement on the 1600×760 stage at 160,240). No asset is drawn in this file; axes, connectors, checks and arrowheads are the blocks' own paths in one stroke width (`size × 1.5/3.5` = 18.5 px) and one corner radius (`size × 0.4`).
+All from `@/blocks` with the shared contract (`frame`, `at`, `out`, `palette`, `fonts`, `size` 43 px for the charts and code, 48 for the donut and heatmap, 56-60 for the diagrams, placement on the 1600×760 stage at 160,240 over the 1696×828 card). No asset is drawn in this file; axes, connectors, checks and arrowheads are the blocks' own paths in one stroke width (`size × 1.5/3.5` = 18.5 px) and one corner radius (`size × 0.4`).
 
 ## Scene table (absolute frames, 30 fps)
 
 | Frames | Time | What fills the frame | Block | Motion | Text |
 | --- | --- | --- | --- | --- | --- |
 | 0-72 | 0-2.4 s | Ink field, headline 176 px, `Sparkline` 1600×380 | Sparkline | line draws in 0-48, dot rides the end | "지출, 한눈에" rises from frame -8 (half up at 0) to 28 |
-| 60-150 | 2-5 s | Soft field with the paper stage card wipes up from the bottom (60-72); `BarChart` six bars | BarChart | bars grow from the baseline 64-104 staggered, counters count up, target line draws from ~99 | "월별 지출", 1월-6월, 목표 60만 |
+| 60-150 | 2-5 s | Soft field wipes up over the hook (60-70), the paper card hops in; `BarChart` six bars | BarChart | bars grow from the baseline 64-104 staggered, counters count up, target line draws from ~99 | "월별 지출", 1월-6월, 목표 60만 |
 | 150-225 | 5-7.5 s | `LineChart` with area | LineChart | axis draws 154-169, line 163-199 with the leading dot, area fades 187-205 | "저축 추이", 0만/64만 ticks |
 | 225-345 | 7.5-11.5 s | `BarChartRace` five categories over four snapshots | BarChartRace | bars re-sort 229-325 with smooth y, widths follow values, month label swaps | "카테고리 순위", 식비 교통 쇼핑 여가 구독 |
 | 345-435 | 11.5-14.5 s | `Donut` 560 px left, `Heatmap` 7×4 right | Donut, Heatmap | ring sweeps to 72% 349-394 with the counter; cells pop in a seeded order 355-400 | "예산 달성과 소비 시간", 이달 예산 달성, 요일과 시간대 |
@@ -46,7 +46,7 @@ All from `@/blocks` with the shared contract (`frame`, `at`, `out`, `palette`, `
 
 "Fills the frame" names the thing that covers most of the picture in each row. No row is a bare background: every middle scene keeps the stage card, a 108 px headline and a block that spans the stage; the card's soft margins give every frame a headline-sized band even while a headline rises.
 
-One dominant motion direction, up: the paper field and the ink end card wipe upward, bars grow upward, panels and rows rise. Continuity is the soft field, the paper stage card and the headline slot, which persist across the middle scenes while each block fades out over its last 8 frames and the next block enters with its own upward motion.
+One dominant motion direction, up: the paper field and the ink end card wipe upward, bars grow upward, panels and rows rise. The carrier is the paper stage card: it rides through every cut with a 60 px upward hop while the field behind it wipes up in the other colour (soft, ink, soft, ...) and the headline swaps colour with the field. Each block fades out over its last 8 frames and the next block enters with its own upward motion.
 
 ## Audio cues
 
@@ -73,7 +73,7 @@ Composition check: `npm run frame-check -- renders/samples/data-reel.mp4` prints
 
 ## Deviations
 
-- "Each scene born from the previous one's object": not met literally. The middle scenes share the soft field, the stage card and the headline slot, but a block does not grow out of the previous block; it fades and the next one enters upward.
+- "Each scene born from the previous one's object": met through the carrier card and the field wipe, not by one block growing out of another; a block fades and the next one enters upward on the same card.
 
 ## Verified and not verified
 

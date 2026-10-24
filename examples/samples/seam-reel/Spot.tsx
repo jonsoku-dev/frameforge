@@ -1,6 +1,6 @@
 import type {CSSProperties, ReactNode} from 'react';
 import {AbsoluteFill, Audio, Easing, MotionProbe, MotionSound, Seam, googleFont, interpolate, nudge, useCurrentFrame, waterfallCut, waterfallEntry, type SeamSide} from 'frameforge';
-import {Bag, BarChart, Book, Coin, Tag, Ticket, Wave} from '@/assets';
+import {Bag, BarChart, Book, Coin, CoinStack, Tag, Ticket, Wave} from '@/assets';
 
 // Six scenes, five seams, one current (leftward). The doctrine: skills/frameforge-best-practices/references/seams.md.
 const W = 1920;
@@ -49,22 +49,23 @@ function Hook({frame}: {frame: number}) {
   const draw = span(frame, 0, 50);
   return <AbsoluteFill style={{background: ink}}>
     <MotionProbe id="wave-draw" value={draw} family="shape" axis="progress" />
-    <Wave size={SIZES.hero} {...kit} ink={paper} draw={draw} style={{position: 'absolute', right: 200, top: (H - SIZES.hero) / 2}} />
-    <div style={{position: 'absolute', left: SIZES.marginX, top: 360, display: 'flex', flexDirection: 'column', gap: 16}}>
-      <Line frame={frame} at={16} index={0} text="돈의 흐름," color={paper} size={130} />
-      <Line frame={frame} at={16} index={1} text="보이나요?" color={paper} size={130} weight={1.5} />
+    <Wave size={760} {...kit} ink={paper} draw={draw} style={{position: 'absolute', right: 100, top: 40}} />
+    <div style={{position: 'absolute', left: SIZES.marginX, top: 300, display: 'flex', flexDirection: 'column', gap: 16}}>
+      <Line frame={frame} at={16} index={0} text="돈의 흐름," color={paper} size={150} />
+      <Line frame={frame} at={16} index={1} text="보이나요?" color={paper} size={150} weight={1.5} />
     </div>
   </AbsoluteFill>;
 }
 
-const CARDS = [[Bag, '쇼핑', '612,000원'], [Ticket, '여가', '248,000원'], [Coin, '식비', '1,284,000원']] as const;
+const CARDS = [[Bag, '쇼핑', '612,000원'], [Ticket, '여가', '248,000원'], [Coin, '식비', '1,284,000원'], [CoinStack, '합계', '2,144,000원']] as const;
+const HERO = 2;
 const CARD = {w: 560, h: 560, gap: 40, pad: 48, top: 300};
 /** Where the 식비 card's icon sits, so the carrier coin lands exactly on it. */
-const COIN_LAND = {x: SIZES.marginX + 2 * (CARD.w + CARD.gap) + CARD.pad, y: CARD.top + CARD.pad};
+const COIN_LAND = {x: SIZES.marginX + HERO * (CARD.w + CARD.gap) + CARD.pad, y: CARD.top + CARD.pad};
 
 function Cards({frame}: {frame: number}) {
   const at = AT.cards;
-  // The row slides left to centre the 식비 card before the zoom dives into it.
+  // The row slides left to centre the 식비 card before the zoom dives into it; the fourth card fills the right.
   const shift = nudge({frame, at: at + 90, duration: 30, from: 0, to: W / 2 - (COIN_LAND.x - CARD.pad + CARD.w / 2)});
   return <AbsoluteFill style={{background: paper}}>
     <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + 40}}><Line frame={frame} at={at} index={0} text="한눈에 보는 이번 달" /></div>
@@ -73,8 +74,9 @@ function Cards({frame}: {frame: number}) {
       <MotionProbe id="cards-nudge" value={shift} family="card" axis="x" />
       {CARDS.map(([Icon, title, amount], i) => {
         const w = waterfallEntry({frame, at: at + 2, index: i, weight: 1 + i * 0.4});
-        const last = i === CARDS.length - 1;
-        return <div key={title} style={{width: CARD.w, height: CARD.h, borderRadius: 28, background: last ? ink : soft, padding: CARD.pad, display: 'flex', flexDirection: 'column', gap: 24, transform: w.transform, opacity: w.opacity}}>
+        const last = i === HERO;
+        // The fourth card starts past the right edge on purpose: the sliver is what the nudge answers.
+        return <div key={title} {...(i === CARDS.length - 1 ? {'data-clip': 'allow'} : {})} style={{width: CARD.w, height: CARD.h, borderRadius: 28, background: last ? ink : soft, padding: CARD.pad, display: 'flex', flexDirection: 'column', gap: 24, transform: w.transform, opacity: w.opacity}}>
           <MotionProbe id={`card-${i}`} value={w.y} family="card" axis="y" />
           {/* The 식비 icon is the carrier coin itself: it shows the frame the ride ends. */}
           <div style={{height: SIZES.icon, opacity: last && frame < 130 ? 0 : 1}}><Icon size={SIZES.icon} {...kit} ink={last ? paper : ink} /></div>
@@ -90,11 +92,12 @@ function Cards({frame}: {frame: number}) {
 /** Rides the current across the first seam: from beside the wave to the 식비 card's icon slot. */
 function Carrier({frame}: {frame: number}) {
   if (frame < 50 || frame >= 130) return null;
-  const x = interpolate(frame, [60, 130], [1560, COIN_LAND.x], {...clamp, easing: Easing.inOut(Easing.cubic)});
-  const y = interpolate(frame, [60, 130], [700, COIN_LAND.y], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const x = interpolate(frame, [60, 130], [1600, COIN_LAND.x], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const y = interpolate(frame, [60, 130], [790, COIN_LAND.y], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const size = interpolate(frame, [60, 130], [220, SIZES.icon], {...clamp, easing: Easing.inOut(Easing.cubic)});
   return <div style={{position: 'absolute', left: x, top: y, opacity: span(frame, 50, 8)}}>
     <MotionProbe id="coin" value={x} family="shape" axis="x" />
-    <Coin size={SIZES.icon} {...kit} ink={frame < AT.cards ? paper : ink} />
+    <Coin size={size} {...kit} ink={frame < AT.cards ? paper : ink} />
   </div>;
 }
 
@@ -115,10 +118,10 @@ function Words({frame, side, list, color = ink}: {frame: number; side: 'exit' | 
 
 function Detail({frame}: {frame: number}) {
   const at = AT.detail;
-  const draw = span(frame, at + 2, 40);
+  const parts = frame < at + 4 ? 1 : frame < at + 14 ? 2 : 3;
   const rise = waterfallEntry({frame, at, index: 0, weight: 1.5});
   // The number counts up to its value over two seconds, then holds: the only motion of the scene's second half.
-  const count = Math.round(interpolate(frame, [at + 8, at + 68], [0, 1284000], {...clamp, easing: Easing.out(Easing.cubic)}) / 1000) * 1000;
+  const count = Math.round(interpolate(frame, [at, at + 60], [0, 1284000], {...clamp, easing: Easing.out(Easing.cubic)}) / 1000) * 1000;
   const tail = words(frame)[WATERFALL.words - 1]!.exit;
   return <AbsoluteFill style={{background: paper}}>
     <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + 40}}><Words frame={frame} side="exit" list={['이번', '달', '식비,', '얼마였죠?']} /></div>
@@ -133,8 +136,8 @@ function Detail({frame}: {frame: number}) {
       </div>
     </div>
     <div style={{position: 'absolute', right: 140, top: 300, ...frag(tail)}}>
-      <MotionProbe id="chart-draw" value={draw} family="shape" axis="progress" />
-      <BarChart size={520} {...kit} draw={draw} />
+      <MotionProbe id="chart-parts" value={parts / 3} family="shape" axis="progress" />
+      <BarChart size={520} {...kit} parts={parts} />
     </div>
   </AbsoluteFill>;
 }
@@ -208,10 +211,10 @@ export function SeamReel() {
     <Audio src="/audio/generated/seam-reel/music.wav" volume={0.9} />
     <MotionSound src="/audio/generated/seam-reel/whoosh.wav" role="move" families={['camera', 'card', 'shape']} quiet={HITS} />
     <MotionSound src="/audio/generated/seam-reel/thud.wav" role="land" families={['card', 'shape']} quiet={HITS} />
-    <Seam at={AT.cards - SEAM / 2} duration={SEAM} id="s1" from={<Hook frame={frame} />} to={
-      <Seam at={AT.detail - SEAM / 2} duration={SEAM} technique="zoomThrough" id="s2" from={<Cards frame={frame} />} to={
-        <Seam at={AT.bigger - SEAM / 2} duration={SEAM} technique="inverseZoom" id="s4" from={frame < AT.sort ? <Detail frame={frame} /> : <Sort frame={frame} />} to={
-          <Seam at={AT.name - SEAM / 2} duration={SEAM} technique="rackFocus" id="s5" from={<Bigger frame={frame} />} to={<Name frame={frame} />} />
+    <Seam at={AT.cards - SEAM / 2} duration={SEAM} id="s1" fromBackground={ink} toBackground={paper} from={<Hook frame={frame} />} to={
+      <Seam at={AT.detail - SEAM / 2} duration={SEAM} technique="zoomThrough" id="s2" fromBackground={paper} toBackground={paper} from={<Cards frame={frame} />} to={
+        <Seam at={AT.bigger - SEAM / 2} duration={SEAM} technique="inverseZoom" id="s4" fromBackground={paper} toBackground={accent} from={frame < AT.sort ? <Detail frame={frame} /> : <Sort frame={frame} />} to={
+          <Seam at={AT.name - SEAM / 2} duration={SEAM} technique="rackFocus" id="s5" fromBackground={accent} toBackground={ink} from={<Bigger frame={frame} />} to={<Name frame={frame} />} />
         } />
       } />
     } />

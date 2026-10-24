@@ -34,13 +34,13 @@ function push(frame: number, at: number, dur: number, amount: number): number {
   return 1 + amount * Math.sin(t * Math.PI);
 }
 
-function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 2}: {text: string; frame: number; at: number; size?: number; color?: string; stagger?: number}) {
+function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 1}: {text: string; frame: number; at: number; size?: number; color?: string; stagger?: number}) {
   return <span style={{display: 'flex', color, fontFamily: display, fontSize: size, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em'}}>
     {Array.from(text).map((glyph, index) => {
-      const rise = span(frame, at + index * stagger, 12);
-      // Gothic A1 ink rises above the 1em line box, so the mask grows upward without moving the glyph.
-      return <span key={index} style={{display: 'inline-block', overflow: 'hidden', height: '1.15em', paddingTop: '0.1em', marginTop: '-0.1em', paddingInline: '0.06em', marginInline: '-0.06em'}}>
-        <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * 120}%)`, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? ' ' : glyph}</span>
+      const rise = span(frame, at + index * stagger, 8);
+      // No mask: a clipped Hangul block reads as loose jamo, so the whole syllable rises a third of its height and fades in. The padding keeps Gothic A1's tall ink inside the line box.
+      return <span key={index} style={{display: 'inline-block', height: '1.15em', paddingTop: '0.1em', marginTop: '-0.1em', paddingInline: '0.06em', marginInline: '-0.06em'}}>
+        <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * 40}%)`, opacity: rise, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? '\u00A0' : glyph}</span>
       </span>;
     })}
   </span>;
@@ -63,10 +63,10 @@ function Hook({frame, at}: {frame: number; at: number}) {
   const draw = span(frame, 0, 40);
   return <AbsoluteFill style={{background: ink}}>
     <MotionProbe id="clock" value={draw} family="shape" axis="progress" />
-    <Clock size={SIZES.hero * 1.3} ink={paper} accent={accent} soft={ink} paper={ink} stroke={stroke} radius={radius} draw={draw} style={{position: 'absolute', left: SIZES.marginX + S * 0.06, top: (H - SIZES.hero * 1.3) / 2}} />
-    <div style={{position: 'absolute', left: W * 0.5, top: H * 0.33, display: 'flex', flexDirection: 'column', gap: S * 0.025}}>
+    <Clock size={S * 0.52} ink={paper} accent={accent} soft={ink} paper={ink} stroke={stroke} radius={radius} draw={draw} style={{position: 'absolute', left: W * 0.1, top: (H - S * 0.52) / 2}} />
+    <div style={{position: 'absolute', left: W * 0.44, top: H * 0.36, display: 'flex', flexDirection: 'column', gap: S * 0.025}}>
       <Glyphs text="하루의 시간을" frame={frame} at={at} color={paper} />
-      <Glyphs text="숫자 하나로." frame={frame} at={at + 14} color={accent} />
+      <Glyphs text="숫자 하나로." frame={frame} at={at + 10} color={accent} />
     </div>
   </AbsoluteFill>;
 }
@@ -107,12 +107,12 @@ function FormulaScene({frame, at, progress}: {frame: number; at: number; progres
 }
 
 function Example({frame, at}: {frame: number; at: number}) {
-  const full = W * 0.62, barH = S * 0.13;
+  const full = W * 0.8, barH = S * 0.22;
   const total = pop(frame, at + 4, 24, true), focus = pop(frame, at + 30, 24, true);
   return <AbsoluteFill style={{background: paper}}>
     <MotionProbe id="bar-total" value={total * full} family="card" axis="x" />
     <MotionProbe id="bar-focus" value={focus * full * 5 / 8} family="card" axis="x" />
-    <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.26, display: 'flex', flexDirection: 'column', gap: S * 0.07}}>
+    <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.22, display: 'flex', flexDirection: 'column', gap: S * 0.05}}>
       {[['전체 8시간', total, 1, soft, ink], ['집중 5시간', focus, 5 / 8, accent, paper]].map(([label, p, share, fill, text]) => <div key={label as string} style={{display: 'flex', alignItems: 'center', gap: S * 0.04}}>
         <div style={{width: full * (share as number) * (p as number), height: barH, borderRadius: radius, background: fill as string, ...center, justifyContent: 'flex-start'}}>
           {/* The label is hidden, not clipped, while the bar is still narrower than the text; a clipped glyph fails the render. */}
@@ -120,7 +120,7 @@ function Example({frame, at}: {frame: number; at: number}) {
         </div>
       </div>)}
     </div>
-    <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.66}}><Label frame={frame} at={at + 50} size={SIZES.label * 1.1}>숫자는 예시</Label></div>
+    <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.1}}><Label frame={frame} at={at + 50} size={SIZES.label * 1.1}>숫자는 예시</Label></div>
   </AbsoluteFill>;
 }
 
@@ -133,7 +133,7 @@ function Result({frame, at, progress}: {frame: number; at: number; progress: num
     </div>
     <div style={{position: 'absolute', inset: 0, ...center, flexDirection: 'column', gap: S * 0.01}}>
       <span style={{fontFamily: display, fontWeight: 900, fontSize: SIZES.headline * 2, lineHeight: 1, letterSpacing: '-0.04em', color: ink, fontVariantNumeric: 'tabular-nums'}}>{value.toFixed(1)}</span>
-      <Label frame={frame} at={at + 10} color={accent} size={SIZES.label * 1.2}>예시 지수 (예시 값)</Label>
+      <Label frame={frame} at={at + 10} size={SIZES.label * 1.5}>예시 지수 (예시 값)</Label>
     </div>
   </AbsoluteFill>;
 }
@@ -145,8 +145,8 @@ function Trend({frame, at}: {frame: number; at: number}) {
     <MotionProbe id="chart" value={draw} family="shape" axis="progress" />
     <LineChart size={size} ink={ink} accent={accent} soft={soft} paper={paper} stroke={stroke} radius={radius} draw={draw} style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: (H - size) / 2 - S * 0.04}} />
     <div style={{position: 'absolute', left: W * 0.5, top: H * 0.3, display: 'flex', flexDirection: 'column', gap: S * 0.03}}>
-      <Glyphs text="매일 기록하면" frame={frame} at={at + 10} />
-      <Glyphs text="한 주가 선 하나로." frame={frame} at={at + 24} size={SIZES.headline * 0.8} color={accent} />
+      <Glyphs text="매일 기록하면" frame={frame} at={at + 4} />
+      <Glyphs text="한 주가 선 하나로." frame={frame} at={at + 14} size={SIZES.headline * 0.8} color={accent} />
       <Label frame={frame} at={at + 50} size={SIZES.label * 1.1}>지난 7일 · 예시 데이터</Label>
     </div>
   </AbsoluteFill>;

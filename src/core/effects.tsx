@@ -270,10 +270,13 @@ export function applyLut(pixels: Pixels, {lut, intensity = 1}: {lut: CubeLut; in
 /** Applies a parsed `.cube` LUT with trilinear interpolation, mixed in by `intensity` (0..1). */
 export const lutEffect = pixelEffect<{lut: CubeLut; intensity?: number}>('frameforge/lut', 'LUT', ({lut, intensity = 1}) => `${lut.key}:${intensity}`, ({lut, intensity = 1}) => { if (!lut?.data || !lut.size) throw new Error('lutEffect needs a LUT from parseCubeLut'); unit(intensity, 'lutEffect intensity', 0, 1); }, applyLut);
 
-export type LightLeakParams = {seed: string | number; /** 0..1; nothing shows at 0 and 1, the leaks sweep in to the middle and out again. */ progress: number; /** Degrees added to the warm hues. */ hueShift?: number; intensity?: number};
-export type LightLeakBlob = {x: number; y: number; r: number; hue: number; alpha: number};
+export type LightLeakParams = {seed: string | number; /** 0..1; nothing shows at 0 and 1, the leaks sweep in to the middle and out again. */ progress: number; /** Degrees added to the warm hues. */ hueShift?: number; intensity?: number; /** `#rgb`/`#rrggbb` colours cycled per blob instead of the warm hues, so a leak can stay on the film's palette. */ colors?: readonly string[]};
+export type LightLeakBlob = {x: number; y: number; r: number; hue: number; alpha: number; color?: string};
+const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+/** `rgba()` of a hex colour; the LUT of the four film colours stays exact. */
+const rgba = (hex: string, alpha: number) => { const h = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex; return `rgba(${parseInt(h.slice(1, 3), 16)}, ${parseInt(h.slice(3, 5), 16)}, ${parseInt(h.slice(5, 7), 16)}, ${clamp01(alpha)})`; };
 /** Two to four seeded blobs in unit coordinates; `r` is a fraction of the longer side. */
-export function lightLeakBlobs({seed, progress, hueShift = 0, intensity = 1}: LightLeakParams): LightLeakBlob[] {
+export function lightLeakBlobs({seed, progress, hueShift = 0, intensity = 1, colors}: LightLeakParams): LightLeakBlob[] {
   if (!(progress > 0 && progress < 1)) return [];
   const envelope = Math.sin(Math.PI * progress);
   const count = 2 + Math.floor(random(`${seed}:leak-count`) * 3);
@@ -283,15 +286,15 @@ export function lightLeakBlobs({seed, progress, hueShift = 0, intensity = 1}: Li
     return {
       x: random(`${k}:x`) + direction * (progress - 0.5) * sweep, y: 0.1 + 0.8 * random(`${k}:y`),
       r: 0.25 + 0.35 * random(`${k}:r`), hue: 8 + 40 * random(`${k}:hue`) + hueShift,
-      alpha: intensity * envelope * (0.35 + 0.45 * random(`${k}:a`)),
+      alpha: intensity * envelope * (0.35 + 0.45 * random(`${k}:a`)), ...(colors?.length ? {color: colors[i % colors.length]!} : {}),
     };
   });
 }
 /** Procedural film light leak: warm soft radial gradients screen-blended over the source. */
 export const lightLeakEffect = createEffect<LightLeakParams, null>({
   type: 'frameforge/light-leak', label: 'Light leak', documentationLink: null, backend: '2d', setup: () => null, cleanup: () => {},
-  calculateKey: ({seed, progress, hueShift = 0, intensity = 1}) => `${seed}:${progress}:${hueShift}:${intensity}`,
-  validateParams: ({seed, progress, hueShift = 0, intensity = 1}) => { if (seed === undefined || seed === null) throw new Error('lightLeakEffect needs a seed'); unit(progress, 'lightLeakEffect progress', 0, 1); unit(intensity, 'lightLeakEffect intensity', 0, 4); if (!Number.isFinite(hueShift)) throw new Error('lightLeakEffect hueShift must be finite'); },
+  calculateKey: ({seed, progress, hueShift = 0, intensity = 1, colors = []}) => `${seed}:${progress}:${hueShift}:${intensity}:${colors.join(',')}`,
+  validateParams: ({seed, progress, hueShift = 0, intensity = 1, colors = []}) => { if (seed === undefined || seed === null) throw new Error('lightLeakEffect needs a seed'); unit(progress, 'lightLeakEffect progress', 0, 1); unit(intensity, 'lightLeakEffect intensity', 0, 4); if (!Number.isFinite(hueShift)) throw new Error('lightLeakEffect hueShift must be finite'); for (const color of colors) if (!HEX.test(color)) throw new Error(`lightLeakEffect colors must be #rgb or #rrggbb, got ${color}`); },
   apply: ({source, target, params, width, height}) => {
     const context = context2d(target);
     context.drawImage(source, 0, 0);
@@ -299,9 +302,8 @@ export const lightLeakEffect = createEffect<LightLeakParams, null>({
     const side = Math.max(width, height);
     for (const blob of lightLeakBlobs(params)) {
       const gradient = context.createRadialGradient(blob.x * width, blob.y * height, 0, blob.x * width, blob.y * height, blob.r * side);
-      gradient.addColorStop(0, `hsla(${blob.hue}, 100%, 62%, ${clamp01(blob.alpha)})`);
-      gradient.addColorStop(0.55, `hsla(${blob.hue + 12}, 100%, 55%, ${clamp01(blob.alpha * 0.35)})`);
-      gradient.addColorStop(1, `hsla(${blob.hue}, 100%, 50%, 0)`);
+      const stop = (alpha: number, shift = 0) => blob.color ? rgba(blob.color, alpha) : `hsla(${blob.hue + shift}, 100%, ${shift ? 55 : 62}%, ${clamp01(alpha)})`;
+      gradient.addColorStop(0, stop(blob.alpha)); gradient.addColorStop(0.55, stop(blob.alpha * 0.35, 12)); gradient.addColorStop(1, stop(0));
       context.fillStyle = gradient;
       context.fillRect(0, 0, width, height);
     }

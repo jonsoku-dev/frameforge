@@ -10,11 +10,11 @@
 - 공통 옵션 `SeamOptions`: `frame`, `at`(이음새 시작 프레임), `duration`(전체 길이, 컷은 `at + duration / 2`), `axis`(기본 `'x'`), `direction`(기본 `-1`, 왼쪽), `travel`(기본 프레임 변의 12 %, z는 0.12), `subject`(`'text'` 블러 10 px, `'surface'` 18 px, 기본 surface), `width`/`height`(기본 1920×1080).
 - `cutTheCurve(o)`: 나가는 래퍼는 power-4 ease-in으로 `travel`만큼 밀리고, 들어오는 래퍼는 반대편에서 같은 방향으로 power-4 ease-out으로 도착한다. 컷 프레임의 마지막 걸음과 첫 걸음이 같다.
 - `zoomThrough(o)`: z, 두 쪽 다 커진다(나가는 쪽 1→1.12, 들어오는 쪽 0.88→1). `inverseZoom(o)`: 두 쪽 다 작아진다. 컷에서 불투명도 바닥 0.35로 무대 색이 비친다.
-- `waterfallCut({..., words, stagger = 2})`: 단어별 `SeamStyles[]`. 단어 i는 `stagger`프레임씩 늦게 나가고 새 단어도 같은 순서로 들어온다. 한쪽 길이 `duration / 2 - (words - 1) * stagger`가 0 이하이면 오류.
+- `waterfallCut({..., words, stagger = 2})`: 단어별 `SeamStyles[]`. 줄 전체가 하나의 `cutTheCurve` 오프셋을 공유해 단어 간격은 그대로이고, 단어 i는 `stagger`프레임씩 늦게 흐려지며 사라지고 새 단어도 같은 순서로 선명해진다. 한쪽 길이 `duration / 2 - (words - 1) * stagger`가 0 이하이면 오류.
 - `rackFocus(o)`: 같은 축으로 3 % 드리프트 + 컷에서 최대 블러.
 - `waterfallEntry({frame, at, index, weight = 1, stagger = 3, height = 1080})` → `{progress, y, opacity, transform}`: 아래에서 높이의 12 %를 올라오고, 뒤 항목과 무거운 항목이 느리다(길이 `14 + 2·index + 6·(weight − 1)`).
 - `nudge({frame, at, duration, from, to})` → number: 시간 10/65/25, 거리 6/79/15의 느림-빠름-느림 세 구간, 속도가 끊기지 않는다.
-- `<Seam at duration technique axis direction travel subject id from to>`: 컷 전에는 `from`, 컷부터 `to`를 하나의 absolute 래퍼 안에 그리고(블러는 래퍼에만), 래퍼의 값을 `family="camera"` 프로브(`<id>-out`, `<id>-in`, 축 `x`|`y`|`scale`)로 보고한다. `technique`는 `cutTheCurve`(기본) | `zoomThrough` | `inverseZoom` | `rackFocus`. 래퍼가 움직이는 동안만 `data-clip="allow"`가 붙어 세이프 영역 감사가 쉬고, 정지 상태에서는 글자 검사가 그대로 적용된다. `to`에 다음 `<Seam>`을 넣어 이어 붙인다.
+- `<Seam at duration technique axis direction travel subject id from to fromBackground toBackground>`: 컷 전에는 `from`, 컷부터 `to`를 하나의 absolute 래퍼 안에 그리고(블러는 래퍼에만), `fromBackground`/`toBackground`에 각 장면의 배경색을 주면 그 색을 이동 거리만큼(z는 변의 12 %) 프레임 밖까지 칠해 무대 색이 테두리로 보이지 않게 하며, 래퍼의 값을 `family="camera"` 프로브(`<id>-out`, `<id>-in`, 축 `x`|`y`|`scale`)로 보고한다. `technique`는 `cutTheCurve`(기본) | `zoomThrough` | `inverseZoom` | `rackFocus`. 래퍼가 움직이는 동안만 `data-clip="allow"`가 붙어 세이프 영역 감사가 쉬고, 정지 상태에서는 글자 검사가 그대로 적용된다. `to`에 다음 `<Seam>`을 넣어 이어 붙인다.
 
 ## 검사 `scripts/seam-check.mjs`
 

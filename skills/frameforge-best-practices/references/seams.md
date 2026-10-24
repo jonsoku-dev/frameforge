@@ -34,7 +34,7 @@ Consecutive seams never oppose each other: ping-pong reads as an error. A direct
 ## Blur and travel
 
 - Blur the wrapper, never the children. Text-scale subjects peak at 10 px (`subject: 'text'`), full-frame surfaces at 18 px (`subject: 'surface'`, the default); both sides carry the same peak at the swap frame.
-- Seams move about 12 % of the frame (230 px on x, 130 px on y, 0.12 on scale), never a full-frame slide. The stage colour (the root `AbsoluteFill` background) shows in the gap for a few frames; choose it on purpose.
+- Seams move about 12 % of the frame (230 px on x, 130 px on y, 0.12 on scale), never a full-frame slide. The displaced picture must not show the stage as a border (frame borders are banned): give `<Seam>` each scene's background (`fromBackground`, `toBackground`) and it paints that colour past the frame edge by the travel distance (on Z by 12 % of each side), so the surface extends and only the content moves.
 - Z seams keep an opacity floor of 0.35 at the cut so the stage shows through and the two texts are never both readable.
 
 ## Catalogue
@@ -44,18 +44,18 @@ Consecutive seams never oppose each other: ping-pong reads as an error. A direct
 | `cutTheCurve({frame, at, duration, axis?, direction?, travel?, subject?})` | x or y | both wrappers slide `travel` px, cut at `at + duration / 2` | the current, most cuts |
 | `zoomThrough({frame, at, duration, travel?, subject?})` | z | exit 1 → 1.12, entry 0.88 → 1 | deeper into one card, one word, one thought |
 | `inverseZoom(...)` | z | exit 1 → 0.88, entry 1.12 → 1 | a bigger surface arrives |
-| `waterfallCut({frame, at, duration, words, stagger?})` | x | word i leaves `stagger` frames after word i − 1; the new words arrive in the same order; returns one fragment per word | headline to headline on one surface |
+| `waterfallCut({frame, at, duration, words, stagger?})` | x | the row shares one `cutTheCurve` offset (spacing never changes); word i dissolves `stagger` frames after word i − 1 and the new words sharpen in the same order; one fragment per word | headline to headline on one surface |
 | `rackFocus({frame, at, duration, axis?})` | x or y | 3 % drift plus full blur at the cut | same surface, new subject |
 | `waterfallEntry({frame, at, index, weight?, stagger?})` | in-scene | item `index` rises 12 % of the height, later and heavier items slower | title cards, card rows, lists |
 | `nudge({frame, at, duration, from, to})` | in-scene | slow-fast-slow group slide, 10 / 65 / 25 of the time over 6 / 79 / 15 of the distance | re-centring a row before a zoom |
 
 Each seam function returns `{axis, direction, cut, exit, entry}`; `exit` and `entry` are `{transform, opacity, filter, value}` for the two wrappers. Apply a fragment to one wrapper div around the whole scene (or the word), never to the children.
 
-`<Seam at duration technique axis direction travel subject id from to>` renders `from` until the cut and `to` from the cut frame, applies the fragments to one absolute wrapper, and reports the wrapper's value as a camera probe (`<id>-out`, `<id>-in`) so the check can read both vectors. Seams nest: the `to` of one seam is the next seam.
+`<Seam at duration technique axis direction travel subject id from to fromBackground toBackground>` renders `from` until the cut and `to` from the cut frame, applies the fragments to one absolute wrapper, and reports the wrapper's value as a camera probe (`<id>-out`, `<id>-in`) so the check can read both vectors. Seams nest: the `to` of one seam is the next seam.
 
 ```tsx
-<Seam at={78} duration={24} id="s1" from={<Hook frame={frame} />} to={
-  <Seam at={228} duration={24} technique="zoomThrough" id="s2" from={<Cards frame={frame} />} to={<Detail frame={frame} />} />
+<Seam at={78} duration={24} id="s1" fromBackground={ink} toBackground={paper} from={<Hook frame={frame} />} to={
+  <Seam at={228} duration={24} technique="zoomThrough" id="s2" fromBackground={paper} toBackground={paper} from={<Cards frame={frame} />} to={<Detail frame={frame} />} />
 } />
 ```
 

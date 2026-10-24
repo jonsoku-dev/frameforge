@@ -14,20 +14,20 @@ Fictional brand: 물결 스튜디오 ("ripple studio"). No real company, product
 Format: 1920x1080, 30 fps, 540 frames, composition id `GenerativeIdent`, render port 4326.
 Palette (four colours): ink #0B1020 (background), paper #F3F0E8 (second background, strokes on ink), accent #FF7A59 (wave fill, annotations, bar), soft #7FB8FF (wave swell, aurora, tagline).
 Fonts: Gothic A1 900 headlines (Glyphs rise), Noto Sans KR 500 labels.
-Assets: the kit `Wave` from `@/assets` at every size (hero 491 px, mark 207 px, top-left reduction 169 px), one stroke 16 px at hero size scaled per size, one radius 8. No icon library, no own drawing.
-Generative systems: `aurora` (seed `mulgyeol`, bands 4, speed 0.06, height 0.2, amplitude 0.08, fit fill) under the open and the flow; `flowField` (seed `mulgyeol-flow`, 130 lines, grow 3.2 s, paper and soft only) inside a `Sequence` from 120 so it grows from the scene start. The aurora seed, band count and speed are the composition's `variables` (studio tune tab, group 배경), taken from `aurora.schema`.
-Effects: `lightLeakEffect` on a transparent `Solid` over the seam (236–262, seed `seam`); `vignetteEffect` 0.55 and `grainEffect` (seed `card`, size 2, amount 0.1, frame clamped at 480) on a transparent `Solid` over the name card. The grain frame stops at the hold so the last two seconds are pixel-identical.
+Assets: the kit `Wave` from `@/assets` at every size (open hero 640 px, flow 560 px, statement 600 px, name mark 207 px; the drawing's ink fills about 64 % of its box, so 600 px shows 384 px of wave), one stroke 16 px at hero size scaled per size, one radius 8. No icon library, no own drawing.
+Generative systems: `aurora` (seed `mulgyeol`, bands 4, speed 0.06, height 0.2, amplitude 0.08, fit fill) under the open and the flow; `flowField` (seed `mulgyeol-flow`, 90 lines of 220 steps, grow 3.4 s, paper and soft only) inside a `Sequence` from 120 so it grows from the scene start. While the flow headline is up, an evenodd clip-path hole cuts the headline band out of both the aurora and the flow field, so no background touches the glyphs. The aurora seed, band count and speed are the composition's `variables` (studio tune tab, group 배경), taken from `aurora.schema`.
+Effects: `lightLeakEffect` on a transparent `Solid` over the seam (236–254, seed `seam`, `colors: [accent, soft]` so the leak stays on the palette); `vignetteEffect` 0.55 and `grainEffect` (seed `card`, size 2, amount 0.1, frame clamped at 480) on a transparent `Solid` over the name card. The grain frame stops at the hold so the last two seconds are pixel-identical.
 Annotations: `Highlight` behind 형태 (flow), `Underline` under 작은 결이 and `Encircle` around 큰 물결로 (statement); all drawn by `progress` with seeded roughness, no DOM measurement.
-Sizes (short side 1080): headline 108 px, name 162 px, label 38 px (tagline 49 px), icon 65 px, hero 491 px, margins 96 / 54 px.
+Sizes (short side 1080): headline 108 px, name 162 px, label 38 px (tagline 49 px), icon 65 px, hero 640 px, margins 96 / 54 px; the statement block starts at 236 px so the circumscribing ellipse stays inside the frame.
 
 Motion families: spring (wave entrance, wave rise, name), wipe (paper from the left, ink from the right, clip-path), glyph rise (every headline) plus the annotations' stroke draw. Camera push: one, 390–422, on the name card only (scaling the whole stack moved the statement text 3 px past the safe margin at 391–405).
 
 | Frames | Fills the frame | Motion | Text |
 |---|---|---|---|
 | 0–120 (0–4 s) | the aurora on ink and the wave hero, 491 px, centred | wave springs in at 0 and draws its lines 8–58; tagline fades in 66–80 and out 108–120; the aurora drifts | 흐름을 그리는 스튜디오 · 가상 브랜드 (label) |
-| 120–240 (4–8 s) | the flow field growing over the aurora; the wave shrinks into the top-left mark 120–150 | streamlines grow 120–216; headline rises 150–176; highlight draws 192–214 | 흐름은 / 형태가 된다 (형태 highlighted) |
-| 240–262 | the paper wipe from the left (240–258) with the light leak sweeping over it (236–262) | wave rises from below 240–262 | none until 248 |
-| 246–390 (8.2–13 s) | paper, the wave on the right at 491 px assembling in four parts 250–294, the two headline lines | lines rise 248–290; underline 264–280; circle 280–306 | 작은 결이 / 큰 물결로 (underlined, circled) |
+| 120–240 (4–8 s) | the flow field growing over the aurora; the wave shrinks to 560 px on the right 120–150 | streamlines grow 120–216; headline rises 150–176; highlight draws 192–214 | 흐름은 / 형태가 된다 (형태 highlighted) |
+| 240–252 | the paper wipe from the left (240–250) with the light leak sweeping over it (236–254) | nothing else moves | none |
+| 252–390 (8.4–13 s) | paper, the wave on the right at 600 px rising 252–274 and assembling in four parts 256–284, the two headline lines | lines rise 254–296; underline 270–286; circle 286–312 | 작은 결이 / 큰 물결로 (underlined, circled) |
 | 390–480 (13–16 s) | the ink wipe from the right (390–406), then the name card: mark, name, bar, tagline, under vignette and grain | mark fades 396–410; name rises 398–436; bar 430–446; tagline 438–450 | 물결 스튜디오 / 흐름을 그리는 스튜디오 · 가상 브랜드 |
 | 480–539 | the same card | nothing moves (grain frozen at 480) | same |
 

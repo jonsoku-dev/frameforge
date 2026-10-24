@@ -57,6 +57,11 @@ test('lightLeak is empty at progress 0 and 1, peaks in the middle, and depends o
   assert.notDeepEqual(lightLeakBlobs({seed: 'b', progress: 0.5}), mid);
   assert.equal(lightLeakBlobs({seed: 'a', progress: 0.5, hueShift: 100})[0]!.hue, mid[0]!.hue + 100);
   assert.throws(() => lightLeakEffect({seed: 'a', progress: 2}), /progress/);
+  const tinted = lightLeakBlobs({seed: 'a', progress: 0.5, colors: ['#FF7A59', '#7FB8FF']});
+  assert.deepEqual(tinted.map(b => b.color), tinted.map((_, i) => ['#FF7A59', '#7FB8FF'][i % 2]));
+  assert.ok(mid.every(blob => blob.color === undefined));
+  assert.notEqual(lightLeakEffect({seed: 'a', progress: 0.5, colors: ['#fff']}).effectKey, lightLeakEffect({seed: 'a', progress: 0.5}).effectKey);
+  assert.throws(() => lightLeakEffect({seed: 'a', progress: 0.5, colors: ['red']}), /#rgb/);
 });
 
 test('vignette darkens corners more than the centre and writes alpha on transparent pixels', () => {

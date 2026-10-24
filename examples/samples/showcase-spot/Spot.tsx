@@ -127,12 +127,12 @@ export function ShowcaseSpot() {
     <MotionSound src="/audio/generated/showcase-spot/whoosh.wav" role="move" families={['card', 'camera']} quiet={[at.brand, at.cta]} />
     <MotionSound src="/audio/generated/showcase-spot/pop.wav" role="land" families={['card', 'shape']} quiet={[at.brand, at.cta]} />
     {/* One leftward current; Z seams only where the meaning asks: deeper into the name, and the promise arriving bigger. */}
-    <Seam at={at.brand - SEAM / 2} duration={SEAM} technique="zoomThrough" subject="text" id="s1" from={<Hook frame={frame} at={n.at('hook')} progress={spoken('hook')} />} to={
-      <Seam at={at.product - SEAM / 2} duration={SEAM} id="s2" from={<Brand frame={frame} at={at.brand} />} to={
-        <Seam at={at.data - SEAM / 2} duration={SEAM} id="s3" from={<Product frame={frame} at={at.product} />} to={
-          <Seam at={at.steps - SEAM / 2} duration={SEAM} id="s4" from={<Data frame={frame} at={at.data} until={at.steps + 2} />} to={
-            <Seam at={at.promise - SEAM / 2} duration={SEAM} technique="inverseZoom" id="s5" from={<Steps frame={frame} at={at.steps} until={at.promise + 2} />} to={
-              <Seam at={at.cta - SEAM / 2} duration={SEAM} technique="rackFocus" id="s6" from={<Promise frame={frame} at={at.promise} progress={spoken('promise')} />} to={<Cta frame={frame} at={at.cta} hold={hold} />} />
+    <Seam at={at.brand - SEAM / 2} duration={SEAM} technique="zoomThrough" subject="text" id="s1" fromBackground={ink} toBackground={paper} from={<Hook frame={frame} at={n.at('hook')} progress={spoken('hook')} />} to={
+      <Seam at={at.product - SEAM / 2} duration={SEAM} id="s2" fromBackground={paper} toBackground={paper} from={<Brand frame={frame} at={at.brand} />} to={
+        <Seam at={at.data - SEAM / 2} duration={SEAM} id="s3" fromBackground={paper} toBackground={paper} from={<Product frame={frame} at={at.product} />} to={
+          <Seam at={at.steps - SEAM / 2} duration={SEAM} id="s4" fromBackground={paper} toBackground={paper} from={<Data frame={frame} at={at.data} until={at.steps + 2} />} to={
+            <Seam at={at.promise - SEAM / 2} duration={SEAM} technique="inverseZoom" id="s5" fromBackground={paper} toBackground={ink} from={<Steps frame={frame} at={at.steps} until={at.promise + 2} />} to={
+              <Seam at={at.cta - SEAM / 2} duration={SEAM} technique="rackFocus" id="s6" fromBackground={ink} toBackground={ink} from={<Promise frame={frame} at={at.promise} progress={spoken('promise')} />} to={<Cta frame={frame} at={at.cta} hold={hold} />} />
             } />
           } />
         } />

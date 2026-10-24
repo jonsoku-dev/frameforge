@@ -8,7 +8,7 @@ export type AnnotationKind = 'highlight' | 'circle' | 'underline' | 'strike' | '
 export type AnnotationProps = {
   children: ReactNode; /** 0..1, how much of the stroke is drawn. */ progress: number; color?: string;
   /** Screen pixels (non-scaling stroke); for Highlight, the band height as a percent of the box, default 85. */ strokeWidth?: number;
-  seed?: string | number; /** 0 draws straight paths; 1 jitters points by up to 6 % of the box. */ roughness?: number; /** Pixels the overlay extends beyond the text box. */ padding?: number; style?: React.CSSProperties;
+  seed?: string | number; /** 0 draws straight paths; 1 jitters points by up to 6 % of the box. */ roughness?: number; /** Pixels the overlay extends beyond the text box; for Underline, the gap under the glyph box. */ padding?: number; style?: React.CSSProperties;
 };
 const fix = (v: number) => Number(v.toFixed(2));
 /** Jitters [x, y] pairs by seeded offsets of up to 6 % per unit of roughness and joins them into an `M ... L ...` path. */
@@ -38,7 +38,7 @@ export function annotationPath(kind: AnnotationKind, seed: string | number = 1, 
   const row = (y: number): [number, number][] => [[0, y], [25, y], [50, y], [75, y], [100, y]];
   switch (kind) {
     case 'highlight': return rough(row(50), seed, kind, roughness * 0.3);
-    case 'underline': return rough(row(94), seed, kind, roughness);
+    case 'underline': return rough(row(100), seed, kind, roughness);
     case 'strike': return rough(row(52), seed, kind, roughness);
     case 'circle': return roughEllipse(seed, roughness);
     case 'box': return rough([[0, 0], [100, 0], [100, 100], [0, 100]], seed, kind, roughness, true);
@@ -53,7 +53,9 @@ function Annotation({kind, children, progress, color = 'currentColor', strokeWid
   if (!(roughness >= 0 && roughness <= 1)) throw new Error(`${kind} roughness must be between 0 and 1`);
   const behind = kind === 'highlight';
   const pad = behind ? 0 : padding;
-  const overlay: React.CSSProperties = {position: 'absolute', left: -pad, top: -pad, width: `calc(100% + ${2 * pad}px)`, height: `calc(100% + ${2 * pad}px)`, overflow: 'visible', pointerEvents: 'none', zIndex: behind ? -1 : 1};
+  // The ellipse is inscribed in its overlay, so the overlay grows by sqrt(2) to circumscribe the glyph box; the underline's overlay extends only downward so y=100 sits `padding` px under the glyphs.
+  const grow = kind === 'circle' ? 20.7 : 0, up = kind === 'underline' ? 0 : pad;
+  const overlay: React.CSSProperties = {position: 'absolute', left: `calc(${-grow}% - ${pad}px)`, top: `calc(${-grow}% - ${up}px)`, width: `calc(${100 + 2 * grow}% + ${2 * pad}px)`, height: `calc(${100 + 2 * grow}% + ${pad + up}px)`, overflow: 'visible', pointerEvents: 'none', zIndex: behind ? -1 : 1};
   // `isolation` keeps the highlight's negative z-index inside this span instead of behind the scene background.
   return <span style={{position: 'relative', display: 'inline-block', isolation: 'isolate', ...style}}>
     {children}

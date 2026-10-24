@@ -10,7 +10,7 @@ export type SeamVector = {axis: SeamAxis; direction: 1 | -1};
 export type SeamSubject = 'text' | 'surface';
 /** Style fragment for one wrapper; `value` is the offset in px (x, y) or the scale (z) that the probes report. */
 export type SeamSide = {transform: string; opacity: number; filter: string; value: number};
-export type SeamStyles = SeamVector & {cut: number; exit: SeamSide; entry: SeamSide};
+export type SeamStyles = SeamVector & {cut: number; travel: number; exit: SeamSide; entry: SeamSide};
 export type SeamOptions = {
   frame: number; at: number; duration: number; axis?: SeamAxis; direction?: 1 | -1;
   /** Distance in px (x, y) or scale delta (z); default 12 % of the frame side, 0.12 on z. */
@@ -36,7 +36,7 @@ function make(o: SeamOptions, exitStart: number, entryStart: number, len: number
   const floor = axis === 'z' ? 0.35 : 1;
   const p = unit((o.frame - exitStart) / len) ** 4;
   const q = 1 - (1 - unit((o.frame - entryStart) / len)) ** 4;
-  return {axis, direction, cut: entryStart, exit: side(axis, direction * travel * p, 1 - (1 - floor) * p, peak * p), entry: side(axis, -direction * travel * (1 - q), floor + (1 - floor) * q, peak * (1 - q))};
+  return {axis, direction, cut: entryStart, travel, exit: side(axis, direction * travel * p, 1 - (1 - floor) * p, peak * p), entry: side(axis, -direction * travel * (1 - q), floor + (1 - floor) * q, peak * (1 - q))};
 }
 
 /** The current: the outgoing wrapper slides `travel` px along `axis` in `direction` (default leftward), the incoming one
@@ -57,12 +57,20 @@ export function rackFocus(o: SeamOptions): SeamStyles {
   const axis = o.axis ?? 'x';
   return cutTheCurve({...o, axis, travel: o.travel ?? 0.03 * (axis === 'x' ? o.width ?? 1920 : axis === 'y' ? o.height ?? 1080 : 1), subject: o.subject ?? 'surface'});
 }
-/** Word by word: word i leaves `stagger` frames after word i - 1 and the new words arrive in the same order after the cut
- * at `at + duration / 2`; the last word's exit speed equals the first word's entry speed. One SeamStyles per word. */
+/** Word by word on one surface: the whole row shares one `cutTheCurve` offset (so the spacing never changes), and each word
+ * dissolves in turn: word i blurs out `stagger` frames after word i - 1 before the cut at `at + duration / 2`, and the new
+ * words sharpen in the same order after it. One SeamStyles per word; `value` is the shared row offset. */
 export function waterfallCut({words, stagger = 2, ...o}: SeamOptions & {words: number; stagger?: number}): SeamStyles[] {
   const half = o.duration / 2, len = half - (words - 1) * stagger;
   if (!(len > 0)) throw new Error(`waterfallCut: ${words} words × ${stagger} stagger do not fit in ${half} frames per side`);
-  return Array.from({length: words}, (_, i) => make({...o, subject: o.subject ?? 'text'}, o.at + i * stagger, o.at + half + i * stagger, len));
+  const row = cutTheCurve({...o, subject: o.subject ?? 'text'});
+  const peak = (o.subject ?? 'text') === 'text' ? 10 : 18;
+  return Array.from({length: words}, (_, i) => {
+    const e = unit((o.frame - (o.at + i * stagger)) / len) ** 4;
+    const q = 1 - (1 - unit((o.frame - (row.cut + i * stagger)) / len)) ** 4;
+    const blur = (b: number) => b > 0.05 ? `blur(${round(b)}px)` : 'none';
+    return {...row, exit: {...row.exit, opacity: round(1 - e), filter: blur(peak * e)}, entry: {...row.entry, opacity: round(q), filter: blur(peak * (1 - q))}};
+  });
 }
 
 /** In-scene arrival cascade from below: item `index` starts `index · stagger` frames after `at`, later and heavier items travel
@@ -83,20 +91,28 @@ export function nudge({frame, at, duration, from, to}: {frame: number; at: numbe
 
 export type SeamTechnique = 'cutTheCurve' | 'zoomThrough' | 'inverseZoom' | 'rackFocus';
 const TECHNIQUES: Record<SeamTechnique, (o: SeamOptions) => SeamStyles> = {cutTheCurve, zoomThrough, inverseZoom, rackFocus};
-export type SeamProps = Omit<SeamOptions, 'frame'> & {technique?: SeamTechnique; from: React.ReactNode; to: React.ReactNode; id?: string};
+export type SeamProps = Omit<SeamOptions, 'frame'> & {
+  technique?: SeamTechnique; from: React.ReactNode; to: React.ReactNode; id?: string;
+  /** Each scene's background colour: the wrapper paints it past the frame edge by the travel distance, so the stage never shows as a border while the picture is displaced. */
+  fromBackground?: string; toBackground?: string;
+};
 
 /** Renders `from` until the cut and `to` from the cut frame on, each inside one absolute wrapper that carries the fragment
  * (transform, opacity, blur: the children are never blurred one by one), and reports the wrapper's value as a camera probe
  * (`<id>-out` before the cut, `<id>-in` after) so the seam check can read both vectors. */
-export function Seam({technique = 'cutTheCurve', from, to, id, ...o}: SeamProps): React.ReactElement {
+export function Seam({technique = 'cutTheCurve', from, to, id, fromBackground, toBackground, ...o}: SeamProps): React.ReactElement {
   const frame = useCurrentFrame();
   const styles = TECHNIQUES[technique]({...o, frame});
   const before = frame < styles.cut;
   const s = before ? styles.exit : styles.entry;
   // While the wrapper is displaced, text near the margin leaves the safe area on purpose; at rest every text check applies.
   const moving = s.value !== (styles.axis === 'z' ? 1 : 0);
+  const background = before ? fromBackground : toBackground;
+  const bleedX = round(styles.axis === 'z' ? styles.travel * (o.width ?? 1920) : styles.travel);
+  const bleedY = round(styles.axis === 'z' ? styles.travel * (o.height ?? 1080) : styles.travel);
   return <div {...(moving ? {'data-clip': 'allow'} : {})} style={{position: 'absolute', inset: 0, transform: s.transform, opacity: s.opacity, filter: s.filter}}>
     <MotionProbe id={`${id ?? `seam-${o.at}`}-${before ? 'out' : 'in'}`} value={s.value} family="camera" axis={styles.axis === 'z' ? 'scale' : styles.axis} />
+    {background ? <div style={{position: 'absolute', left: -bleedX, top: -bleedY, right: -bleedX, bottom: -bleedY, background}} /> : null}
     {before ? from : to}
   </div>;
 }

@@ -50,8 +50,13 @@ export function Voiceover({src, volume = 1}: {src: string; volume?: number}): Re
 export type SubtitleStyle = {fonts?: {display?: string; ui?: string}; palette?: {ink?: string; paper?: string; accent?: string}; size?: number; radius?: number};
 export type SubtitlesProps = SubtitleStyle & {timing: NarrationTiming; style?: 'rail' | 'embed'; position?: 'bottom' | 'top'; maxChars?: number};
 
-/** `#rrggbb` at `alpha` as rgba(), so the plate stays a colour the layout audit can measure; other colour forms pass through. */
-const plate = (color: string, alpha: number) => /^#[0-9a-f]{6}$/i.test(color) ? `rgba(${[1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16)).join(', ')}, ${alpha})` : color;
+/** An opaque 82/18 mix of ink and paper, so the plate shows on ink scenes as well as paper ones and the layout audit can measure it; non-hex colours fall back to ink. */
+function plate(ink: string, paper: string): string {
+  const hex = /^#[0-9a-f]{6}$/i;
+  if (!hex.test(ink) || !hex.test(paper)) return ink;
+  const channel = (i: number) => Math.round(0.82 * parseInt(ink.slice(i, i + 2), 16) + 0.18 * parseInt(paper.slice(i, i + 2), 16));
+  return `rgb(${[1, 3, 5].map(channel).join(', ')})`;
+}
 
 /** Character ranges of the emphasis phrases inside the text; a word is emphasised when it overlaps one. */
 function emphasisRanges(text: string, phrases: string[] = []): [number, number][] {
@@ -70,7 +75,7 @@ function breakLines(text: string, maxChars: number): string[] {
 }
 
 /**
- * One rail line on its plate, with no positioning: words appear in order across `reveal` 0..1 and emphasis words take the accent.
+ * One rail line on its plate, with no positioning: words appear in order across `reveal` 0..1 and emphasis words carry an accent underline.
  * `Subtitles` lays these out; use it directly for a custom caption layout.
  */
 export function SubtitleLine({line, reveal = 1, fonts, palette, size = 44, radius = 12, maxChars = 24}: {line: NarrationLine; reveal?: number} & SubtitleStyle & {maxChars?: number}): React.ReactElement {
@@ -83,18 +88,17 @@ export function SubtitleLine({line, reveal = 1, fonts, palette, size = 44, radiu
     {rows.map((row, rowIndex) => {
       const rowWords = row.split(' ');
       const rowStart = rowIndex === 0 ? 0 : rows[0]!.length + 1;
-      const firstWord = wordIndex;
-      // A plate with no word yet would read as a blank bar, so each row appears with its first word.
-      const rowOpacity = interpolate(reveal, [firstWord / words.length, firstWord / words.length + 0.2 / words.length], [0, 1], clamp);
-      return <div key={rowIndex} style={{display: 'flex', gap: size * 0.28, padding: `${size * 0.18}px ${size * 0.55}px`, borderRadius: radius, background: plate(ink, 0.84), color: paper, fontFamily: fonts?.ui, fontWeight: 600, fontSize: size, lineHeight: 1.3, whiteSpace: 'nowrap', opacity: rowOpacity, visibility: rowOpacity === 0 ? 'hidden' : 'visible'}}>
-        {rowWords.map((word, i) => {
-          const from = rowStart + rowWords.slice(0, i).reduce((sum, w) => sum + w.length + 1, 0), to = from + word.length;
-          const index = wordIndex++;
-          // Each word has its own slot of the reveal and fades over a fifth of it, so the line reads as typed speech, not a blink.
-          const slot = 1 / words.length;
-          const opacity = interpolate(reveal, [index * slot, index * slot + slot * 0.2], [0, 1], clamp);
+      // Only revealed words are in the flow, so each plate hugs the words on it with the same padding and stays centred; the first word brings its plate.
+      const shown = rowWords.map((word, i) => ({word, i, from: rowStart + rowWords.slice(0, i).reduce((sum, w) => sum + w.length + 1, 0), index: wordIndex++, slot: 1 / words.length}))
+        .filter(({index, slot}) => reveal > index * slot);
+      if (shown.length === 0) return null;
+      return <div key={rowIndex} style={{display: 'flex', gap: size * 0.28, padding: `${size * 0.18}px ${size * 0.55}px`, borderRadius: radius, background: plate(ink, paper), color: paper, fontFamily: fonts?.ui, fontWeight: 600, fontSize: size, lineHeight: 1.3, whiteSpace: 'nowrap'}}>
+        {shown.map(({word, i, from, index, slot}) => {
+          const to = from + word.length;
+          const opacity = interpolate(reveal, [index * slot, index * slot + slot * 0.2], [0.35, 1], clamp);
           const strong = ranges.some(([a, b]) => from < b && to > a);
-          return <span key={i} style={{opacity, color: strong ? accent : paper, visibility: opacity === 0 ? 'hidden' : 'visible'}}>{word}</span>;
+          // Emphasis is an accent underline under paper text: accent text on the plate would fall under 3:1 for most palettes.
+          return <span key={i} style={{opacity, color: paper, ...(strong ? {textDecoration: `underline ${accent}`, textDecorationThickness: '0.12em', textUnderlineOffset: '0.14em'} : {})}}>{word}</span>;
         })}
       </div>;
     })}

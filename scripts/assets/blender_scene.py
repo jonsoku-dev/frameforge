@@ -226,9 +226,9 @@ def make_shadow_catcher(scene, shot, objects):
     tree = material.node_tree
     tree.nodes.remove(tree.nodes['Principled BSDF'])
     occlusion = tree.nodes.new('ShaderNodeAmbientOcclusion')
-    occlusion.samples, occlusion.inputs['Distance'].default_value = 16, 1.6
-    # fac = 1 - 0.55 * (1 - ao): open ground is transparent, ground under the subject carries up to 55 % ink.
-    opacity = tree.nodes.new('ShaderNodeMath'); opacity.operation = 'MULTIPLY_ADD'; opacity.inputs[1].default_value = 0.55; opacity.inputs[2].default_value = 0.45
+    occlusion.samples, occlusion.inputs['Distance'].default_value = 16, 2.2
+    # fac = 1 - 0.8 * (1 - ao): open ground is transparent, ground under the subject carries up to 80 % ink.
+    opacity = tree.nodes.new('ShaderNodeMath'); opacity.operation = 'MULTIPLY_ADD'; opacity.inputs[1].default_value = 0.8; opacity.inputs[2].default_value = 0.2
     tree.links.new(occlusion.outputs['AO'], opacity.inputs[0])
     mix = tree.nodes.new('ShaderNodeMixShader')
     tree.links.new(opacity.outputs[0], mix.inputs['Fac'])

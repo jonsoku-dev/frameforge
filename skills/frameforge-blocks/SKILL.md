@@ -31,7 +31,7 @@ Every block takes the same props, so a scene can place any of them the same way.
 | `fps` | default 30 |
 | `palette` | `{ink, paper, accent, soft}`; on an ink scene pass `{...palette, ink: palette.paper, paper: palette.ink}`, on an accent scene `{...palette, accent: palette.ink}` |
 | `fonts` | `{display, ui}` font-family strings from `googleFont()` |
-| `size` | the block's main font size in px, derived by the caller from the short side; secondary text is 0.7×, so pass ≥ 5 % of the short side for blocks with secondary text and ≥ 10 % for headline blocks (`docs/samples/rules.md` minimums: labels ≥ 3.5 %, headlines ≥ 10 %) |
+| `size` | the block's main font size in px, derived by the caller from the short side; secondary text is 0.7× (toast body and time, thread initials 0.8×), so pass ≥ 5 % of the short side for blocks with secondary text and ≥ 10 % for headline blocks (`docs/samples/rules.md` minimums: labels ≥ 3.5 %, headlines ≥ 10 %) |
 | `x`, `y` | px placement; without them `align` (`left`, `center`, `right`) places the block inside the 5 % safe area, vertically centred; lower thirds and tickers default to the bottom 8 % |
 | `id` | motion-probe key, default `<block>-<at>`; set it when two instances of one block start on the same frame |
 
