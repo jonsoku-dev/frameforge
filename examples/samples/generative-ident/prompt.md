@@ -14,9 +14,9 @@ Fictional brand: 물결 스튜디오 ("ripple studio"). No real company, product
 Format: 1920x1080, 30 fps, 540 frames, composition id `GenerativeIdent`, render port 4326.
 Palette (four colours): ink #0B1020 (background), paper #F3F0E8 (second background, strokes on ink), accent #FF7A59 (wave fill, annotations, bar), soft #7FB8FF (wave swell, aurora, tagline).
 Fonts: Gothic A1 900 headlines (Glyphs rise), Noto Sans KR 500 labels.
-Assets: the kit `Wave` from `@/assets` at every size (open hero 640 px, flow 560 px, statement 600 px, name mark 207 px; the drawing's ink fills about 64 % of its box, so 600 px shows 384 px of wave), one stroke 16 px at hero size scaled per size, one radius 8. No icon library, no own drawing.
-Generative systems: `aurora` (seed `mulgyeol`, bands 4, speed 0.06, height 0.2, amplitude 0.08, fit fill) under the open and the flow; `flowField` (seed `mulgyeol-flow`, 90 lines of 220 steps, grow 3.4 s, paper and soft only) inside a `Sequence` from 120 so it grows from the scene start. While the flow headline is up, an evenodd clip-path hole cuts the headline band out of both the aurora and the flow field, so no background touches the glyphs. The aurora seed, band count and speed are the composition's `variables` (studio tune tab, group 배경), taken from `aurora.schema`.
-Effects: `lightLeakEffect` on a transparent `Solid` over the seam (236–254, seed `seam`, `colors: [accent, soft]` so the leak stays on the palette); `vignetteEffect` 0.55 and `grainEffect` (seed `card`, size 2, amount 0.1, frame clamped at 480) on a transparent `Solid` over the name card. The grain frame stops at the hold so the last two seconds are pixel-identical.
+Assets: the kit `Wave` from `@/assets` at every size (open hero 640 px, flow 560 px, statement 600 px, name mark 600 px; the drawing's ink fills about 64 % of its box, so 600 px shows 384 px of wave), one stroke 16 px at hero size scaled per size, one radius 8. No icon library, no own drawing.
+Generative systems: `aurora` (seed `mulgyeol`, bands 4, speed 0.06, height 0.2, amplitude 0.08, fit fill) under the open and the flow; `flowField` (seed `mulgyeol-flow`, 90 lines of 220 steps, grow 3.4 s, paper and soft only) inside a `Sequence` from 120 so it grows from the scene start. While the flow headline is up, an ink plate (corner 24 px, from the 96 px margin, text 48 px inside it) wipes open under it, so no background touches the glyphs. The aurora layer sits at 0.4 opacity so the accent wave stands off its bands. The aurora seed, band count and speed are the composition's `variables` (studio tune tab, group 배경), taken from `aurora.schema`.
+Effects: no light leak (it read as a blank blur); the paper wipe alone is the seam. `vignetteEffect` 0.55 and `grainEffect` (seed `card`, size 2, amount 0.1, frame clamped at 480) on a transparent `Solid` over the name card. The grain frame stops at the hold so the last two seconds are pixel-identical.
 Annotations: `Highlight` behind 형태 (flow), `Underline` under 작은 결이 and `Encircle` around 큰 물결로 (statement); all drawn by `progress` with seeded roughness, no DOM measurement.
 Sizes (short side 1080): headline 108 px, name 162 px, label 38 px (tagline 49 px), icon 65 px, hero 640 px, margins 96 / 54 px; the statement block starts at 236 px so the circumscribing ellipse stays inside the frame.
 
@@ -26,9 +26,9 @@ Motion families: spring (wave entrance, wave rise, name), wipe (paper from the l
 |---|---|---|---|
 | 0–120 (0–4 s) | the aurora on ink and the wave hero, 491 px, centred | wave springs in at 0 and draws its lines 8–58; tagline fades in 66–80 and out 108–120; the aurora drifts | 흐름을 그리는 스튜디오 · 가상 브랜드 (label) |
 | 120–240 (4–8 s) | the flow field growing over the aurora; the wave shrinks to 560 px on the right 120–150 | streamlines grow 120–216; headline rises 150–176; highlight draws 192–214 | 흐름은 / 형태가 된다 (형태 highlighted) |
-| 240–252 | the paper wipe from the left (240–250) with the light leak sweeping over it (236–254) | nothing else moves | none |
-| 252–390 (8.4–13 s) | paper, the wave on the right at 600 px rising 252–274 and assembling in four parts 256–284, the two headline lines | lines rise 254–296; underline 270–286; circle 286–312 | 작은 결이 / 큰 물결로 (underlined, circled) |
-| 390–480 (13–16 s) | the ink wipe from the right (390–406), then the name card: mark, name, bar, tagline, under vignette and grain | mark fades 396–410; name rises 398–436; bar 430–446; tagline 438–450 | 물결 스튜디오 / 흐름을 그리는 스튜디오 · 가상 브랜드 |
+| 240–248 | the paper wipe from the left (240–248) | the wipe | none |
+| 248–390 (8.3–13 s) | paper, the wave on the right at 600 px rising 248–270 and assembling in four parts 252–280, the two headline lines | lines rise 250–292; underline 266–282; circle 282–308 | 작은 결이 / 큰 물결로 (underlined, circled) |
+| 390–480 (13–16 s) | the ink wipe from the right (390–406), then the name card: mark, name, bar, tagline, under vignette and grain | mark (600 px) fades 396–410; name rises 398–436; bar 430–446; tagline 438–450 | 물결 스튜디오 / 흐름을 그리는 스튜디오 · 가상 브랜드 |
 | 480–539 | the same card | nothing moves (grain frozen at 480) | same |
 
 Continuity: the wave is one object across every cut (hero, mark, assembled statement wave, name mark). The aurora runs under both the open and the flow, so the second scene is born inside the first.
@@ -39,5 +39,5 @@ References: examples/samples/_template/Spot.tsx (SIZES, span/pop/push, Glyphs), 
 
 Prohibitions: no glow, no dust particles, no second gradient, no frame border, no bezel, no real brand, no number on screen, no icon library, no text under the label size, no full-frame flash.
 
-Check frames (contact sheet): 20, 80, 110, 135, 170, 215, 246, 256, 262, 275, 320, 360, 420, 500.
+Check frames (contact sheet): 20, 80, 100, 110, 135, 170, 180, 215, 244, 246, 256, 262, 275, 320, 360, 420, 500.
 Verified: `npx tsc --noEmit` (own files clean), `npm test`, `npm run lint:video` (no findings), `npm run score`, the contact sheet above, a 0–149 part render. Not verified: a full 540-frame render, `frame-check` and `flash-check` on it (the integrator renders full films; seven renders share this machine). The contact sheet shows a dark 5 px strip at the left edge of some cells; a full-resolution render of frame 256 has no such strip, so it is a sheet artefact.

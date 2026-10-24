@@ -78,3 +78,11 @@ test('annotation markup is deterministic, progress 0 draws nothing, roughness 0 
   assert.ok(render(0, <Encircle progress={1}>글</Encircle>).includes('C') && render(0, <StrikeThrough progress={1} roughness={0}>글</StrikeThrough>).includes('L100 52'));
   assert.throws(() => render(0, <Underline progress={2}>글</Underline>), /progress/);
 });
+
+test('aurora lower edges sit below the upper edges and are not straight lines', () => {
+  const system = getGenerativeSystem('aurora');
+  for (const band of system.geometry('ident', clampParams(system), 2) as {edge: number[]; bottom: number[]}[]) {
+    assert.ok(band.bottom.every((y, s) => y > band.edge[s]!));
+    assert.ok(Math.max(...band.bottom) - Math.min(...band.bottom) > 0.02);
+  }
+});
