@@ -74,7 +74,7 @@ ffprobe -v error -show_entries stream=codec_name,width,height,nb_frames -of csv=
 npm run frame-check -- renders/samples/first.mp4
 ```
 
-`frame-check`는 완성된 영상 한 편을 재는 도구입니다. 마지막 60프레임을 정지 구간으로 보고 빼고 잽니다. 3초짜리 구간 렌더는 도입부 빈 화면 때문에 `FAIL: thin share ...`가 나오는 것이 정상입니다. 이 단계의 성공 조건은 도구가 실행되어 `coverage`, `empty`, `static`, `huddled share`, `thin` 줄을 출력하는 것입니다.
+`frame-check`는 완성된 영상 한 편을 재는 도구입니다. 마지막 2초(30fps에서 60프레임)를 정지 구간으로 보고 빼고 잽니다. 시간 기준은 영상의 fps를 읽어 초 단위로 맞춥니다. 3초짜리 구간 렌더는 도입부 빈 화면 때문에 `FAIL: thin share ...`가 나오는 것이 정상입니다. 이 단계의 성공 조건은 도구가 실행되어 `coverage`, `empty`, `static`, `huddled share`, `thin` 줄을 출력하는 것입니다.
 
 통과하는 전체 작품으로 확인하려면 `kit-launch`를 끝까지 렌더합니다(약 54초 걸렸습니다).
 

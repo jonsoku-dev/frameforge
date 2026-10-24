@@ -715,7 +715,7 @@ CLI 렌더(`npm run render -- examples/samples/kit-launch/entry.tsx ...`)는 2.1
 | --- | --- | --- | --- | --- |
 | 글자 잘림 | 미리보기는 프레임이 바뀔 때마다. 렌더는 모든 프레임 | `src/studio/textGuard.ts`, 렌더의 `settle()` | 0.5 px 넘게 잘린 글자가 없음 | 무대 칩과 빨간 테두리. 렌더는 그 프레임에서 멈추고 실패 카드에 프레임 번호와 이동 버튼 |
 | 플래시 | MP4 렌더 뒤 | `node scripts/flash-check.mjs <mp4> <fps>` | `pass`(최악 1초 창의 깜빡임 3회 이하) | 결과 카드 빨간 줄 "최악 1초 8회 / 허용 6"(전환 6회가 깜빡임 3회)과 [404으로 이동] 버튼, 검사 레인에 그 1초 창 빨간 띠 |
-| 화면 구성 | MP4 렌더 뒤 | `node scripts/frame-check.mjs <mp4> --fps <fps> --json` | `pass`(30프레임 넘는 빈 구간, 120프레임 넘는 정지 구간, 가운데 몰림 비율 0.25 이상, 헤드라인급 요소가 없는 프레임 비율 `thin` 0.08 이상이 모두 없음. 마지막 `hold` 60프레임은 제외) | 줄마다 `fails` 문장. 검사 레인에 `emptyRanges` 회색 빗금, `staticRuns` 노란 띠(60프레임을 넘으면 빨간 테두리. 검사기의 실패 기준은 120프레임이라 테두리가 먼저 보일 수 있다) |
+| 화면 구성 | MP4 렌더 뒤 | `node scripts/frame-check.mjs <mp4> --fps <fps> --json` | `pass`(1초 넘는 빈 구간, 4초 넘는 정지 구간, 가운데 몰림 비율 0.25 이상, 헤드라인급 요소가 없는 프레임 비율 `thin` 0.08 이상이 모두 없음. 마지막 `hold` 2초는 제외. 30fps에서 30·120·60프레임이고 fps를 주지 않으면 영상에서 읽음) | 줄마다 `fails` 문장. 검사 레인에 `emptyRanges` 회색 빗금, `staticRuns` 노란 띠(60프레임을 넘으면 빨간 테두리. 검사기의 실패 기준은 120프레임이라 테두리가 먼저 보일 수 있다) |
 | 음량 | MP4 렌더 뒤, 소리가 있을 때 | `ffmpeg -i <mp4> -af ebur128=peak=true -f null -`의 요약 | I가 `audio.json`의 `loudness.I` ±2 LU 안, TP가 `loudness.TP` 이하. `audio.json`이 없으면 −24 ±2, −2 | "−27.3 LKFS · TP −9.2" 빨간 줄과 [음악 음량 조정] 버튼. 누르면 조정 탭으로 간다 |
 | 색 태그 | MP4 렌더 뒤 | `ffprobe -select_streams v:0 -show_entries stream=color_space` | `bt709` | "색 태그 없음. 디코드하면 색이 어두워집니다"(README의 `#06C755` 사례) |
 
