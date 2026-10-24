@@ -14,6 +14,11 @@ const USAGE = `frameforge <command>
                                    [--codec ..] [--audio-codec ..] [--muted] [--crf N] [--transparent] [--scale S] [--gif-fps N] [--strict-audit]
   score <slug>                     audio.json으로 음악과 효과음을 만든다
   art <slug>                       assets.json으로 에셋을 해결한다
+  voice <slug>                     narration.json으로 음성과 narration.timing.json을 만든다
+  blender <slug> [--frames a-b]    3d.json의 샷을 헤드리스 Blender로 렌더한다
+  models <slug>                    models.json의 CC0 모델·HDRI를 받는다
+  seam-check <video>.motion.json [--prompt prompt.md|--scenes a,b]
+  narration-check <slug> [--prompt prompt.md]
   lint <slug|entry.tsx>            결정성 린트
   check <video.mp4> [--fps 30] [--film <slug|folder>] [--prompt prompt.md] [--json]
                                    frame-check, flash-check, seam-check(<video>.motion.json이 있을 때), narration-check(narration.timing.json이 있을 때)를 한 표로`;
@@ -199,6 +204,11 @@ export function main(argv) {
     }
     case 'score': return run('python3', [join(ENGINE, 'scripts/assets/score.py'), filmFile(project, positional[0], 'audio.json')], project);
     case 'art': return run('python3', [join(ENGINE, 'scripts/assets/art.py'), filmFile(project, positional[0], 'assets.json')], project);
+    case 'voice': return run('python3', [join(ENGINE, 'scripts/assets/voice.py'), filmFile(project, positional[0], 'narration.json')], project);
+    case 'blender': return run('python3', [join(ENGINE, 'scripts/assets/blender.py'), filmFile(project, positional[0], '3d.json'), ...flags], project);
+    case 'models': return run('python3', [join(ENGINE, 'scripts/assets/models.py'), filmFile(project, positional[0], 'models.json')], project);
+    case 'seam-check': return run(node, [join(ENGINE, 'scripts/seam-check.mjs'), ...positional, ...flags], project);
+    case 'narration-check': return run(node, [join(ENGINE, 'scripts/narration-check.mjs'), dirname(filmFile(project, positional[0], 'narration.json')), ...flags], project);
     case 'lint': return run(node, [join(ENGINE, 'scripts/lint.mjs'), filmFile(project, positional[0], 'entry.tsx')], project);
     case 'check': {
       const video = positional[0] && resolve(cwd, positional[0]);

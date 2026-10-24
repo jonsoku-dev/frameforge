@@ -1,5 +1,5 @@
 import type {CSSProperties} from 'react';
-import {AbsoluteFill, Audio, Encircle, Generative, Highlight, ImageSequence, MotionProbe, MotionSound, Seam, Solid, Subtitles, Voiceover, googleFont, grainEffect, interpolate, lightLeakEffect, spring, useCurrentFrame, useNarration, vignetteEffect} from 'frameforge';
+import {AbsoluteFill, Audio, Encircle, Generative, Highlight, ImageSequence, MotionProbe, MotionSound, Seam, Sequence, Solid, Subtitles, Voiceover, googleFont, grainEffect, interpolate, lightLeakEffect, spring, useCurrentFrame, useNarration, vignetteEffect} from 'frameforge';
 import {Donut, GlyphRise, LogoOutro, LowerThird, NotificationCard, ProcessSteps, StatCard, type BlockProps} from '@/blocks';
 import {Book, Calendar, Card} from '@/assets';
 import timing from './narration.timing.json';
@@ -31,12 +31,12 @@ function pop(frame: number, at: number, dur: number, settle = false): number {
   return spring({frame, fps: 30, delay: at, durationInFrames: dur, config: {overshootClamping: settle}});
 }
 
-/** The rendered ring: 150 turntable frames played once from `at`, held on the last one, framed by `size`. */
+/** The rendered ring: 150 turntable frames looping from `at` (the Sequence resets the clock), framed by `size`. */
 function Hero({frame, at, size, x, y, id}: {frame: number; at: number; size: number; x: number; y: number; id: string}) {
   const rise = pop(frame, at, 22, true);
   return <div style={{position: 'absolute', left: x, top: y + (1 - rise) * S * 0.12, width: size, height: size * 9 / 16, opacity: Math.min(1, rise * 1.4)}}>
     <MotionProbe id={id} value={(1 - rise) * S * 0.12} family="card" axis="y" />
-    <ImageSequence src="/assets/generated/showcase-spot/3d/hero" frames={150} fps={30} startFrame={0} fit="contain" style={{position: 'absolute', inset: 0}} />
+    <Sequence from={at} layout="none"><ImageSequence src="/assets/generated/showcase-spot/3d/hero" frames={150} fps={30} loop fit="contain" style={{position: 'absolute', inset: 0}} /></Sequence>
   </div>;
 }
 

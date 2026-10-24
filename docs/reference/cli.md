@@ -15,6 +15,11 @@ frameforge render demo-spot DemoSpot out.mp4 --frame-range 0-59
 frameforge render demo-spot DemoSpot out.webm --transparent     # .webm/.mov/.gif/폴더/ 는 rendering.md "출력 형식"
 frameforge check out.mp4 --film demo-spot        # frame-check, flash-check, seam-check, narration-check를 한 표로
 frameforge art demo-spot / frameforge lint demo-spot
+frameforge voice demo-spot                       # narration.json → 음성 파일과 narration.timing.json (voice.md)
+frameforge blender demo-spot --frames 0-1        # 3d.json의 샷을 헤드리스 Blender로 (three-d.md)
+frameforge models demo-spot                      # models.json의 CC0 모델·HDRI
+frameforge seam-check out.mp4.motion.json --prompt films/demo-spot/prompt.md
+frameforge narration-check demo-spot --prompt films/demo-spot/prompt.md
 ```
 
 `check <video> [--fps 30] [--film <slug|폴더>] [--prompt prompt.md] [--json]`은 네 검사를 차례로 돌리고 `검사  PASS|FAIL|SKIP  한 줄 요약` 표를 찍은 뒤 FAIL이 하나라도 있으면 종료 코드 1입니다. frame-check와 flash-check는 항상 돕니다. seam-check는 `scripts/seam-check.mjs`와 `<video>.motion.json`(영상 렌더가 옆에 씁니다)이 있을 때 `--prompt`(없으면 `--film` 폴더의 prompt.md)와 함께, narration-check는 그 스크립트와 `--film` 폴더의 `narration.timing.json`이 있을 때 돕니다. 없으면 SKIP과 이유(`scripts/seam-check.mjs 없음`, `narration.timing.json 없음`, `--film 없음`)를 적습니다. 요약은 frame-check의 FAIL 줄(통과면 첫 줄), flash-check의 최악 1초 플래시 수, 나머지는 출력 첫 줄입니다. `--json`은 `[{check, status, detail}]`입니다. 2026-10-24 kit-launch 0-29 렌더: `frame-check PASS / flash-check PASS worst second 0 flashes (limit 3), 0 transitions / seam-check PASS … 0 seam(s) checked / narration-check SKIP narration.timing.json 없음`.
