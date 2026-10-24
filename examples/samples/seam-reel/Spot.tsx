@@ -49,8 +49,8 @@ function Hook({frame}: {frame: number}) {
   const draw = span(frame, 0, 50);
   return <AbsoluteFill style={{background: ink}}>
     <MotionProbe id="wave-draw" value={draw} family="shape" axis="progress" />
-    <Wave size={760} {...kit} ink={paper} draw={draw} style={{position: 'absolute', right: 100, top: 40}} />
-    <div style={{position: 'absolute', left: SIZES.marginX, top: 300, display: 'flex', flexDirection: 'column', gap: 16}}>
+    <Wave size={700} {...kit} ink={paper} draw={draw} style={{position: 'absolute', right: 120, top: (H - 700) / 2}} />
+    <div style={{position: 'absolute', left: SIZES.marginX, top: 368, display: 'flex', flexDirection: 'column', gap: 16}}>
       <Line frame={frame} at={16} index={0} text="돈의 흐름," color={paper} size={150} />
       <Line frame={frame} at={16} index={1} text="보이나요?" color={paper} size={150} weight={1.5} />
     </div>
@@ -73,7 +73,7 @@ function Cards({frame}: {frame: number}) {
     <div {...(shift ? {'data-clip': 'allow'} : {})} style={{position: 'absolute', left: SIZES.marginX, top: CARD.top, display: 'flex', gap: CARD.gap, transform: `translateX(${shift}px)`}}>
       <MotionProbe id="cards-nudge" value={shift} family="card" axis="x" />
       {CARDS.map(([Icon, title, amount], i) => {
-        const w = waterfallEntry({frame, at: at + 2, index: i, weight: 1 + i * 0.4});
+        const w = waterfallEntry({frame, at, index: i, weight: 1 + i * 0.4, stagger: 2});
         const last = i === HERO;
         // The fourth card starts past the right edge on purpose: the sliver is what the nudge answers.
         return <div key={title} {...(i === CARDS.length - 1 ? {'data-clip': 'allow'} : {})} style={{width: CARD.w, height: CARD.h, borderRadius: 28, background: last ? ink : soft, padding: CARD.pad, display: 'flex', flexDirection: 'column', gap: 24, transform: w.transform, opacity: w.opacity}}>
@@ -92,9 +92,9 @@ function Cards({frame}: {frame: number}) {
 /** Rides the current across the first seam: from beside the wave to the 식비 card's icon slot. */
 function Carrier({frame}: {frame: number}) {
   if (frame < 50 || frame >= 130) return null;
-  const x = interpolate(frame, [60, 130], [1600, COIN_LAND.x], {...clamp, easing: Easing.inOut(Easing.cubic)});
-  const y = interpolate(frame, [60, 130], [790, COIN_LAND.y], {...clamp, easing: Easing.inOut(Easing.cubic)});
-  const size = interpolate(frame, [60, 130], [220, SIZES.icon], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const x = interpolate(frame, [60, 130], [1640, COIN_LAND.x], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const y = interpolate(frame, [60, 130], [800, COIN_LAND.y], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const size = interpolate(frame, [60, 130], [200, SIZES.icon], {...clamp, easing: Easing.inOut(Easing.cubic)});
   return <div style={{position: 'absolute', left: x, top: y, opacity: span(frame, 50, 8)}}>
     <MotionProbe id="coin" value={x} family="shape" axis="x" />
     <Coin size={size} {...kit} ink={frame < AT.cards ? paper : ink} />
@@ -198,7 +198,7 @@ function Name({frame}: {frame: number}) {
     </div>
     <div style={{transform: tag.transform, opacity: tag.opacity}}>
       <MotionProbe id="tagline" value={tag.y} family="text" axis="y" />
-      <Label color={paper} size={52}>가계부가 아니라, 물길입니다 · 가상 브랜드</Label>
+      <Label color={paper} size={64}>가계부가 아니라, 물길입니다 · 가상 브랜드</Label>
     </div>
   </AbsoluteFill>;
 }

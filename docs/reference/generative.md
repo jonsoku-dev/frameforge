@@ -38,7 +38,7 @@
 | `ripples` | `rippleRings → {x, y, r, alpha}[]` | sources 3, rings 8, spacing 0.06, speed 0.08, strokeWidth 0.003 | 시드 원점에서 퍼지는 동심원. 겹치는 곳은 알파가 더해져 간섭무늬가 된다 |
 | `voronoi` | `voronoiSites → {x, y, tone}[]` | cells 18, drift 0.04, speed 0.05, resolution 0.2 | 천천히 떠다니는 자리의 보로노이 셀. `resolution` 배율의 작은 캔버스에서 픽셀마다 O(cells)로 계산한 뒤 확대 |
 | `noiseLines` | `noiseLinePaths → number[][]` | lines 28, amplitude 0.05, scale 1.8, speed 0.2, radial 0/1, strokeWidth 0.002 | 가로(또는 방사형) 선을 `noise3D`가 밀어낸다 |
-| `aurora` | `auroraBands → {base, height, edge, tone}[]` | bands 4, amplitude 0.08, scale 1.2, speed 0.06, height 0.2 | sine+noise 윗선을 가진 띠를 세로 그라데이션으로 채운다. accent·soft만 쓴다 |
+| `aurora` | `auroraBands → {base, height, edge, tone}[]` | bands 4, amplitude 0.08, scale 1.2, speed 0.06, height 0.2 | 윗선은 sine+noise, 아랫선은 따로 노이즈로 흔들린 띠. 표본마다 세로 조각에 윗선→아랫선 그라데이션을 칠하므로 바래는 선이 두 곡선을 따라가고 직선으로 끊기지 않는다. accent·soft만 쓴다 |
 
 단위: 길이 인자는 `fit` 상자의 긴 변 비율이다(1920×1080 `fill`이면 1920 px 기준). 속도는 초당 회전이나 노이즈 이동이다.
 

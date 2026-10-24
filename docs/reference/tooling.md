@@ -60,3 +60,24 @@ node scripts/silence-detect.mjs <media> [--min 0.5] [--fps 30] [--json]
 두 번 지나갑니다. 먼저 `loudnorm=print_format=json`으로 입력의 게이트 문턱 `input_thresh`(통합 음량보다 약 10 LU 아래)를 재고, 그 값을 `silencedetect`의 잡음 바닥 `n`으로 써서 `--min`초 이상 이어지는 무음을 찾습니다. 그래서 음성 밑의 룸톤이나 음악 꼬리는 소리로 칩니다. 출력은 앞 무음(초와 시작 프레임), 뒤 무음(초와 끝 프레임), 구간 목록(초와 프레임 범위), 그리고 소리 나는 부분만 남기는 `--frame-range` 제안입니다. `silencedetect`의 경계는 실제 컷에서 몇 ms 어긋나므로 프레임 환산에 10 ms 여유를 둡니다. `--json`은 같은 내용을 `{duration, loudness: {integrated, truePeak}, noiseFloorDb, leading, trailing, segments, trim}`으로 냅니다. 전체가 무음이면 바닥은 -60 dB입니다.
 
 2026-10-24 측정. 1초 무음 + 2초 440 Hz + 1초 무음(4초) 파일에서 바닥 -32.57 dB, 앞 무음 1 s(프레임 30), 뒤 무음 1 s(끝 프레임 89), 구간 `0-1 s (frames 0-29), 3-4 s (frames 90-119)`, 제안 `--frame-range 30-89`.
+
+## 음성 자막 (`scripts/transcribe.mjs`)
+
+```sh
+npm run transcribe -- <media> [--model base|small] [--language ko|en|ja|auto] [--out captions.srt] [--json]
+node scripts/transcribe.mjs --self-check
+```
+
+whisper.cpp로 말소리를 자막으로 바꿉니다. `WHISPER_CLI`가 있으면 그 경로를, 없으면 PATH의 `whisper-cli` 또는 `whisper-cpp`를 씁니다(macOS: `brew install whisper-cpp`). 모델은 `.cache/whisper/ggml-<model>.bin`에 있으면 그대로 쓰고, 없으면 `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-<model>.bin`에서 한 번 받습니다(base 약 148 MB, small 약 488 MB, `.part`로 받은 뒤 크기가 맞을 때만 이름을 바꿈). 매체는 ffmpeg로 16 kHz 모노 wav가 되고, whisper는 토큰별 시간이 담긴 전체 JSON(`-ojf`)을 냅니다.
+
+- 공백으로 시작하는 토큰이 새 단어를 열고, 나머지 토큰(조사, 문장부호)은 앞 단어에 붙습니다. `[_BEG_]` 같은 특수 토큰은 버립니다. 결과는 엔진의 `Caption`(`{text, startMs, endMs, timestampMs, confidence}`)이며 `text`는 앞 공백을 유지하고 `confidence`는 단어 안 토큰 확률의 최솟값입니다. whisper 구간의 마지막 단어에 `pageBreakAfter`가 붙습니다.
+- SRT는 whisper 구간 하나당 큐 하나이고 `parseSrt`로 다시 읽힙니다. `--out`이 없으면 매체 옆 `<이름>.srt`에 씁니다. `--json`은 단어 `Caption[]`을 표준 출력으로 냅니다.
+- 바이너리나 모델이 없거나, 모델·언어 이름이 틀리거나, ffmpeg가 매체를 못 읽으면 설치 방법이나 허용값을 담은 오류로 끝납니다. `--self-check`는 `tests/fixtures/transcribe/yuna.json`(실제 whisper 출력)으로 변환을 검사합니다.
+
+2026-10-24 실행 결과. `say -v Yuna -o /tmp/t.aiff "하루결은 하루를 한 결로 모읍니다"` 뒤 `--language ko`(base 모델)의 SRT입니다.
+
+```
+1
+00:00:00,050 --> 00:00:02,000
+하루결은 하루를 한 결로 모읍니다.
+```

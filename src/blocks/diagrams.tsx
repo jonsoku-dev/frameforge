@@ -72,7 +72,7 @@ export function ProcessSteps(b: ProcessStepsProps) {
       // Circles are HTML, not svg, so the number's background is the circle for the contrast audit.
       return <div key={text}>
         <div style={{position: 'absolute', left: left + i * step - r, top: y - r, width: r * 2, height: r * 2, boxSizing: 'border-box', borderRadius: '50%', border: `${stroke * 0.5}px solid ${paper}`, background: reached ? accent : soft, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${grow * (1 + 0.3 * near)})`, visibility: grow === 0 ? 'hidden' : 'visible', ...label(b, fonts.display, {color: reached ? paper : ink, fontVariantNumeric: 'tabular-nums'})}}>{i + 1}</div>
-        <div style={{position: 'absolute', left: left + i * step - step / 2, width: step, top: y + r * 1.3 + size * 0.5, textAlign: 'center', opacity: span(frame, at + 10 + i * 4, 12) * (0.55 + 0.45 * near), ...label(b, fonts.ui)}}>{text}</div>
+        <div style={{position: 'absolute', left: left + i * step - step / 2, width: step, top: y + r * 1.3 + size * 0.5, textAlign: 'center', opacity: span(frame, at + 10 + i * 4, 12) * (0.75 + 0.25 * near), ...label(b, fonts.ui)}}>{text}</div>
       </div>;
     })}
   </Box>;

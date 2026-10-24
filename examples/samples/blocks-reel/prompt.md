@@ -7,7 +7,7 @@ Format: 1920x1080, 30 fps, 900 frames, composition id `BlocksReel`, port 4321.
 Palette: ink #15161A (dark scenes, text), paper #F3F1EB (light scenes, cards), accent #E8481F (the disc, bars, highlight; paper on it is 3.46:1, ink 4.63:1), soft #FFD9CC (bubbles, icon slot, the pale disc). Four colours.
 Fonts: Gothic A1 900 for display text (glyph rises, numbers, names), Noto Sans KR 500 for UI text (roles, bodies, bubbles, ticker).
 Assets: the accent disc (drawn, `Disc` in Spot.tsx) is the hero that becomes the accent field; the paper panel and the stat card's ink block hand the field on; the toast icon is the kit `Bell` from `@/assets`; checks are a drawn path. No icon library.
-Sizes (short side 1080): headline 108 px and up (hook 135, cascade 140, zoom 189, typewriter 108, sweep 119, counter 281, logo 227), labels 38 px and up (lower-third role 45, toast body 56, ticker 45, thread initials 53), margins 96 / 54 px.
+Sizes (short side 1080): headline 108 px and up (hook 135, cascade 140, zoom 189, typewriter 108, sweep 119, counter 281, logo 227), labels 38 px and up (lower-third role 45, toast body 56, ticker 45, thread initials 50), margins 96 / 54 px.
 
 | Frames | Field | Fills the frame | Block | Motion | Text |
 |---|---|---|---|---|---|
@@ -23,7 +23,7 @@ Sizes (short side 1080): headline 108 px and up (hook 135, cascade 140, zoom 189
 | 800-840 | ink | brand name at 227 px | LogoOutro | glyphs rise, rule grows, tagline fades, still from 840 | 온결 · 하루를 잇다 · 가상 브랜드 |
 | 840-899 | ink | hold | | nothing moves | same |
 
-Four colour runs (ink, accent, paper, ink) so the film has a current; each run is born from an object of the last scene (the disc, the typewriter panel, the stat card's ink block) rather than a cut or a fade. Lower thirds are overlaid on six content beats because the catalogue needs all six variants shown; the tone swaps keep them on their field.
+Four colour runs (ink, accent, paper, ink) so the film has a current; each run is born from an object of the last scene (the disc, the typewriter panel, the stat card's ink block) rather than a cut or a fade. Lower thirds are overlaid on six content beats because the catalogue needs all six variants shown; the tone swaps keep them on their field. The kicker-name variant puts the role above the name by design (a kicker is the small line over a name); on the typewriter beat its left edge aligns with the panel.
 
 Audio: /audio/generated/blocks-reel/music.wav at 0.9, 120 bpm so bars sit on even seconds; sections 0-2 / 2-10 / 10-16 / 16-26 / 26-28 / 28-30 (hold ≤ 0.15). Hits at 2.667 s (disc fills, lift), 14.667 s (counter, slam), 26.667 s (logo, slam) = frames 80, 440, 800, listed in every `MotionSound quiet`. Effects derive from probes: whoosh on wipe/card moves, pop on card and shape landings, ding when a counter, check or text reveal passes halfway.
 References: examples/samples/_template/Spot.tsx (Glyphs mask, Screen offset block, push), examples/samples/cafe-morning/Spot.tsx (MotionProbe and MotionSound maps), docs/reference/blocks-text.md (each block's props).

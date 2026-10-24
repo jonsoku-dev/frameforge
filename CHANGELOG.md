@@ -13,6 +13,9 @@
 - **생성 배경과 효과** `<Generative>`와 시스템 9종, 효과 `colorCorrectionEffect`, `lutEffect`(.cube), `lightLeakEffect`, `vignetteEffect`, `grainEffect`, 손그림 주석 `Highlight`, `Encircle`, `Underline`, `StrikeThrough`, `Box`, `Bracket`. 샘플 `generative-ident`. 스킬 `frameforge-generative`.
 - **렌더러 출력** `.webm`(VP9, 알파), `.mov`(ProRes 4444, 알파), `.gif`, PNG 시퀀스, `--transparent`, `--scale`, `--crf`, `--codec`, `--audio-codec`, `--muted`, `--strict-audit`. 렌더마다 `<out>.motion.json`(움직임 기록)을 남깁니다.
 - **감사와 도구** 스튜디오 `audit()`가 `text_outside_safe`, `text_overlap`, `contrast_low`, `text_too_small`을 보고하고 렌더 로그에 `audit` 줄로 찍힙니다. `beatGrid`/`beatsFromSpec`/`loadBeats`와 `scripts/assets/beats.py`, `scripts/silence-detect.mjs`, `frameforge check`의 네 검사 표(frame, flash, seam, narration).
+- **지도 블록** `MapOutline`, `RouteMap`, `Markers`(`src/blocks/maps.tsx`)와 `scripts/assets/geo.py`(Natural Earth 공개 데이터, 필터, 단순화, `geo.lock.json`). 샘플 `map-story`.
+- **HLS 출력** `.m3u8`(h264/aac, 4초 조각). **음성 전사** `scripts/transcribe.mjs`(whisper.cpp, 한국어 포함, SRT와 Caption JSON). **외부 애니메이션 어댑터** `<Seekable>`, `useSeekable`(Web Animations나 seek 어댑터를 프레임으로 구동).
+- 두 차례 교차 리뷰 뒤 손본 것: Blender 스크립트 피사체(머그, 타일), 오로라 곡선 경계, 자막 한 판, `<Seam>` 배경 bleed.
 - 조사 기록 `docs/research/motion-tools-absorption.md`(에이전트용 영상 도구 다섯 가지의 REA 증거와 흡수 방식). 의존성 `katex`(devDependencies).
 
 ### 바뀜

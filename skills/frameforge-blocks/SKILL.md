@@ -5,7 +5,7 @@ description: Pick and place ready motion-graphics blocks (titles, lower thirds, 
 
 # Frameforge blocks
 
-`src/blocks/` holds frame-function React components that already meet the repository's bar (sizes, masks, probes, exits). Search the catalogue before hand-writing a title, lower third, counter, card or ticker. Hand-drawn versions of these are the first thing that makes a film look amateur. This skill covers the text, lower-third and card families; the chart, code and diagram families are listed in [data.md](data.md) next to this file.
+`src/blocks/` holds frame-function React components that already meet the repository's bar (sizes, masks, probes, exits). Search the catalogue before hand-writing a title, lower third, counter, card or ticker. Hand-drawn versions of these are the first thing that makes a film look amateur. This skill covers the text, lower-third and card families; the chart, code and diagram families are listed in [data.md](data.md) next to this file, the map family (world outlines, routes, markers from Natural Earth data) in [maps.md](maps.md).
 
 ```tsx
 import {GlyphRise, LowerThird, StatCard} from '@/blocks';

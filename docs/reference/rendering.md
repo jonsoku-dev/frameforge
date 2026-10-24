@@ -31,12 +31,14 @@ npm run render -- examples/samples/cafe-morning/entry.tsx CafeMorning renders/ca
 | `.webm` | libvpx-vp9 `-b:v 0 -crf 32 -row-mt 1` | libopus 160k | yuva420p (`-auto-alt-ref 0`) | concat `-c copy` |
 | `.mov` | prores_ks 프로파일 4(4444) yuv444p10le | pcm_s16le | yuva444p10le | concat `-c copy` |
 | `.gif` | palettegen → paletteuse(bayer), `--gif-fps N`으로 프레임률 제한 | 없음 | 팔레트의 투명 칸 | 한 청크 |
+| `.m3u8` | HLS VOD: libx264 crf 18, 4초마다 키프레임(`-force_key_frames expr:gte(t,n_forced*4)`), `-f hls -hls_time 4 -hls_playlist_type vod`, 조각은 재생목록 옆 `<이름>_%03d.ts` | aac 192k | 불가(오류) | 한 청크 |
 | `폴더/` 또는 `…/%05d.png` | PNG 그대로(인코딩 없음), 프레임 번호로 이름 | 없음 | rgba | 한 청크 |
 
 - `--audio-codec aac|opus|pcm|none`은 소리 코덱을 바꾸고 `--muted`는 믹스를 건너뜁니다. `--crf N`은 h264와 vp9의 품질입니다. 모든 코덱에 bt709 태그와 변환이 붙습니다.
 - `--transparent`는 페이지 배경을 비우고(CDP `Emulation.setDefaultBackgroundColorOverride` {0,0,0,0}과 `html`/`body` 배경 transparent) PNG를 알파째 캡처합니다. 루트에 불투명 배경이 있는 작품은 당연히 불투명하게 나옵니다. `Experimental.Null` 프레임도 투명 RGBA로 만듭니다.
 - `--scale S`는 Chrome의 기기 배율을 S로 두어 S배 크기로 캡처하고(1920×1080에 2면 3840×2160), ffmpeg에 같은 크기의 `scale`을 앞에 붙입니다. 가로세로가 정수가 아니면, h264와 vp9에서 홀수면 오류입니다. frame-check와 flash-check는 크기를 읽어 그대로 동작합니다.
 - PNG 시퀀스의 motion.json은 그 폴더 안 `motion.json`입니다.
+- `.m3u8`은 재생목록 하나를 쓰므로 gif처럼 한 청크로 렌더하고 `--concurrency`와 `--pipe`는 무시한다고 경고합니다. 재생목록은 조각을 경로 없이 이름(`kit_000.ts`)으로 적으므로 폴더째 옮겨도 재생됩니다. 게시는 같은 파일 시스템의 하드 링크로 하며, 조각을 먼저 걸고 재생목록을 마지막에 겁니다. 같은 이름의 파일이 이미 있으면 덮어쓰지 않고 실패합니다.
 - 순수 함수 `outputFormat(output, options)`, `videoArgs(format, count, size?)`, `encodeArgs(...)`, `AUDIO`를 내보내고 `tests/render-outputs.test.tsx`가 검사합니다.
 
 2026-10-24 실행 결과(`tests/fixtures/tooling` Translucent 640×360, 루트에 배경 없음, `--frame-range 0-29 --transparent`): `.webm` → ffprobe `codec_name=vp9 … pix_fmt=yuv420p TAG:alpha_mode=1`(이 빌드의 기본 VP9 디코더는 알파 평면을 열지 않아 yuv420p로 보고하고, 알파는 Matroska `alpha_mode` 태그와 별도 스트림에 있습니다). `.mov` → `codec_name=prores profile=4444 pix_fmt=yuva444p12le nb_frames=30`(디코더가 12비트로 올려 보고; 인코드 입력은 yuva444p10le), 알파 평면 `alphaextract,signalstats` YMIN 256(완전 투명) YMAX 3773(불투명) YAVG 570. `.gif --gif-fps 15` → `codec_name=gif pix_fmt=bgra r_frame_rate=15/1`, 15프레임. `폴더/` → `00000.png`–`00029.png` + `motion.json`, `pix_fmt=rgba`, 15번 프레임 알파 YMIN 0 YMAX 255. `--scale 2` → 1280×720 vp9. kit-launch 0-59 `.mov --pipe` → prores 4444 60프레임 + pcm_s16le 48 kHz 스테레오, 10.0초. kit-launch 0-119 `.webm --concurrency 2` → 청크 2, vp9 120프레임 + opus 48 kHz, 4.008초, 26.0초 소요. 레이아웃 감사(`{"audit": [...]}`)는 [tooling.md](tooling.md)에 있습니다.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {spawnSync} from 'node:child_process';
-import {existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {existsSync, mkdtempSync, readdirSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 // @ts-expect-error the renderer is plain ESM without types
@@ -29,6 +29,11 @@ test('the container follows the output extension and the codec sets the pixel fo
   assert.equal(outputFormat('a.webm', {crf: 20}).crf, 20);
   assert.equal(outputFormat('a.mp4').chunked, true);
   assert.equal(outputFormat('a.gif').chunked, false);
+  assert.deepEqual(pick(outputFormat('live/a.m3u8')), ['m3u8', 'h264', 'yuv420p', 'aac', false]);
+  assert.equal(outputFormat('a.m3u8').chunked, false, 'one playlist, so one chunk like gif');
+  assert.deepEqual(outputFormat('a.m3u8').mux, ['-force_key_frames', 'expr:gte(t,n_forced*4)', '-f', 'hls', '-hls_time', '4', '-hls_playlist_type', 'vod']);
+  assert.throws(() => outputFormat('a.m3u8', {transparent: true}), /cannot carry alpha/);
+  assert.throws(() => outputFormat('a.m3u8', {codec: 'vp9'}), /does not go into \.m3u8/);
   assert.throws(() => outputFormat('a.mp4', {transparent: true}), /cannot carry alpha/);
   assert.throws(() => outputFormat('a.mp4', {codec: 'prores'}), /does not go into \.mp4/);
   assert.throws(() => outputFormat('a.png'), /needs --frames/);
@@ -175,5 +180,20 @@ test('real renders: a transparent webm of the translucent fixture carries alpha 
     const table = spawnSync(process.execPath, [join(ENGINE, 'bin/frameforge.mjs'), 'check', mp4], {cwd: ENGINE, encoding: 'utf8', env}).stdout;
     assert.match(table, /^frame-check {6}PASS {2}/m); assert.match(table, /^narration-check {2}SKIP {2}--film 없음|^narration-check {2}SKIP {2}scripts/m);
     assert.equal(readFileSync(`${mp4}.motion.json`, 'utf8').slice(0, 1), '{');
+  } finally { rmSync(out, {recursive: true, force: true}); }
+});
+
+test('real HLS render: a 30-frame kit-launch playlist of h264 + aac with its one segment published beside it by bare name', {timeout: 240000}, () => {
+  const out = mkdtempSync(join(tmpdir(), 'ff-hls-'));
+  try {
+    const playlist = join(out, 'kit.m3u8');
+    const render = spawnSync(process.execPath, [join(ENGINE, 'scripts/render.mjs'), 'examples/samples/kit-launch/entry.tsx', 'KitLaunch', playlist, '--frame-range', '0-29'], {cwd: ENGINE, encoding: 'utf8', env: {...process.env, FRAMEFORGE_PORT: PORT}});
+    assert.equal(render.status, 0, render.stderr);
+    const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', playlist], {encoding: 'utf8'}).stdout.split('\n').filter(Boolean);
+    assert.deepEqual([...new Set(probe)].sort(), ['aac', 'h264']);
+    const text = readFileSync(playlist, 'utf8');
+    assert.match(text, /#EXT-X-PLAYLIST-TYPE:VOD/); assert.match(text, /#EXT-X-ENDLIST/);
+    assert.deepEqual(text.split('\n').filter(line => line.endsWith('.ts')), ['kit_000.ts']);
+    assert.deepEqual(readdirSync(out).sort(), ['kit.m3u8', 'kit.m3u8.motion.json', 'kit_000.ts']);
   } finally { rmSync(out, {recursive: true, force: true}); }
 });

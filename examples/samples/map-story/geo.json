@@ -1,0 +1,7 @@
+{
+  "slug": "map-story",
+  "items": [
+    {"name": "world", "source": "natural-earth", "layer": "countries", "scale": "50m", "simplify": 0.03},
+    {"name": "korea", "source": "natural-earth", "layer": "countries", "scale": "50m", "filter": {"iso_a3": ["KOR"]}, "simplify": 0.01}
+  ]
+}

@@ -78,30 +78,30 @@ function breakLines(text: string, maxChars: number): string[] {
  * One rail line on its plate, with no positioning: words appear in order across `reveal` 0..1 and emphasis words carry an accent underline.
  * `Subtitles` lays these out; use it directly for a custom caption layout.
  */
-export function SubtitleLine({line, reveal = 1, fonts, palette, size = 44, radius = 12, maxChars = 24}: {line: NarrationLine; reveal?: number} & SubtitleStyle & {maxChars?: number}): React.ReactElement {
+export function SubtitleLine({line, reveal = 1, fonts, palette, size = 44, radius = 12, maxChars = 24}: {line: NarrationLine; reveal?: number} & SubtitleStyle & {maxChars?: number}): React.ReactElement | null {
   const ink = palette?.ink ?? '#111111', paper = palette?.paper ?? '#F4F4F1', accent = palette?.accent ?? '#2F5BFF';
   const ranges = emphasisRanges(line.text, line.emphasis);
   const words = line.text.split(' ');
   const rows = breakLines(line.text, maxChars);
   let wordIndex = 0;
-  return <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.18}}>
-    {rows.map((row, rowIndex) => {
-      const rowWords = row.split(' ');
-      const rowStart = rowIndex === 0 ? 0 : rows[0]!.length + 1;
-      // Only revealed words are in the flow, so each plate hugs the words on it with the same padding and stays centred; the first word brings its plate.
-      const shown = rowWords.map((word, i) => ({word, i, from: rowStart + rowWords.slice(0, i).reduce((sum, w) => sum + w.length + 1, 0), index: wordIndex++, slot: 1 / words.length}))
-        .filter(({index, slot}) => reveal > index * slot);
-      if (shown.length === 0) return null;
-      return <div key={rowIndex} style={{display: 'flex', gap: size * 0.28, padding: `${size * 0.18}px ${size * 0.55}px`, borderRadius: radius, background: plate(ink, paper), color: paper, fontFamily: fonts?.ui, fontWeight: 600, fontSize: size, lineHeight: 1.3, whiteSpace: 'nowrap'}}>
-        {shown.map(({word, i, from, index, slot}) => {
-          const to = from + word.length;
-          const opacity = interpolate(reveal, [index * slot, index * slot + slot * 0.2], [0.35, 1], clamp);
-          const strong = ranges.some(([a, b]) => from < b && to > a);
-          // Emphasis is an accent underline under paper text: accent text on the plate would fall under 3:1 for most palettes.
-          return <span key={i} style={{opacity, color: paper, ...(strong ? {textDecoration: `underline ${accent}`, textDecorationThickness: '0.12em', textUnderlineOffset: '0.14em'} : {})}}>{word}</span>;
-        })}
-      </div>;
-    })}
+  // Only revealed words are in the flow, so the plate hugs the words on it with the same padding; one plate holds both rows, each row centred.
+  const shownRows = rows.map((row, rowIndex) => {
+    const rowWords = row.split(' ');
+    const rowStart = rowIndex === 0 ? 0 : rows[0]!.length + 1;
+    return rowWords.map((word, i) => ({word, i, from: rowStart + rowWords.slice(0, i).reduce((sum, w) => sum + w.length + 1, 0), index: wordIndex++, slot: 1 / words.length}))
+      .filter(({index, slot}) => reveal > index * slot);
+  }).filter(row => row.length > 0);
+  if (shownRows.length === 0) return null;
+  return <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.1, padding: `${size * 0.18}px ${size * 0.55}px`, borderRadius: radius, background: plate(ink, paper), color: paper, fontFamily: fonts?.ui, fontWeight: 600, fontSize: size, lineHeight: 1.3, whiteSpace: 'nowrap'}}>
+    {shownRows.map((row, rowIndex) => <div key={rowIndex} style={{display: 'flex', gap: size * 0.28}}>
+      {row.map(({word, i, from, index, slot}) => {
+        const to = from + word.length;
+        const opacity = interpolate(reveal, [index * slot, index * slot + slot * 0.2], [0.35, 1], clamp);
+        const strong = ranges.some(([a, b]) => from < b && to > a);
+        // Emphasis is an accent underline under paper text: accent text on the plate would fall under 3:1 for most palettes.
+        return <span key={i} style={{opacity, color: paper, ...(strong ? {textDecoration: `underline ${accent}`, textDecorationThickness: '0.12em', textUnderlineOffset: '0.14em'} : {})}}>{word}</span>;
+      })}
+    </div>)}
   </div>;
 }
 

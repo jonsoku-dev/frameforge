@@ -5,5 +5,6 @@ import {CARD_BLOCKS} from './cards';
 import {CHART_BLOCKS} from './charts';
 import {CODE_BLOCKS} from './code';
 import {DIAGRAM_BLOCKS} from './diagrams';
+import {MAP_BLOCKS} from './maps';
 
-export const CATALOG: readonly BlockEntry[] = [...TEXT_BLOCKS, ...LOWER_THIRD_BLOCKS, ...CARD_BLOCKS, ...CHART_BLOCKS, ...CODE_BLOCKS, ...DIAGRAM_BLOCKS];
+export const CATALOG: readonly BlockEntry[] = [...TEXT_BLOCKS, ...LOWER_THIRD_BLOCKS, ...CARD_BLOCKS, ...CHART_BLOCKS, ...CODE_BLOCKS, ...DIAGRAM_BLOCKS, ...MAP_BLOCKS];

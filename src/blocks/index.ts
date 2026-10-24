@@ -6,3 +6,4 @@ export * from './cards';
 export * from './charts';
 export * from './code';
 export * from './diagrams';
+export * from './maps';

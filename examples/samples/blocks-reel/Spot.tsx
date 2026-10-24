@@ -59,8 +59,8 @@ function Panel({frame, at, out, width, height, children}: Scene & {at: number; o
 
 // On the accent run the lower third's accent shapes turn ink; on the ink run ink and paper swap, so every variant reads on its field.
 const TONES = {paper: palette, ink: {...palette, ink: palette.paper, paper: palette.ink}, accent: {...palette, accent: palette.ink}};
-const Third = ({frame, at, out, variant, on = 'paper'}: Scene & {at: number; out: number; variant: LowerThirdVariant; on?: keyof typeof TONES}) =>
-  <LowerThird {...common(frame)} palette={TONES[on]} at={at} out={out} size={S * 0.06} variant={variant} name="김온결" role="제품 디자이너 · 가상 인물" />;
+const Third = ({frame, at, out, variant, on = 'paper', x}: Scene & {at: number; out: number; variant: LowerThirdVariant; on?: keyof typeof TONES; x?: number}) =>
+  <LowerThird {...common(frame)} palette={TONES[on]} at={at} out={out} x={x} size={S * 0.06} variant={variant} name="김온결" role="제품 디자이너 · 가상 인물" />;
 
 function Hook({frame}: Scene) {
   return <AbsoluteFill style={{background: palette.ink}}>
@@ -96,7 +96,7 @@ function Type({frame}: Scene) {
       <div style={{position: 'absolute', left: S * 0.06, top: S * 0.05, width: S * 0.12, height: S * 0.012, background: palette.accent}} />
       <Typewriter {...common(frame)} at={AT.type + 16} out={AT.sweep + 2} x={S * 0.06} y={S * 0.11} size={SIZES.headline} speed={2} text="할 일 셋을 적습니다." />
     </Panel>
-    <Third frame={frame} at={AT.type + 26} out={AT.sweep - 10} variant="kicker-name" on="accent" />
+    <Third frame={frame} at={AT.type + 26} out={AT.sweep - 10} variant="kicker-name" on="accent" x={(W - PANEL.width) / 2} />
   </AbsoluteFill>;
 }
 
@@ -126,10 +126,10 @@ function Stats({frame}: Scene) {
 /** Ink run, 580–900: the first stat card's ink block grows into the field; the toast announces, the thread replies, the checklist and the name follow. */
 function Inbox({frame}: Scene) {
   const offset = S * 0.022;
-  const size = S * 0.061;
+  const size = S * 0.058;
   return <Field frame={frame} at={AT.inbox} color={palette.ink} from={{left: CARD.x + CARD.size * 0.4, top: CARD.y + CARD.size * 0.4, width: CARD.size * 10, height: CARD.size * 5.2}}>
     <NotificationCard {...common(frame)} at={AT.inbox + 4} out={AT.check - 6} x={W * 0.2} y={H * 0.08} width={W * 0.6} size={S * 0.065} icon={Bell} title="온결" body="오늘의 기록이 저장됐어요" time="지금" />
-    <MessageThread {...common(frame)} at={AT.inbox + 30} out={AT.check + 2} x={W * 0.2 + offset} y={H * 0.3} size={size} width={W * 0.6 - offset * 2} step={22} typing={10} messages={[
+    <MessageThread {...common(frame)} at={AT.inbox + 30} out={AT.check + 2} x={W * 0.2 + offset} y={H * 0.33} size={size} width={W * 0.6 - offset * 2} step={22} typing={10} messages={[
       {side: 'left', name: '온결', text: '오늘도 기록을 이었어요'},
       {side: 'right', name: '나', text: '벌써 1,284일째네요'},
       {side: 'left', name: '온결', text: '내일도 같은 시간에 만나요'},

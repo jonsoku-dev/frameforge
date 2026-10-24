@@ -1,6 +1,6 @@
 # 샘플 작품
 
-지금 규칙(`rules.md`)을 따르는 작품 열여섯 편과 시작 템플릿입니다. 브랜드는 전부 가상이고 숫자는 예시로 표기했습니다. 음악과 효과음은 작품마다 `audio.json` 사양에서 생성합니다(`docs/audio-score.md`). 새 작품은 `examples/samples/_template/`을 복사해서 시작합니다.
+지금 규칙(`rules.md`)을 따르는 작품 열일곱 편과 시작 템플릿입니다. 브랜드는 전부 가상이고 숫자는 예시로 표기했습니다. 음악과 효과음은 작품마다 `audio.json` 사양에서 생성합니다(`docs/audio-score.md`). 새 작품은 `examples/samples/_template/`을 복사해서 시작합니다.
 
 ## 작품
 
@@ -21,6 +21,7 @@
 | [narrated-explainer](../../examples/samples/narrated-explainer/) | `NarratedExplainer` | 1920×1080, 29초 | 나레이션 먼저: `say` 음성 7줄, 측정 시간으로 장면, rail·embed 자막, KaTeX 수식 |
 | [turntable-spot](../../examples/samples/turntable-spot/) | `TurntableSpot` | 1920×1080, 24초 | 헤드리스 Blender 턴테이블·돌리 샷(`ImageSequence`), Poly Haven 모델(`Model`) |
 | [generative-ident](../../examples/samples/generative-ident/) | `GenerativeIdent` | 1920×1080, 18초 | 오로라·플로우 필드 배경, 라이트 리크 이음새, 그레인·비네트, 손그림 주석, 스튜디오 변수 |
+| [map-story](../../examples/samples/map-story/) | `MapStory` | 1920×1080, 20초 | 지도 블록: 세계 윤곽, 한국 확대, 서울→부산→제주 경로, 예시 마커 |
 | [showcase-spot](../../examples/samples/showcase-spot/) | `ShowcaseSpot` | 1920×1080, 24초 | 위 레버 전부를 한 편에: 나레이션, 블록, 이음새 6곳, Blender 히어로, 생성 배경·효과 |
 
 [_template](../../examples/samples/_template/)은 `SIZES` 표, `span`, `pop`, `push`, `Glyphs`, `Screen`, `Callout`과 장면표 양식을 담은 시작점입니다. 샘플 묶음에는 등록하지 않습니다.
@@ -51,16 +52,17 @@
 | slug | 프레임 | 프레임 검사 | 플래시(최악 1초) | seam-check | narration-check | 렌더 |
 | --- | --- | --- | --- | --- | --- | --- |
 | blocks-reel | 900 | 통과(thin 0.04, huddled 0.09) | 1 | 통과(측정 0) | 해당 없음 | 51s |
-| data-reel | 900 | 통과(thin 0, huddled 0.00) | 0 | 통과(측정 0) | 해당 없음 | 기록 없음 |
+| data-reel | 900 | 통과(thin 0, huddled 0.00) | 0 | 통과(측정 0) | 해당 없음 | 54s |
 | seam-reel | 900 | 통과 | 0 | 통과(5곳, 흐름 x−) | 해당 없음 | 51s |
-| narrated-explainer | 870 | 통과 | 0 | 통과(측정 0) | 통과(7줄) | 기록 없음 |
+| narrated-explainer | 870 | 통과 | 0 | 통과(측정 0) | 통과(7줄) | 65s |
 | turntable-spot | 720 | 통과 | 0 | 통과(측정 0) | 해당 없음 | 101s |
 | generative-ident | 540 | 통과 | 0 | 통과(측정 0) | 해당 없음 | 112s |
+| map-story | 600 | 통과 | 0 | 통과(측정 0) | 해당 없음 | 40s |
 | showcase-spot | 720 | 통과 | 0 | 통과(6곳, 흐름 x−) | 통과(7줄) | 72s |
 
 첫 전체 렌더에서는 일곱 편 중 다섯 편이 떨어졌습니다(정지 구간 124프레임, 글자 잘림, thin 0.093, 세이프 영역, 겹침). 콘택트 시트와 150프레임 부분 렌더만으로는 보이지 않던 것이라, 작품마다 전체 렌더와 `frameforge check`가 필수입니다.
 
-검사 통과 뒤 다른 모델(sonnet)이 일곱 편의 시트를 교차 리뷰해 30여 건을 지적했습니다(기본 프리미티브 3D 히어로, 팔레트 밖 색, 작은 요소와 빈 화면, 자막 판 불일치, 글자 겹침, 이음새의 무대색 테두리). 지적은 전부 반영했고(3D 피사체 팔레트 색과 접지 그림자, `lightLeakEffect`의 `colors`, 오로라 팔레트 고정, 자막 판 통일과 accent 밑줄 강조, `<Seam>`의 배경 bleed, 블록 크기 기본값) 위 표는 반영 뒤 다시 렌더한 결과입니다. 두 번째 교차 리뷰는 돌리지 않았습니다.
+검사 통과 뒤 다른 모델(sonnet)이 일곱 편의 시트를 교차 리뷰해 30여 건을 지적했습니다(기본 프리미티브 3D 히어로, 팔레트 밖 색, 작은 요소와 빈 화면, 자막 판 불일치, 글자 겹침, 이음새의 무대색 테두리). 지적은 전부 반영했고(3D 피사체 팔레트 색과 접지 그림자, `lightLeakEffect`의 `colors`, 오로라 팔레트 고정, 자막 판 통일과 accent 밑줄 강조, `<Seam>`의 배경 bleed, 블록 크기 기본값) 위 표는 반영 뒤 다시 렌더한 결과입니다. 두 번째 교차 리뷰(sonnet)는 blocks-reel과 narrated-explainer를 그대로 합격으로, data-reel과 seam-reel을 중간 수정 뒤 합격으로 판정했고, turntable-spot·showcase-spot·generative-ident의 남은 지적(기본 도형 히어로, 훅 대비, 라이트 리크, 오로라 경계)을 반영해 다시 렌더했습니다. 세 번째 리뷰는 돌리지 않았습니다.
 
 ## 지금 규칙에서 벗어난 곳
 
@@ -73,7 +75,7 @@
 npm run dev
 ```
 
-기본 진입점 `examples/samples/index.tsx`가 위 열여섯 편을 등록합니다. 재생 버튼으로 소리와 함께 미리 볼 수 있습니다. 작품 하나만 보려면 `VIDEO_ENTRY=examples/samples/<slug>/entry.tsx npm run dev`를 씁니다.
+기본 진입점 `examples/samples/index.tsx`가 위 열일곱 편을 등록합니다. 재생 버튼으로 소리와 함께 미리 볼 수 있습니다. 작품 하나만 보려면 `VIDEO_ENTRY=examples/samples/<slug>/entry.tsx npm run dev`를 씁니다.
 
 ## 한계
 

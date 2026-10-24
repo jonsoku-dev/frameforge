@@ -23,8 +23,10 @@ const MIDDLE = [AT.bar, AT.line, AT.race, AT.budget, AT.code, AT.flow, AT.steps,
 const fieldOf = (k: number) => (k % 2 ? ink : soft);
 // One paper stage card for every middle scene: the blocks sit on it, the headline above it on the soft field. The soft margins
 // around the card keep a headline-sized band of ink in every frame, even while a headline rises and a block has not started.
-const STAGE = {x: 160, y: 240, w: 1600, h: 760};
+const STAGE = {x: 208, y: 240, w: 1504, h: 760};
 const CARD = {left: 112, top: 212, width: 1696, height: 828, borderRadius: 24};
+// Two beats break the card rhythm: the flowchart gets a card shrunk to its nodes, the process steps run full-bleed on the soft field.
+const CARDS: Record<number, typeof CARD | null> = {5: {...CARD, top: 326, height: 600}, 6: null};
 
 function span(frame: number, from: number, dur: number): number {
   return interpolate(frame, [from, from + dur], [0, 1], {...clamp, easing: ease});
@@ -108,7 +110,7 @@ export function DataReel() {
     {frame < AT.bar + 10 ? <Hook frame={frame} /> : null}
     {frame >= AT.bar ? <AbsoluteFill style={{background: k > 0 ? fieldOf(k - 1) : ink}}>
       <AbsoluteFill style={{background: fieldOf(k), clipPath: `inset(${(1 - wipe) * 100}% 0 0 0)`}} />
-      <div style={{position: 'absolute', ...CARD, background: paper, transform: `translateY(${hop}px)`}} />
+      {(CARDS[k] === undefined ? CARD : CARDS[k]) ? <div style={{position: 'absolute', ...(CARDS[k] ?? CARD), background: paper, transform: `translateY(${hop}px)`}} /> : null}
       <Scene frame={frame} at={AT.bar} until={AT.line} title="월별 지출"><BarChart {...stage(frame, AT.bar, AT.line)} data={spend} target={60} unit="만" /></Scene>
       <Scene frame={frame} at={AT.line} until={AT.race} title="저축 추이"><LineChart {...stage(frame, AT.line, AT.race)} data={saving} unit="만" /></Scene>
       <Scene frame={frame} at={AT.race} until={AT.budget} title="카테고리 순위"><BarChartRace {...stage(frame, AT.race, AT.budget)} duration={96} snapshots={race} unit="만" /></Scene>
@@ -117,10 +119,10 @@ export function DataReel() {
         <Heatmap {...stage(frame, AT.budget, AT.code)} size={48} x={880} width={880} height={700} y={270} at={AT.budget + 12} rows={heat} rowLabels={['월', '화', '수', '목', '금', '토', '일']} colLabels={['아침', '점심', '저녁', '밤']} order="seeded" seed="nuri" />
       </Scene>
       <Scene frame={frame} at={AT.code} until={AT.flow} title="자동 분류 규칙"><CodeBlock {...stage(frame, AT.code, AT.flow)} size={SIZES.label} height={620} y={300} code={code} lang="ts" mode="typing" charsPerFrame={5} /></Scene>
-      <Scene frame={frame} at={AT.flow} until={AT.steps} title="알림이 오기까지"><Flowchart {...stage(frame, AT.flow, AT.steps)} size={56} height={560} y={346} nodes={[{id: 'pay', label: '결제'}, {id: 'tag', label: '자동 분류'}, {id: 'budget', label: '예산 비교'}, {id: 'push', label: '알림', shape: 'pill'}]} /></Scene>
-      <Scene frame={frame} at={AT.steps} until={AT.timeline} title="시작은 세 단계"><ProcessSteps {...stage(frame, AT.steps, AT.timeline)} size={60} height={560} y={346} steps={['계좌 연결', '자동 분류', '예산 확인']} /></Scene>
+      <Scene frame={frame} at={AT.flow} until={AT.steps} title="알림이 오기까지"><Flowchart {...stage(frame, AT.flow, AT.steps)} size={64} height={560} y={346} nodes={[{id: 'pay', label: '결제'}, {id: 'tag', label: '자동 분류'}, {id: 'budget', label: '예산 비교'}, {id: 'push', label: '알림', shape: 'pill'}]} /></Scene>
+      <Scene frame={frame} at={AT.steps} until={AT.timeline} title="시작은 세 단계"><ProcessSteps {...stage(frame, AT.steps, AT.timeline)} size={72} height={760} y={240} steps={['계좌 연결', '자동 분류', '예산 확인']} /></Scene>
       <Scene frame={frame} at={AT.timeline} until={AT.compare} title="출시 일정"><Timeline {...stage(frame, AT.timeline, AT.compare)} size={56} height={600} y={326} items={[{date: '1월', label: '기획'}, {date: '3월', label: '베타'}, {date: '5월', label: '출시'}, {date: '7월', label: '프로 요금제'}]} /></Scene>
-      <Scene frame={frame} at={AT.compare} until={AT.name + 12} title="기본과 프로"><Compare {...stage(frame, AT.compare, AT.name)} height={640} y={300} columns={['기본', '프로']} rows={[{label: '자동 분류', a: true, b: true}, {label: '예산 알림', a: true, b: true}, {label: '가족 공유', a: false, b: true}, {label: '리포트', a: '월간', b: '주간'}]} /></Scene>
+      <Scene frame={frame} at={AT.compare} until={AT.name + 12} title="기본과 프로"><Compare {...stage(frame, AT.compare, AT.name)} size={48} height={680} y={280} columns={['기본', '프로']} rows={[{label: '자동 분류', a: true, b: true}, {label: '예산 알림', a: true, b: true}, {label: '가족 공유', a: false, b: true}, {label: '리포트', a: '월간', b: '주간'}]} /></Scene>
     </AbsoluteFill> : null}
     {frame >= AT.name ? <AbsoluteFill style={{background: ink, clipPath: `inset(${(1 - inkIn) * 100}% 0 0 0)`}}><Name frame={frame} /></AbsoluteFill> : null}
   </AbsoluteFill>;

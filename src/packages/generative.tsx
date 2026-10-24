@@ -284,18 +284,21 @@ export const noiseLines: GenerativeSystem<NoiseLineParams, number[][]> = {
 
 /* ---------- aurora ---------- */
 export type AuroraParams = {bands: number; amplitude: number; scale: number; speed: number; height: number};
-export type Band = {base: number; height: number; edge: number[]; tone: number};
-/** Layered bands: each upper edge is a sine plus 3D noise over t; `edge` holds the y of the upper edge per x sample. */
+export type Band = {base: number; height: number; edge: number[]; /** Lower edge per sample, noise-shaped so the fade never ends on a straight line. */ bottom: number[]; tone: number};
+/** Layered bands: the upper edge is a sine plus 3D noise over t, the lower edge its own noise line; both hold the y per x sample. */
 export function auroraBands(seed: string | number, params: AuroraParams, t: number): Band[] {
-  const samples = 48, count = Math.round(params.bands);
+  const samples = 96, count = Math.round(params.bands);
   return Array.from({length: count}, (_, i) => {
-    const phase = seeded(seed, `ap${i}`) * TAU, base = 0.38 + 0.42 * (i + 0.5) / count;
-    const edge = Array.from({length: samples + 1}, (_, s) => {
+    const phase = seeded(seed, `ap${i}`) * TAU, base = 0.5 + 0.4 * (i + 0.5) / count;
+    const edge: number[] = [], bottom: number[] = [];
+    for (let s = 0; s <= samples; s++) {
       const u = s / samples;
-      return base - params.height + params.amplitude * (Math.sin(u * TAU * params.scale + t * params.speed * TAU + phase) + noise3D(seed, u * params.scale * 1.7, i * 0.5, t * params.speed * 0.6));
-    });
+      const top = base - params.height + params.amplitude * (Math.sin(u * TAU * params.scale + t * params.speed * TAU + phase) + noise3D(seed, u * params.scale * 1.7, i * 0.5, t * params.speed * 0.6));
+      edge.push(top);
+      bottom.push(top + params.height * (1.1 + 0.45 * noise3D(seed, u * params.scale * 2.3, i * 0.5 + 9, t * params.speed * 0.4)));
+    }
     // Accent and soft only: the paper tone reads as a gray stripe over ink.
-    return {base, height: params.height, edge, tone: i % 2};
+    return {base, height: params.height, edge, bottom, tone: i % 2};
   });
 }
 export const aurora: GenerativeSystem<AuroraParams, Band[]> = {
@@ -306,15 +309,18 @@ export const aurora: GenerativeSystem<AuroraParams, Band[]> = {
     context.fillStyle = args.palette.ink; context.fillRect(0, 0, args.width, args.height);
     const tones = colours(args.palette);
     for (const band of bands) {
-      const top = point(args, 0, band.base - band.height).y, bottom = point(args, 0, band.base).y;
-      const gradient = context.createLinearGradient(0, top, 0, bottom);
-      // Opaque at the upper edge so the band reads as the palette colour, then straight to transparent over the ink.
-      gradient.addColorStop(0, withAlpha(tones[band.tone]!, 1)); gradient.addColorStop(0.35, withAlpha(tones[band.tone]!, 0.85)); gradient.addColorStop(1, withAlpha(tones[band.tone]!, 0));
-      context.fillStyle = gradient;
-      context.beginPath();
-      band.edge.forEach((y, s) => { const p = point(args, s / (band.edge.length - 1), y); if (s === 0) context.moveTo(p.x, p.y); else context.lineTo(p.x, p.y); });
-      for (let s = band.edge.length - 1; s >= 0; s--) { const p = point(args, s / (band.edge.length - 1), band.edge[s]! + band.height); context.lineTo(p.x, p.y); }
-      context.closePath(); context.fill();
+      const tone = tones[band.tone]!, last = band.edge.length - 1;
+      // One slice per sample with its own vertical gradient from the upper edge to the lower edge, so the fade follows both curves.
+      for (let s = 0; s < last; s++) {
+        const a = point(args, s / last, band.edge[s]!), b = point(args, (s + 1) / last, band.edge[s + 1]!);
+        const c = point(args, (s + 1) / last, band.bottom[s + 1]!), d = point(args, s / last, band.bottom[s]!);
+        // Slice edges snap to whole pixels so neighbours abut without an anti-aliased seam or a double-painted overlap.
+        const x0 = Math.round(a.x), x1 = Math.round(b.x);
+        const gradient = context.createLinearGradient(0, (a.y + b.y) / 2, 0, (c.y + d.y) / 2);
+        gradient.addColorStop(0, withAlpha(tone, 1)); gradient.addColorStop(0.3, withAlpha(tone, 0.9)); gradient.addColorStop(1, withAlpha(tone, 0));
+        context.fillStyle = gradient;
+        context.beginPath(); context.moveTo(x0, a.y); context.lineTo(x1, b.y); context.lineTo(x1, c.y); context.lineTo(x0, d.y); context.closePath(); context.fill();
+      }
     }
   },
 };

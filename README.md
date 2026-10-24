@@ -105,9 +105,10 @@ npm run skill:install
 - 이음새. 장면 사이의 컷을 한 동작으로 잇는 곡선(`cutTheCurve`, `zoomThrough`, `<Seam>`)과 렌더가 남긴 움직임 기록으로 방향·속도 불일치를 잡는 `seam-check`.
 - 나레이션. `narration.json`에서 `voice.py`(ElevenLabs, kokoro, macOS say, 추정 무음 순)가 음성을 만들고, 측정된 시간으로 장면을 짜는 `useNarration`, 오버레이 자막 `<Subtitles>`, KaTeX 수식 `<Formula>`, `narration-check`. 렌더러는 음성 아래로 음악을 낮춥니다.
 - 3D. `3d.json`을 헤드리스 Blender가 결정적으로 렌더한 PNG 시퀀스를 `<ImageSequence>`로 재생, Poly Haven CC0 모델·HDRI 내려받기, `<ThreeCanvas>` 안의 `<Model>`·`<Turntable>`.
+- 지도와 전사. Natural Earth 공개 데이터로 그리는 지도 블록(경로, 마커), whisper.cpp로 음성을 자막으로 바꾸는 `transcribe`, 외부 애니메이션 라이브러리를 프레임으로 구동하는 `<Seekable>`.
 - 생성 배경과 효과. 시드와 프레임의 순수 함수인 배경 시스템 9종(`<Generative>`), 색 보정·LUT·라이트 리크·비네트·그레인 효과, 손그림 글자 주석 6종.
 - 스튜디오. 기획, 과정 기록, 변수 조정, 렌더 큐를 한 화면에서 봅니다.
-- 렌더러. Chrome DevTools Protocol로 프레임을 찍고 FFmpeg로 MP4(H.264), WebM(VP9, 알파), MOV(ProRes 4444, 알파), GIF, PNG 시퀀스를 만듭니다. 구간 렌더, 병렬 청크, 파이프 인코딩, 멱등성 검사, 투명 배경, 배율을 지원합니다.
+- 렌더러. Chrome DevTools Protocol로 프레임을 찍고 FFmpeg로 MP4(H.264), WebM(VP9, 알파), MOV(ProRes 4444, 알파), GIF, PNG 시퀀스, HLS를 만듭니다. 구간 렌더, 병렬 청크, 파이프 인코딩, 멱등성 검사, 투명 배경, 배율을 지원합니다.
 - 소리. 작품별 `audio.json`에서 음악을 합성하고, 움직임에서 효과음 시점을 뽑고, 음악을 효과음 아래로 낮춥니다.
 - 에셋. 44종 모티프 키트와 `assets.json` 해결기(호스트 파일, 이미지 명령, Recraft, Openverse CC0, 키트).
 - 검사. 글자 잘림 가드, 결정성 린트, 세이프 영역·겹침·대비·크기 감사, frame-check, flash-check, seam-check, narration-check, 음량 보고. `frameforge check`가 한 표로 묶습니다.

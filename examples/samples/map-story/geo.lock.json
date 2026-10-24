@@ -1,0 +1,30 @@
+{
+ "world": {
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
+  "layer": "countries",
+  "scale": "50m",
+  "filter": null,
+  "simplify": 0.03,
+  "sha256": "3e458fc036ad0a66411f2c1e6cac49c5d7bfb81cb1123bc513b22511a2b7fdeb",
+  "licence": "public domain, Natural Earth",
+  "licence_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "features": 237,
+  "file": "/assets/generated/map-story/geo/world.geojson"
+ },
+ "korea": {
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
+  "layer": "countries",
+  "scale": "50m",
+  "filter": {
+   "iso_a3": [
+    "KOR"
+   ]
+  },
+  "simplify": 0.01,
+  "sha256": "3e458fc036ad0a66411f2c1e6cac49c5d7bfb81cb1123bc513b22511a2b7fdeb",
+  "licence": "public domain, Natural Earth",
+  "licence_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "features": 1,
+  "file": "/assets/generated/map-story/geo/korea.geojson"
+ }
+}

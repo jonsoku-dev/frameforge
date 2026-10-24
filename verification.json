@@ -272,7 +272,7 @@
   "samples": {
     "date": "2026-10-24",
     "doc": "docs/samples/README.md",
-    "count": 16,
+    "count": 17,
     "films": [
       "cafe-morning",
       "kit-launch",
@@ -289,7 +289,8 @@
       "narrated-explainer",
       "turntable-spot",
       "generative-ident",
-      "showcase-spot"
+      "showcase-spot",
+      "map-story"
     ],
     "template": "examples/samples/_template",
     "entry": "examples/samples/index.tsx"
@@ -447,7 +448,7 @@
           "frame_check": "PASS",
           "flash_worst_second": 0,
           "seam_check": "PASS (0 measured)",
-          "seconds": null
+          "seconds": 54
         },
         "seam-reel": {
           "frames": 900,
@@ -460,7 +461,8 @@
           "frames": 870,
           "frame_check": "PASS",
           "flash_worst_second": 0,
-          "narration_check": "PASS (7 lines)"
+          "narration_check": "PASS (7 lines)",
+          "seconds": 65
         },
         "turntable-spot": {
           "frames": 720,
@@ -481,10 +483,17 @@
           "seam_check": "PASS (6 seams, current x-)",
           "narration_check": "PASS (7 lines)",
           "seconds": 72
+        },
+        "map-story": {
+          "frames": 600,
+          "frame_check": "PASS",
+          "flash_worst_second": 0,
+          "seam_check": "PASS (0 measured)",
+          "seconds": 40
         }
       },
       "first_pass_failures": "5 of 7 failed before fixes: static runs over 120 frames, clipped text inside an overflow box, thin share 0.093, text outside the safe area, text overlap",
-      "note": "numbers are from the renders after the cross-model review round; data-reel and narrated-explainer render times were not captured in that round"
+      "note": "numbers are from the renders after the cross-model review round"
     },
     "alpha_outputs": {
       "mov": "prores profile 4444 yuva444p12le, alpha plane YMIN 256 YMAX 3773",
@@ -515,14 +524,26 @@
       "cross-machine Blender determinism",
       "vp9 alpha plane pixels",
       "kokoro and ElevenLabs voice paths",
-      "studio playback of the new samples"
+      "studio playback of the new samples",
+      "map projections other than mercator in Chrome",
+      "whisper small model"
     ],
     "cross_model_review": {
       "date": "2026-10-24",
       "reviewer": "general-purpose agent on sonnet, sheets of the seven films plus rules.md, seams.md, captions.md",
       "findings": "about 30 across the seven films (weakest turntable-spot: default primitives, empty frames; showcase: hero over the brand name, captions over the donut; narrated: inconsistent rail plates; generative: off-palette leak and aurora; blocks/data: collisions and underfilled cards; seam-reel: stage colour border at seams)",
       "resolution": "every finding addressed by the owning workstream, then each film re-rendered in full and re-checked (table in docs/samples/README.md); engine changes: Model color prop and shadow floor, EEVEE contact shadow 80%, lightLeakEffect colors, aurora and flowField palette-only tones, annotation geometry, Subtitles plate per revealed words with accent underline emphasis, Seam fromBackground/toBackground bleed, waterfallCut shared offset, StatCard/NotificationCard/MessageThread sizes, BarChartRace crossing, Timeline label clearance",
-      "second_review": "not run"
+      "second_review": "run, see second_round"
+    },
+    "second_round": {
+      "date": "2026-10-24",
+      "added": [
+        "src/blocks/maps.tsx + scripts/assets/geo.py (Natural Earth)",
+        "HLS output",
+        "scripts/transcribe.mjs (whisper.cpp base, Korean line transcribed exactly)",
+        "src/packages/seekable.tsx"
+      ],
+      "second_cross_model_review": "sonnet; accepted blocks-reel and narrated-explainer as is, data-reel and seam-reel after medium fixes; turntable-spot, showcase-spot, generative-ident fixed and re-rendered; third review not run"
     }
   }
 }

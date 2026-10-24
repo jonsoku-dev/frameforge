@@ -41,7 +41,7 @@ test('Subtitles shows the line that is speaking, holds it through a short gap, a
   const html = rail(89);
   assert.ok(html.includes('underline #C4511B') && html.includes('rgb(60, 70, 91)'), 'emphasis underlined in the accent on an ink-and-paper plate');
   assert.ok(rail(16).includes('하루에') && !rail(16).includes('하나로') && rail(89).includes('하나로'), 'words join the plate across the line');
-  assert.ok(rail(150).split('rgb(60, 70, 91)').length === 3, 'a long line breaks into two plates');
+  assert.ok(rail(150).split('rgb(60, 70, 91)').length === 2 && rail(150).includes('비율입니다'), 'a long line breaks into two rows on one plate');
   const embed = (frame: number) => at(frame, <Subtitles timing={timing} style="embed" />);
   assert.ok(embed(40).includes('>숫자<') && embed(150) === '' && embed(5) === '');
   assert.ok(at(0, <SubtitleLine line={timing.lines[0]!} reveal={1} />).includes('하나로'));
