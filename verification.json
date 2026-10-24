@@ -23,7 +23,64 @@
     "parent_evidence_id": "ev_263915abdb2bcf84299c7409fc4c06ae8f3d32af871605f72bbd75bf0492c9ab",
     "parsed_javascript_files": 1,
     "inventoried_files": 464,
-    "use": "export inventory and API-surface gap list; no implementation semantics taken from the bundle"
+    "use": "export inventory and API-surface gap list; no implementation semantics taken from the bundle",
+    "motion_tools": {
+      "date": "2026-10-24",
+      "method": "analyze_javascript_application on each shallow clone (directory format, integrity record-and-continue); Python and Markdown appear in the inventory only",
+      "bundle": {
+        "records": 10,
+        "bytes": 178814169,
+        "location": "session scratchpad rea-motion-tools-bundle (not committed)"
+      },
+      "targets": [
+        {
+          "name": "heygen-com/hyperframes",
+          "commit": "cf7266d81586",
+          "license": "Apache-2.0",
+          "root_sha256": "789673d94a2637bfd15e46377dbb49c3a54b30aac21ada58d857364de3dad7a8",
+          "parent_evidence_id": "ev_a4b5bd32e3b89ba8ef0e1f522b1a75a7d7106b456852a6664e4e8dc36451fe65",
+          "parsed_files": 12,
+          "inventoried_files": 6796
+        },
+        {
+          "name": "remotion-dev/skills",
+          "commit": "6c67adcd9cdb",
+          "license": "none declared; markdown read as public docs only",
+          "root_sha256": "551f80b5ceafcaadfc7fdb9ed097c7d16ac5c653f57fc93be401104f83c756e9",
+          "parent_evidence_id": "ev_15a84bfcfdb8e8bcc0728a71b25722d58f6bf15cdb4da190e4eaea5002ae171a",
+          "parsed_files": 45,
+          "inventoried_files": 63
+        },
+        {
+          "name": "ahujasid/blender-mcp",
+          "commit": "5a3618fccb2d",
+          "license": "MIT",
+          "root_sha256": "81b66cd7e61ac04c3862b4b8c8f3fe8e07836c9f370d4d52807d223199542543",
+          "parent_evidence_id": "ev_8ccfb91292402f3d1c5257e262a0cf2615da79e51028e33811407188de0f6dbe",
+          "parsed_files": 0,
+          "inventoried_files": 4
+        },
+        {
+          "name": "Yusuke710/manim-skill",
+          "commit": "a0048d9e2654",
+          "license": "MIT",
+          "root_sha256": "bdacdb1282b2c84247e33337744eadfcafad6f5ed08968af956c080242823bc0",
+          "parent_evidence_id": "ev_be02c32958c1ed1acf50b7540e12a1a1f33e3c952fe0ca25df55fe0d28dfa8c3",
+          "parsed_files": 0,
+          "inventoried_files": 3
+        },
+        {
+          "name": "anthropics/skills algorithmic-art",
+          "commit": "dbd4588f9e10",
+          "license": "Apache-2.0",
+          "root_sha256": "17de4ae72b4455325bf369ba8815a569dd0d52fbb7d9bd90bafd2b1aa3d28025",
+          "parent_evidence_id": "ev_5ea5c88b986dea5e0e83c7b3087171a642330cca9b3c755543571186566b4fc7",
+          "parsed_files": 1,
+          "inventoried_files": 2
+        }
+      ],
+      "use": "feature inventory and license lanes for docs/research/motion-tools-absorption.md; no code taken from any target"
+    }
   },
   "user_existing_project": {
     "status": "not-tested",
