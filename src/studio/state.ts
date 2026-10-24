@@ -86,7 +86,7 @@ export const storage = {
   },
 };
 
-/** "#/SaasLaunch@410" (2.10). */
+/** "#/KitLaunch@410" (2.10). */
 export function readHash(hash: string): {id: string; frame: number} | null {
   const match = /^#\/([A-Za-z][A-Za-z0-9-]*)(?:@(\d+))?$/.exec(hash);
   return match ? {id: match[1]!, frame: Number(match[2] ?? 0)} : null;

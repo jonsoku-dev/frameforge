@@ -8,7 +8,7 @@
 
 색(네 개): 잉크 #1C1917, 종이 #FFFBEB, 강조 #EA580C, 연한 주황 #FED7AA. 길이 연한 색에서 강조 색으로 데워지는 부분은 `interpolateColors`가 만드는 중간색이며, 이 한 곳만 예외다.
 
-글꼴: 디스플레이 Jua(헤드라인, 숫자), UI Noto Sans KR(라벨). 두 패밀리 모두 Google Fonts. 이 작품의 글꼴은 `docs/samples/plan.md`에 할당 행이 없어 직접 골랐다. Gothic A1과 #06C755는 쓰지 않는다.
+글꼴: 디스플레이 Jua(헤드라인, 숫자), UI Noto Sans KR(라벨). 두 패밀리 모두 Google Fonts. 이 작품의 글꼴은 직접 골랐다. Gothic A1과 #06C755는 쓰지 않는다.
 
 에셋: 수레(스쿠터), 길, 정류 핀, 문은 모두 직접 그린 SVG다. 선 굵기는 18px 하나, 모서리 반지름은 12px 하나. 아이콘 라이브러리는 쓰지 않는다.
 

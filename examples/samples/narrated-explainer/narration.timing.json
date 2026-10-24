@@ -1,0 +1,79 @@
+{
+  "slug": "narrated-explainer",
+  "provider": "say",
+  "voice": "Yuna",
+  "totalMs": 26299,
+  "lines": [
+    {
+      "id": "hook",
+      "text": "하루에 쓰는 시간을 숫자 하나로 볼 수 있을까요?",
+      "startMs": 600,
+      "endMs": 3615,
+      "estimated": false,
+      "emphasis": [
+        "숫자 하나로"
+      ]
+    },
+    {
+      "id": "define",
+      "text": "예시 지수는 집중한 시간을 전체 시간으로 나눈 값입니다.",
+      "startMs": 4035,
+      "endMs": 8026,
+      "estimated": false,
+      "emphasis": [
+        "집중한 시간"
+      ],
+      "embed": "집중"
+    },
+    {
+      "id": "formula",
+      "text": "집중 시간을 전체 시간으로 나누고, 백을 곱합니다.",
+      "startMs": 8446,
+      "endMs": 12089,
+      "estimated": false,
+      "emphasis": [
+        "백을 곱합니다"
+      ]
+    },
+    {
+      "id": "example",
+      "text": "예를 들어 여덟 시간 중 다섯 시간을 집중했다면,",
+      "startMs": 12509,
+      "endMs": 16128,
+      "estimated": false,
+      "emphasis": [
+        "다섯 시간"
+      ]
+    },
+    {
+      "id": "result",
+      "text": "지수는 육십이 점 오가 됩니다.",
+      "startMs": 16548,
+      "endMs": 18614,
+      "estimated": false,
+      "emphasis": [
+        "육십이 점 오"
+      ]
+    },
+    {
+      "id": "trend",
+      "text": "매일 기록하면 한 주의 흐름이 선 하나로 보입니다.",
+      "startMs": 19314,
+      "endMs": 22632,
+      "estimated": false,
+      "emphasis": [
+        "선 하나로"
+      ]
+    },
+    {
+      "id": "close",
+      "text": "숫자는 예시지만, 습관은 진짜가 됩니다.",
+      "startMs": 23052,
+      "endMs": 26299,
+      "estimated": false,
+      "emphasis": [
+        "습관은 진짜"
+      ]
+    }
+  ]
+}

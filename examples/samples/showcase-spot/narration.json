@@ -1,0 +1,16 @@
+{
+  "slug": "showcase-spot",
+  "language": "ko",
+  "voice": {"provider": "say", "name": "Yuna"},
+  "leadMs": 700,
+  "gapMs": 450,
+  "lines": [
+    {"id": "hook", "text": "하루가 흩어질 때, 결을 잡아 주는 앱이 있습니다.", "emphasis": ["결을 잡아"]},
+    {"id": "name", "text": "하루결입니다.", "emphasis": ["하루결"], "embed": "하루결", "pauseMs": 500},
+    {"id": "product", "text": "할 일과 메모, 일정이 한 결로 모입니다.", "emphasis": ["한 결로"]},
+    {"id": "data", "text": "예시 사용자 열 명 중 여덟이 아침 계획을 끝냈습니다.", "emphasis": ["여덟"]},
+    {"id": "steps", "text": "적고, 고르고, 끝내는 세 단계면 충분합니다.", "emphasis": ["세 단계"]},
+    {"id": "promise", "text": "오늘의 결을 내일로 잇습니다.", "emphasis": ["내일로"], "pauseMs": 400},
+    {"id": "cta", "text": "하루결, 지금 시작하세요.", "emphasis": ["지금"]}
+  ]
+}

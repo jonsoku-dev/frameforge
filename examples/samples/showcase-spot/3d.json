@@ -1,0 +1,13 @@
+{
+  "slug": "showcase-spot",
+  "shots": [
+    {
+      "name": "hero", "frames": 150, "fps": 30, "width": 1920, "height": 1080, "seed": 11, "engine": "eevee", "samples": 32, "transparent": true,
+      "camera": {"preset": "turntable", "radius": 13, "height": 3.2, "fov": 40},
+      "subject": {"kind": "primitive", "primitive": "torus", "scale": 1.1, "rotation": [90, 0, 0]},
+      "material": {"base": "#2F5BFF", "metallic": 0.05, "roughness": 0.3},
+      "light": {"preset": "studio", "strength": 1},
+      "background": "transparent", "shadowCatcher": true
+    }
+  ]
+}

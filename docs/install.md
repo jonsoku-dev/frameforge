@@ -166,7 +166,7 @@ npm ci
 Cursor를 재시작하고 확인합니다.
 
 ```sh
-ls ~/.cursor/plugins/local/frameforge/skills    # frameforge-* 폴더 7개
+ls ~/.cursor/plugins/local/frameforge/skills    # frameforge-* 폴더 11개
 ```
 
 이 경로는 `docs/plugin.md`의 안내를 옮긴 것입니다. Cursor에서 플러그인이 실제로 로드되는지는 이 문서를 쓸 때 확인하지 않았습니다. Cursor가 스킬 폴더(`~/.cursor/skills`)를 읽는다면 6번 방법도 됩니다.
@@ -179,7 +179,7 @@ Grok Build처럼 플러그인 매니페스트 없이 스킬 폴더를 읽는 호
 npm run skill:install
 ```
 
-이 명령은 `~/.claude/skills`, `~/.codex/skills`, `~/.cursor/skills`, `~/.grok/skills` 중 이미 있는 폴더에만 `skills/frameforge-*` 7개를 링크합니다. 없는 폴더는 `skip <경로> (no such folder)`로 건너뜁니다. 대상에 같은 이름이 이미 있으면 지우고 다시 링크하므로, 같은 이름의 직접 만든 폴더가 있으면 먼저 옮겨 둡니다.
+이 명령은 `~/.claude/skills`, `~/.codex/skills`, `~/.cursor/skills`, `~/.grok/skills` 중 이미 있는 폴더에만 `skills/frameforge-*` 11개를 링크합니다. 없는 폴더는 `skip <경로> (no such folder)`로 건너뜁니다. 대상에 같은 이름이 이미 있으면 지우고 다시 링크하므로, 같은 이름의 직접 만든 폴더가 있으면 먼저 옮겨 둡니다.
 
 확인합니다.
 
@@ -196,12 +196,11 @@ npm run skill:uninstall -- --dry-run       # 지울 링크 목록만 출력, 아
 | --- | --- | --- | --- |
 | `FRAMEFORGE_PORT` | `4318` | `scripts/render.mjs` | `npm run render`가 띄우는 Vite 서버 포트. 렌더를 동시에 여러 개 돌릴 때 바꿉니다. 스튜디오 포트(4317)와 스튜디오 출력 탭의 렌더 포트(4318 고정)는 바꾸지 않습니다. |
 | `FRAMEFORGE_PROJECT` | 없음 | `vite.config.ts` | 저장소 밖 프로젝트 루트. 그 폴더에 `frameforge.json`이 있어야 합니다. `frameforge` CLI가 프로젝트 안에서 실행될 때 자동으로 넣습니다. |
-| `VIDEO_ENTRY` | `examples/index.tsx` | `vite.config.ts` | 스튜디오와 렌더가 읽는 진입 파일. `npm run render`는 첫 인자로 이 값을 정합니다. |
+| `VIDEO_ENTRY` | `examples/samples/index.tsx` | `vite.config.ts` | 스튜디오와 렌더가 읽는 진입 파일. `npm run render`는 첫 인자로 이 값을 정합니다. |
 | `CHROME_PATH` | 아래 목록에서 처음 있는 것 | `scripts/render.mjs` | Chrome 실행 파일. 기본 목록은 macOS의 Google Chrome, Chromium 앱과 `/usr/bin/chromium`, `/usr/bin/chromium-browser`, `/usr/bin/google-chrome`입니다. |
 | `FFMPEG_PATH` | `ffmpeg` | 렌더러, 스튜디오 검사, 검사 스크립트, `score.py`, `art.py` | FFmpeg 실행 파일 |
 | `FFMPEG` | `ffmpeg` | `score.py`, `score-report.py` | `FFMPEG_PATH`가 없을 때만 보는 옛 이름 |
 | `FFPROBE_PATH` | `ffprobe` | Vite 미들웨어, 스튜디오 검사, `art.py`, `frame-check.mjs`, `snapshot-diff.mjs` | ffprobe 실행 파일. `frame-check.mjs`와 `snapshot-diff.mjs`는 값이 없으면 `FFMPEG_PATH`의 `ffmpeg`를 `ffprobe`로 바꾼 경로를 씁니다. |
-| `FRAMEFORGE_SFX_GUARD` | 켜짐 | `scripts/render.mjs` | `off`이면 효과음 밀도 검사(0.5초 간격, 4초에 셋까지)를 끕니다. 규칙 이전에 만든 샘플용입니다. |
 | `FRAMEFORGE_SFX_LICENSES` | `cc0` | `scripts/assets/sfx.py` | Openverse 효과음의 허용 라이선스(쉼표 목록). `cc0,by`로 CC BY를 허용하면 `CREDITS.md`가 생깁니다. |
 | `FRAMEFORGE_IMAGE_COMMAND` | 없음 | `scripts/assets/art.py` | 호스트의 이미지 생성 도구를 부르는 셸 명령 템플릿. `{prompt}`와 선택적으로 `{out}`을 넣습니다. 셸로 실행됩니다. |
 | `ELEVENLABS_API_KEY` | 없음 | `scripts/assets/sfx.py`, `score.py` | 효과음 텍스트 생성. 음악 공급자 `"provider": "elevenlabs"`는 아직 연결되지 않은 스텁이라 키가 있으면 `NotImplementedError`로 멈춥니다. 키가 없으면 내장 합성을 씁니다. |

@@ -13,7 +13,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [manual.md](manual.md) | 사람이 처음부터 따라 하는 설치, 첫 렌더, 작품 만들기, 제거 |
 | [install.md](install.md) | 설치 경로별 단계와 확인 명령, 환경 변수 표 |
 | [uninstall.md](uninstall.md) | 설치의 역순으로 모두 지우는 방법과 확인 명령 |
-| [plugin.md](plugin.md) | 에이전트 플러그인 구조와 스킬 일곱 개 |
+| [plugin.md](plugin.md) | 에이전트 플러그인 구조와 스킬 열한 개 |
 
 ## 레퍼런스
 
@@ -24,8 +24,16 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [reference/rendering.md](reference/rendering.md) | MP4 렌더러, 결정성 린트, 병렬 렌더, 측정 기록 |
 | [reference/quality-checks.md](reference/quality-checks.md) | 글자 잘림 가드, frame-check, flash-check, 음량 보고 |
 | [reference/cli.md](reference/cli.md) | 저장소 밖 프로젝트용 `frameforge` CLI |
-| [reference/verification.md](reference/verification.md) | 검증 기록, REA 상태, 사용권, 커뮤니티 예제 호환 조사 |
+| [reference/verification.md](reference/verification.md) | 검증 기록, REA 상태, 사용권 |
 | [audio-score.md](audio-score.md) | `audio.json` 형식, 음악 생성, 음량 정책, 움직임에서 나오는 소리 |
+| [reference/blocks-text.md](reference/blocks-text.md) | 블록 카탈로그 1: 글자, 로어서드, 카드 |
+| [reference/blocks-data.md](reference/blocks-data.md) | 블록 카탈로그 2: 차트, 코드, 다이어그램 |
+| [reference/seams.md](reference/seams.md) | 이음새 곡선과 `seam-check` |
+| [reference/voice.md](reference/voice.md) | 나레이션 사양, `voice.py`, `useNarration`, 자막, 수식, `narration-check` |
+| [reference/three-d.md](reference/three-d.md) | `3d.json`, 헤드리스 Blender 렌더, Poly Haven 모델, `ImageSequence`, `Model` |
+| [reference/effects.md](reference/effects.md) | 색 보정, LUT, 라이트 리크, 비네트, 그레인 |
+| [reference/generative.md](reference/generative.md) | 생성 배경 시스템과 손그림 주석 |
+| [reference/tooling.md](reference/tooling.md) | 출력 형식, 박자 그리드, 레이아웃·대비 감사, 무음 탐지, `frameforge check` |
 
 ## 제작 가이드
 
@@ -37,25 +45,20 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [guides/motion-graphics.md](guides/motion-graphics.md) | 15–30초 스팟 한 편의 기획, 화면, 모션 언어, 마스크, 코드 패턴, 자기 검사 |
 | [guides/assets.md](guides/assets.md) | 작품별 오디오 사양, 아이콘, 글꼴, 화면 캡처, 색 |
 | [guides/product-explainer.md](guides/product-explainer.md) | 사용자가 직접 캡처한 제품 화면으로 만드는 설명 영상 |
-| [guides/model-playbook.md](guides/model-playbook.md) | 모델별 편차 분석, 브리프 쓰는 법, 교차 리뷰 |
+| [guides/model-playbook.md](guides/model-playbook.md) | 모델별 편차 분석, 같은 브리프 비교 결과, 브리프 쓰는 법, 교차 리뷰 |
 
 ## 샘플
 
 | 문서 | 내용 |
 | --- | --- |
 | [samples/rules.md](samples/rules.md) | 샘플 제작 규칙과 구성 최소치 |
-| [samples/README.md](samples/README.md) | 샘플 결과표와 교차 리뷰 결과 |
-| [samples/plan.md](samples/plan.md) | 처음 샘플 열 편의 계획 |
-| [samples/compare.md](samples/compare.md) | 같은 브리프를 여러 모델에 준 비교 실험 |
-| [samples/reviews/review-opus.md](samples/reviews/review-opus.md) | sonnet 샘플 세 편에 대한 opus 리뷰 |
-| [samples/reviews/review-sonnet.md](samples/reviews/review-sonnet.md) | 일곱 샘플에 대한 sonnet 모션 리뷰 |
+| [samples/README.md](samples/README.md) | 샘플 작품 목록과 결과표 |
 
 ## 스튜디오 설계
 
 | 문서 | 내용 |
 | --- | --- |
 | [studio/spec.md](studio/spec.md) | 스튜디오 2.0 설계서(화면, API, 상태, 검증 항목) |
-| [studio/process-log.md](studio/process-log.md) | `process.json` 과정 기록 규약 |
 
 ## 법률과 조사
 
@@ -68,13 +71,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [research/remotion-parity.md](research/remotion-parity.md) | 기준 엔진과의 픽셀 동등성 측정 |
 | [research/sfx-reference-study.md](research/sfx-reference-study.md) | 효과음 제작 방식 조사 |
 | [research/asset-practice-study.md](research/asset-practice-study.md) | 모션그래픽 에셋 출처와 도구 조사 |
-| [references/opus-5-5/README.md](references/opus-5-5/README.md) | 외부 모션 레퍼런스 요약 목록(원문 아님) |
-| [references/opus-5-5/khiro19-note.md](references/opus-5-5/khiro19-note.md) | khiro19의 모션 그래픽 검증 글 요약 |
-| [references/opus-5-5/charlie-hills.md](references/opus-5-5/charlie-hills.md) | Charlie Hills 모션 그래픽 글 요약 |
-| [references/opus-5-5/aiidelist.md](references/opus-5-5/aiidelist.md) | AI IDE List 모션 디자인 글 요약 |
-| [references/opus-5-5/motion-studio-course.md](references/opus-5-5/motion-studio-course.md) | 모션 디자인 스튜디오 강의 요약 |
-| [references/opus-5-5/x-trend.md](references/opus-5-5/x-trend.md) | X 트렌드 글 요약 |
-| [references/opus-5-5/youmind.md](references/opus-5-5/youmind.md) | YouMind 프롬프트 목록 요약 |
+| [research/motion-tools-absorption.md](research/motion-tools-absorption.md) | 에이전트용 영상 도구 다섯 가지의 REA 분석과 흡수 기록 |
 
 ## 저장소 루트
 

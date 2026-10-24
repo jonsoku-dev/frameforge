@@ -2,12 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {lintEntry, stripComments} from '../scripts/lint.mjs';
 // @ts-expect-error render.mjs has no declaration file (tests/studio.test.tsx imports it the same way)
-import {mergeSegments as untypedMerge, splitFrames as untypedSplit} from '../scripts/render.mjs';
+import {encodeArgs as untypedEncode, mergeSegments as untypedMerge, splitFrames as untypedSplit} from '../scripts/render.mjs';
+import {mkdirSync, rmSync} from 'node:fs';
+import {join} from 'node:path';
+import {spawnSync} from 'node:child_process';
 
 type Chunk = {index: number; start: number; end: number};
 type Segment = {clip: {key: string; startFrame: number}; first: number; last: number};
 const splitFrames: (from: number, to: number, concurrency: number, fps: number) => Chunk[] = untypedSplit;
 const mergeSegments: (lists: Segment[][]) => Segment[] = untypedMerge;
+const encodeArgs: (video: string[], encode: string[], fps: number, count: number, segments: unknown[], output: string) => string[] = untypedEncode;
 
 test('lint finds every nondeterminism in the dirty fixture graph with codes and lines', () => {
   const report = lintEntry('tests/fixtures/lint/dirty/entry.tsx');
@@ -53,4 +57,24 @@ test('audio segments split at a chunk boundary merge back by key; a real gap sta
     [{clip: music, first: 400, last: 599}],
   ]);
   assert.deepEqual(merged.map(({clip, first, last}) => [clip.key, first, last]), [['music', 0, 599], ['pop', 150, 160], ['pop', 250, 260]]);
+});
+
+test('a narration file forms its own stem: music ducks under the voice and under the effects, and all three are mixed', () => {
+  const folder = join(process.cwd(), 'public/audio/generated/_voice-stem-test');
+  mkdirSync(folder, {recursive: true});
+  for (const name of ['music', 'voice', 'pop']) spawnSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=1', '-ac', '2', '-ar', '48000', join(folder, `${name}.wav`)]);
+  try {
+    const segment = (src: string, startFrame: number, first: number, last: number) => ({clip: {key: src, src, volume: 1, trimBefore: 0, startFrame}, first, last});
+    const base = '/audio/generated/_voice-stem-test';
+    const graph = (segments: ReturnType<typeof segment>[]) => { const args = encodeArgs(['-i', 'v'], ['-c:v', 'x'], 30, 90, segments, 'out.mp4'); return String(args[args.indexOf('-filter_complex') + 1]); };
+    const three = graph([segment(`${base}/music.wav`, 0, 0, 89), segment(`${base}/voice.wav`, 0, 0, 29), segment(`${base}/pop.wav`, 40, 40, 60)]);
+    assert.match(three, /\[music\]\[vokey\]sidechaincompress=[^[]*release=250[^[]*\[underv\]/);
+    assert.match(three, /\[underv\]\[fxkey\]sidechaincompress/);
+    assert.match(three, /\[ducked\]\[voout\]\[fxout\]amix=inputs=3/);
+    const two = graph([segment(`${base}/music.wav`, 0, 0, 89), segment(`${base}/voice.wav`, 0, 0, 29)]);
+    assert.match(two, /\[underv\]\[voout\]amix=inputs=2/);
+    assert.doesNotMatch(graph([segment(`${base}/voice.wav`, 0, 0, 29), segment(`${base}/pop.wav`, 40, 40, 60)]), /sidechaincompress/, 'without music nothing ducks and the voice stays untouched');
+  } finally {
+    rmSync(folder, {recursive: true, force: true});
+  }
 });

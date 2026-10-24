@@ -1,0 +1,43 @@
+{
+ "vase": {
+  "id": "ceramic_vase_01",
+  "kind": "model",
+  "query": "ceramic vase",
+  "resolution": "1k",
+  "title": "Ceramic Vase 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "license_url": "https://polyhaven.com/license",
+  "page": "https://polyhaven.com/a/ceramic_vase_01",
+  "file": "/assets/generated/turntable-spot/models/vase/vase.gltf",
+  "files": [
+   {
+    "path": "vase/vase.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/ceramic_vase_01/ceramic_vase_01_1k.gltf",
+    "md5": "8f11b5472424578c2c505dee271a0868"
+   },
+   {
+    "path": "vase/ceramic_vase_01.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/ceramic_vase_01/ceramic_vase_01.bin",
+    "md5": "73f8a0f911f2d377e3b925b0ae9c7d4c"
+   },
+   {
+    "path": "vase/textures/ceramic_vase_01_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/ceramic_vase_01/ceramic_vase_01_arm_1k.jpg",
+    "md5": "14e56f6d0f810525ddcf9305fa09f495"
+   },
+   {
+    "path": "vase/textures/ceramic_vase_01_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/ceramic_vase_01/ceramic_vase_01_diff_1k.jpg",
+    "md5": "52337c4fedc46490476d46a8950e1d6b"
+   },
+   {
+    "path": "vase/textures/ceramic_vase_01_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/ceramic_vase_01/ceramic_vase_01_nor_gl_1k.jpg",
+    "md5": "46081f52a4e9bb58d706477318627a22"
+   }
+  ]
+ }
+}

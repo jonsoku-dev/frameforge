@@ -119,7 +119,7 @@ Frameforge는 Remotion과 제휴하지 않은 독립 구현입니다. 공개 라
    node scripts/flash-check.mjs renders/samples/<slug>.mp4
    ```
 
-7. 과정을 기록합니다. `node scripts/process.mjs append examples/samples/<slug> '<json>'`. 규약은 [docs/studio/process-log.md](docs/studio/process-log.md)입니다.
+7. 과정을 기록합니다. `node scripts/process.mjs append examples/samples/<slug> '<json>'`. 기록 형식은 [docs/studio/spec.md](docs/studio/spec.md) 3절 "프로세스 가시성"입니다.
 
 렌더 결과(`renders/`)와 생성된 소리·그림(`public/audio/generated/`, `public/assets/generated/`)은 커밋하지 않습니다.
 

@@ -1,0 +1,83 @@
+{
+  "slug": "turntable-spot",
+  "shots": [
+    {
+      "name": "hero",
+      "frames": 150,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "seed": 7,
+      "engine": "eevee",
+      "samples": 32,
+      "transparent": true,
+      "camera": {
+        "preset": "turntable",
+        "radius": 13,
+        "height": 3.5,
+        "fov": 40
+      },
+      "subject": {
+        "kind": "primitive",
+        "primitive": "torus",
+        "scale": 1.15,
+        "rotation": [
+          90,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "base": "#C8553D",
+        "metallic": 0.0,
+        "roughness": 0.45
+      },
+      "light": {
+        "preset": "studio",
+        "strength": 1
+      },
+      "background": "transparent",
+      "shadowCatcher": true
+    },
+    {
+      "name": "dolly",
+      "frames": 90,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "seed": 7,
+      "engine": "eevee",
+      "samples": 32,
+      "transparent": true,
+      "camera": {
+        "preset": "dolly",
+        "radius": 9,
+        "height": 2.4,
+        "fov": 40,
+        "from": 12,
+        "to": 7.5
+      },
+      "subject": {
+        "kind": "primitive",
+        "primitive": "sphere",
+        "scale": 1.0,
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "base": "#1F1B18",
+        "metallic": 0.0,
+        "roughness": 0.3
+      },
+      "light": {
+        "preset": "studio",
+        "strength": 1.2
+      },
+      "background": "transparent",
+      "shadowCatcher": true
+    }
+  ]
+}

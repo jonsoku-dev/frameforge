@@ -7,19 +7,19 @@ import {sfxFault} from '../scripts/render.mjs';
 import {playbackBlocker} from '../src/studio/state';
 import {applicableOverrides, describeChanges, minimalOverrides, openRequests, parseProcess, parseVariables, resolutions, versions} from '../src/studio/model';
 
-const brief = (slug: string) => readFileSync(slug === 'youtube-intro' ? 'tests/fixtures/brief-youtube-intro.md' : `examples/samples/${slug}/prompt.md`, 'utf8');
+const brief = (name: string) => readFileSync(`tests/fixtures/brief-${name}.md`, 'utf8');
 
 test('scene bands read en dash and hyphen ranges and stack overlaps on a second row', () => {
   const saas = sceneBands(brief('saas-launch'));
   assert.deepEqual(saas.slice(0, 2).map(band => [band.from, band.to, band.row]), [[0, 150, 0], [126, 150, 1]]);
-  assert.deepEqual(sceneBands(brief('youtube-intro'))[0]!.from, 0);
-  assert.equal(sceneBands(brief('youtube-intro'))[0]!.to, 75);
+  assert.deepEqual(sceneBands(brief('screen-intro'))[0]!.from, 0);
+  assert.equal(sceneBands(brief('screen-intro'))[0]!.to, 75);
   assert.deepEqual(sceneBands('no table here'), []);
 });
 
 test('check frames come from the heading, the inline line, or twelve even splits', () => {
   assert.equal(checkFrames(brief('saas-launch'), 900).length, 16);
-  assert.deepEqual(checkFrames(brief('youtube-intro'), 900), [40, 110, 200, 270, 340, 400, 480, 560, 640, 760, 880]);
+  assert.deepEqual(checkFrames(brief('screen-intro'), 900), [40, 110, 200, 270, 340, 400, 480, 560, 640, 760, 880]);
   assert.deepEqual(checkFrames(brief('podcast-promo'), 450).at(-1), 449);
   assert.ok(!checkFrames(brief('podcast-promo'), 450).includes(258), 'prose after the list is ignored');
   assert.deepEqual(checkFrames('# x', 12), Array.from({length: 12}, (_, index) => index));

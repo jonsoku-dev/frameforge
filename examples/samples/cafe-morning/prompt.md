@@ -22,7 +22,7 @@ Forbidden for variety: `#06C755`, Gothic A1.
 
 - Headline: Black Han Sans 400 (`googleFont('Black Han Sans', {weights: [400]})`), for headlines and numbers only.
 - UI: Noto Sans KR 500, for labels, card titles, pills and the tagline.
-- Text mask: the `Glyphs` padding from `examples/samples/kinetic-typo/Spot.tsx` (height 1.3em, top 0.15em, sides 0.08em), which was tuned for the same headline font. Every self-check frame rendered without a `Clipped text` error.
+- Text mask: `Glyphs` padding of height 1.3em, top 0.15em, sides 0.08em, tuned for the same headline font. Every self-check frame rendered without a `Clipped text` error.
 
 ## Scene table (absolute frames, 30 fps)
 
@@ -60,7 +60,6 @@ From `npm run score -- examples/samples/cafe-morning/audio.json` and `python3 sc
 ## References and why
 
 - `docs/guides/motion-graphics.md` sections 6 (mask and clip guard) and 8 (self-check loop). The check frames follow its keyframe rule.
-- `examples/samples/kinetic-typo/Spot.tsx` for the Black Han Sans `Glyphs` mask values.
 - `examples/samples/_template/Spot.tsx` for the `pop`, `push`, and `span` helpers, and the `SIZES` minimums.
 - `examples/samples/cafe-morning/Spot.tsx` for the single-push discipline and the frame-driven scene switching.
 - `docs/samples/rules.md` (binding): text safe area, sizes, icons, SFX limits.

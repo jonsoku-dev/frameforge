@@ -97,6 +97,28 @@
 - 모션 블러: `<Trail layers lagInFrames trailOpacity>`는 `lagInFrames`씩 앞선 프레임 사본 `layers`개를 점점 투명하게 깔고, `<CameraMotionBlur shutterAngle samples>`는 셔터 구간의 사본을 `plus-lighter`로 평균합니다. `MotionBlur`는 `blurOpacity` 이름을 받는 옛 별칭입니다. 1174건의 마크업이 같습니다. `Sequence` 안에서는 사본 프레임을 컴포지션 끝이 아닌 그 `Sequence` 끝에서 자릅니다. `HtmlInCanvasMotionBlur`는 제공하지 않습니다.
 - 변형·스타일 보간: `makeTransform([...])`과 `translate`, `translateX/Y/Z`, `translate3d`, `scale`, `scaleX/Y/Z`, `scale3d`, `rotate`, `rotateX/Y/Z`, `rotate3d`, `skew`, `skewX/Y`, `perspective`, `matrix`, `matrix3d`(숫자+단위, 단위 문자열 모두), `interpolateStyles(input, inputRange, styles, {easing, extrapolateLeft, extrapolateRight, posterize})`(숫자, 단위, 색, 여러 값과 함수가 섞인 문자열). 7194건이 같습니다. `skew(x, unit, y, unit)`은 문서대로 받습니다(기준은 오류). `output`/`outputType` 옵션, 중첩 함수, 쉼표로 이은 여러 그림자는 지원하지 않습니다.
 
+## 블록 카탈로그 `@/blocks`
+
+`src/blocks/`의 프레임 함수 컴포넌트입니다. 공통 prop은 `frame`, `at`, `out`/`duration`, `fps`, `palette {ink, paper, accent, soft}`, `fonts {display, ui}`, `size`, `x`/`y`(또는 `align`), `id`이고, 등장 전에는 숨겨지며 퇴장은 등장 축을 거꾸로 탑니다. 모든 블록이 `<MotionProbe>`를 보고합니다. 목록은 `CATALOG`(`BlockEntry[]`)로 런타임에도 읽습니다.
+
+- 글자: `GlyphRise`, `WordCascade`, `ZoomSwap`, `Typewriter`, `HighlightSweep`, `Counter`
+- 로어서드: `LowerThird`(`clean-bar`, `bold-block`, `kicker-name`, `soft-pill`, `mask-reveal`, `side-rule`)
+- 카드: `StatCard`, `NotificationCard`, `MessageThread`, `Ticker`, `Checklist`, `LogoOutro`
+- 차트: `BarChart`, `LineChart`, `BarChartRace`, `Donut`, `Heatmap`, `Sparkline`
+- 코드: `CodeBlock`(`typing`, `highlight`, `diff`, `scroll`), `tokenize`
+- 다이어그램: `Flowchart`, `ProcessSteps`, `Timeline`, `Compare`
+
+자세한 prop은 [blocks-text.md](blocks-text.md)와 [blocks-data.md](blocks-data.md), 샘플은 `blocks-reel`, `data-reel`.
+
+## 이음새, 박자, 나레이션, 3D, 생성 배경
+
+- 이음새(`frameforge`): `cutTheCurve`, `zoomThrough`, `inverseZoom`, `rackFocus`, `waterfallCut`, `waterfallEntry`, `nudge`, `<Seam at duration technique axis direction from to>`. 검사는 `npm run seam-check -- <out>.motion.json --prompt prompt.md`. [seams.md](seams.md).
+- 박자: `beatGrid({bpm, fps})`, `beatsFromSpec(audioSpec, fps)`, `loadBeats(beatsJson, fps)`가 `beatAt`, `barAt`, `phase`, `pulse`, `onBeat`, `bars`를 돌려줍니다. 외부 음원은 `npm run beats -- <audio>`. [tooling.md](tooling.md).
+- 나레이션: `narrationFrames`, `useNarration(timing)`, `<Voiceover src>`, `<Subtitles timing style="rail"|"embed">`, `<SubtitleLine>`, `captionsFromTiming`, `<Formula tex draw highlight>`. 생성은 `npm run voice -- narration.json`, 검사는 `npm run narration-check -- <film>`. [voice.md](voice.md).
+- 3D: `<ImageSequence src frames fps loop pad startFrame fit>`, `sequenceIndex(frame, fps, seqFps, frames, loop?, startFrame?)`, `sequenceFile(src, index, pad?)`, `<Model src scale position rotation color>`(색을 주면 질감 맵 대신 팔레트 색), `loadModel(src)`, `<Turntable speed phase>`, `<StudioLights intensity color>`(키 라이트가 그림자를 드리움). 렌더는 `npm run blender -- 3d.json`, 모델은 `npm run models -- models.json`. [three-d.md](three-d.md).
+- 생성 배경과 주석: `<Generative system seed width height palette params>`, `GENERATIVE_SYSTEMS`(flowField, particles, starfield, meshGradient, halftone, ripples, voronoi, noiseLines, aurora), `Highlight`, `Encircle`, `Underline`, `StrikeThrough`, `Box`, `Bracket`. [generative.md](generative.md).
+- 효과(`effects` prop): `blurEffect`, `colorMatrixEffect`, `colorCorrectionEffect`, `lutEffect`+`parseCubeLut`, `lightLeakEffect`, `vignetteEffect`, `grainEffect`. [effects.md](effects.md).
+
 ## 움직임에서 나오는 소리
 
 `useMotionSound(key, value, {family, axis})`(루프 안에서는 `<MotionProbe>`)로 움직이는 값을 보고하고 `<MotionSound src role families quiet />`로 역할별 파일을 선언하면, 엔진이 모든 프레임을 본 뒤 시작(`move`)·착지(`land`, 오버슈트면 처음 닿는 순간)·등장(`appear`) 사건을 찾아 세기와 팬을 붙여 믹스에 넣습니다. 반 초에 하나, 4초에 셋, 음악 타격 근처는 비웁니다. 렌더 로그의 `motionSounds`에 결과가 찍히고 스튜디오도 같은 소리를 재생합니다. `docs/audio-score.md` 움직임에서 나오는 소리.

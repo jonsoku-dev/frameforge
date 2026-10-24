@@ -17,9 +17,29 @@ npm run render -- examples/samples/kit-launch/entry.tsx KitLaunch renders/kit-la
 npm run render -- examples/samples/cafe-morning/entry.tsx CafeMorning renders/cafe-morning-sheet.png --frames 30,120,240,360,480,570
 ```
 
-2026-10-20 실행 결과. 아래 첫 측정 대상인 20초 TV 스팟은 실제 브랜드를 써서 공개판에서 빠졌고, 그 수치는 기록으로만 남깁니다. `Opening`은 `examples/Opening.tsx`에 남아 있습니다. `renders/line-game-spot.mp4`는 H.264(bt709 태그, crf 18) + AAC 48 kHz 스테레오, 1920×1080, 30 fps, 600 frames, 20초, 약 48초 소요. 최종 믹스 통합 음량 −25.0 LKFS, 트루 피크 −6.7 dBTP(국내 TV 기준 −24 ±2 안). 복호 색 검증: 디코드한 프레임의 초록이 `[4,198,82]`(목표 `#06C755` = `[6,199,85]`), 종이 `[242,242,239]`, 검정 `[16,16,16]`. 태그 없이 인코딩하면 같은 초록이 `[0,172,81]`로 어두워진다. 방송 플래시 검사 `node scripts/flash-check.mjs renders/line-game-spot.mp4` 통과(1초 창 최대 전환 3회, 허용 6회). Ofcom 지침의 근사이지 Harding 인증은 아니다. `renders/opening.mp4`는 450 frames, 15초, 약 34초 소요. 둘 다 ffprobe로 확인했습니다. 렌더 중 글자 잘림 검사가 한 프레임이라도 실패하면 인코딩 없이 중단됩니다.
+2026-10-20 실행 결과. 아래 첫 측정 대상인 20초 TV 스팟은 실제 브랜드를 써서 공개판에서 빠졌고, 그 수치는 기록으로만 남깁니다. 그 스팟의 MP4는 H.264(bt709 태그, crf 18) + AAC 48 kHz 스테레오, 1920×1080, 30 fps, 600 frames, 20초, 약 48초 소요. 최종 믹스 통합 음량 −25.0 LKFS, 트루 피크 −6.7 dBTP(국내 TV 기준 −24 ±2 안). 복호 색 검증: 디코드한 프레임의 초록이 `[4,198,82]`(목표 `#06C755` = `[6,199,85]`), 종이 `[242,242,239]`, 검정 `[16,16,16]`. 태그 없이 인코딩하면 같은 초록이 `[0,172,81]`로 어두워진다. 방송 플래시 검사 `node scripts/flash-check.mjs <그 MP4>` 통과(1초 창 최대 전환 3회, 허용 6회). Ofcom 지침의 근사이지 Harding 인증은 아니다. ffprobe로 확인했습니다. 렌더 중 글자 잘림 검사가 한 프레임이라도 실패하면 인코딩 없이 중단됩니다.
 
-`CHROME_PATH`, `FFMPEG_PATH`로 설치 경로를 지정할 수 있습니다. 렌더러는 loopback 서버(4318, HMR 꺼짐)와 임시 Chrome 프로필을 사용하고, 글꼴·이미지·`delayRender` 핸들을 기다린 뒤 PNG 프레임을 H.264로 인코딩합니다. 기존 출력은 덮어쓰지 않습니다. 성공한 인코딩만 최종 파일로 옮깁니다. 오디오 믹싱은 구현했습니다(상수 볼륨, 앞뒤 자르기, `Video` 소리의 `atempo` 배속). 병렬 렌더링은 "결정성 린트와 병렬 렌더" 절을 보세요. `renders/hello-stagehand.mp4`와 `renders/advanced-motion.mp4`는 이전에 브라우저 스크린샷으로 만든 샘플입니다.
+`CHROME_PATH`, `FFMPEG_PATH`로 설치 경로를 지정할 수 있습니다. 렌더러는 loopback 서버(4318, HMR 꺼짐)와 임시 Chrome 프로필을 사용하고, 글꼴·이미지·`delayRender` 핸들을 기다린 뒤 PNG 프레임을 H.264로 인코딩합니다. 기존 출력은 덮어쓰지 않습니다. 성공한 인코딩만 최종 파일로 옮깁니다. 오디오 믹싱은 구현했습니다(상수 볼륨, 앞뒤 자르기, `Video` 소리의 `atempo` 배속). 병렬 렌더링은 "결정성 린트와 병렬 렌더" 절을 보세요.
+
+## 출력 형식, 알파, 배율
+
+출력 경로의 확장자가 컨테이너를 정하고, `--codec`이 코덱을 바꿉니다. 모든 형식에서 `--frame-range`, `--concurrency`, `--pipe`, `--frames` 시트, `--check-idempotent`, `<출력>.motion.json`이 같이 동작합니다(gif와 PNG 시퀀스는 한 청크로 렌더하고 `--concurrency`·`--pipe`를 무시한다고 알립니다).
+
+| 출력 | 비디오 | 소리 기본 | `--transparent` 픽셀 형식 | 청크 |
+| --- | --- | --- | --- | --- |
+| `.mp4` | libx264 crf 18 (기본, 이전과 같음) | aac 192k | 불가(오류) | concat `-c copy` |
+| `.webm` | libvpx-vp9 `-b:v 0 -crf 32 -row-mt 1` | libopus 160k | yuva420p (`-auto-alt-ref 0`) | concat `-c copy` |
+| `.mov` | prores_ks 프로파일 4(4444) yuv444p10le | pcm_s16le | yuva444p10le | concat `-c copy` |
+| `.gif` | palettegen → paletteuse(bayer), `--gif-fps N`으로 프레임률 제한 | 없음 | 팔레트의 투명 칸 | 한 청크 |
+| `폴더/` 또는 `…/%05d.png` | PNG 그대로(인코딩 없음), 프레임 번호로 이름 | 없음 | rgba | 한 청크 |
+
+- `--audio-codec aac|opus|pcm|none`은 소리 코덱을 바꾸고 `--muted`는 믹스를 건너뜁니다. `--crf N`은 h264와 vp9의 품질입니다. 모든 코덱에 bt709 태그와 변환이 붙습니다.
+- `--transparent`는 페이지 배경을 비우고(CDP `Emulation.setDefaultBackgroundColorOverride` {0,0,0,0}과 `html`/`body` 배경 transparent) PNG를 알파째 캡처합니다. 루트에 불투명 배경이 있는 작품은 당연히 불투명하게 나옵니다. `Experimental.Null` 프레임도 투명 RGBA로 만듭니다.
+- `--scale S`는 Chrome의 기기 배율을 S로 두어 S배 크기로 캡처하고(1920×1080에 2면 3840×2160), ffmpeg에 같은 크기의 `scale`을 앞에 붙입니다. 가로세로가 정수가 아니면, h264와 vp9에서 홀수면 오류입니다. frame-check와 flash-check는 크기를 읽어 그대로 동작합니다.
+- PNG 시퀀스의 motion.json은 그 폴더 안 `motion.json`입니다.
+- 순수 함수 `outputFormat(output, options)`, `videoArgs(format, count, size?)`, `encodeArgs(...)`, `AUDIO`를 내보내고 `tests/render-outputs.test.tsx`가 검사합니다.
+
+2026-10-24 실행 결과(`tests/fixtures/tooling` Translucent 640×360, 루트에 배경 없음, `--frame-range 0-29 --transparent`): `.webm` → ffprobe `codec_name=vp9 … pix_fmt=yuv420p TAG:alpha_mode=1`(이 빌드의 기본 VP9 디코더는 알파 평면을 열지 않아 yuv420p로 보고하고, 알파는 Matroska `alpha_mode` 태그와 별도 스트림에 있습니다). `.mov` → `codec_name=prores profile=4444 pix_fmt=yuva444p12le nb_frames=30`(디코더가 12비트로 올려 보고; 인코드 입력은 yuva444p10le), 알파 평면 `alphaextract,signalstats` YMIN 256(완전 투명) YMAX 3773(불투명) YAVG 570. `.gif --gif-fps 15` → `codec_name=gif pix_fmt=bgra r_frame_rate=15/1`, 15프레임. `폴더/` → `00000.png`–`00029.png` + `motion.json`, `pix_fmt=rgba`, 15번 프레임 알파 YMIN 0 YMAX 255. `--scale 2` → 1280×720 vp9. kit-launch 0-59 `.mov --pipe` → prores 4444 60프레임 + pcm_s16le 48 kHz 스테레오, 10.0초. kit-launch 0-119 `.webm --concurrency 2` → 청크 2, vp9 120프레임 + opus 48 kHz, 4.008초, 26.0초 소요. 레이아웃 감사(`{"audit": [...]}`)는 [tooling.md](tooling.md)에 있습니다.
 
 ## 결정성 린트와 병렬 렌더
 

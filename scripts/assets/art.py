@@ -39,14 +39,6 @@ SOURCES = ('auto', 'host', 'image-command', 'generate', 'library', 'kit')
 SLOTS = ('ink', 'accent', 'soft', 'paper')
 # Same thresholds as paletteSlot in src/core/art.tsx.
 PAPER_L, ACCENT_S, ACCENT_L, INK_L = 0.92, 0.35, (0.15, 0.85), 0.4
-# Fallback kit names, used only when src/assets/catalog.ts is missing or cannot be read (kit_catalog).
-KIT = {'Cup': 'cup coffee mug tea', 'Card': 'card credit payment', 'Phone': 'phone mobile smartphone', 'Laptop': 'laptop computer',
-       'Pin': 'pin location marker', 'Clock': 'clock time watch', 'Calendar': 'calendar date schedule', 'Bell': 'bell notification alarm',
-       'Heart': 'heart love like', 'Star': 'star rating favorite', 'Coin': 'coin money', 'CoinStack': 'coins stack savings money',
-       'BarChart': 'bar chart graph statistics', 'LineChart': 'line chart graph trend', 'MapRoute': 'map route path', 'Door': 'door entrance',
-       'Bubble': 'speech bubble chat message', 'Envelope': 'envelope mail letter email', 'PlayButton': 'play button video', 'Badge': 'badge award',
-       'Trophy': 'trophy cup winner prize', 'Leaf': 'leaf plant nature', 'Sun': 'sun sunny weather', 'Cloud': 'cloud weather',
-       'Scooter': 'scooter delivery ride', 'Bag': 'bag shopping', 'Tower': 'tower building', 'Bridge': 'bridge', 'Mountain': 'mountain hill'}
 SVG_NS, XLINK_NS = 'http://www.w3.org/2000/svg', 'http://www.w3.org/1999/xlink'
 XML_NS = 'http://www.w3.org/XML/1998/namespace'
 ET.register_namespace('', SVG_NS)
@@ -176,15 +168,13 @@ def library(intent):
 
 
 def kit_catalog():
-    """{component name: search words} from src/assets/catalog.ts, or the expected kit names when it is missing or unreadable."""
-    if os.path.exists(os.path.join(ROOT, 'src', 'assets', 'catalog.ts')):
-        script = 'import {CATALOG} from "./src/assets/catalog.ts"; console.log(JSON.stringify(CATALOG.map(c => [c.name, (c.tags || []).join(" ")])))'
-        result = subprocess.run(['npx', 'tsx', '-e', script], cwd=ROOT, capture_output=True, text=True)
-        try:
-            return {name: tags for name, tags in json.loads(result.stdout.strip().splitlines()[-1])}
-        except (ValueError, IndexError):
-            print(f'[art] could not read src/assets/catalog.ts; using the expected kit names: {result.stderr.strip()[-200:]}', file=sys.stderr)
-    return KIT
+    """{component name: search words} from src/assets/catalog.ts. Needs the engine's npm install, like render and the studio."""
+    script = 'import {CATALOG} from "./src/assets/catalog.ts"; console.log(JSON.stringify(CATALOG.map(c => [c.name, (c.tags || []).join(" ")])))'
+    result = subprocess.run(['npx', 'tsx', '-e', script], cwd=ROOT, capture_output=True, text=True)
+    try:
+        return {name: tags for name, tags in json.loads(result.stdout.strip().splitlines()[-1])}
+    except (ValueError, IndexError):
+        fail('art.py', f'could not read src/assets/catalog.ts (run npm install in the engine): {result.stderr.strip()[-200:]}')
 
 
 def kit_match(entry, catalog):
@@ -444,8 +434,9 @@ def self_check():
     recolored = recolor(clean_svg, palette)
     assert 'stroke="#ff5a36"' in recolored and 'fill:#101820' in recolored and 'stop-color="#fbf7f0"' in recolored and 'fill="#a7c4bc"' in recolored, recolored
     assert queries('a steaming coffee cup on a saucer') == ['a steaming coffee cup on a saucer', 'a steaming coffee', 'steaming']
-    assert kit_match({'name': 'hero', 'intent': 'a steaming coffee mug'}, KIT) == 'Cup' and kit_match({'name': 'x', 'intent': 'zebra'}, KIT) is None
-    assert kit_match({'name': 'savings', 'intent': 'stack of coins'}, KIT) == 'CoinStack'
+    kit = kit_catalog()
+    assert kit_match({'name': 'hero', 'intent': 'a steaming coffee mug'}, kit) == 'Cup' and kit_match({'name': 'x', 'intent': 'zebra'}, kit) is None
+    assert kit_match({'name': 'savings', 'intent': 'stack of coins'}, kit) == 'CoinStack'
 
     seen = []
     class Mock(http.server.BaseHTTPRequestHandler):
@@ -477,20 +468,20 @@ def self_check():
     # The library only accepts https results; route the fake https hosts to the http mock.
     globals()['fetch'] = lambda url, *a, **k: real_fetch(re.sub(r'^https://(other|wiki)\.example', base + '/files', url), *a, **k)
     with tempfile.TemporaryDirectory() as folder:
-        record = resolve({'name': 'cup', 'intent': 'coffee cup'}, palette, folder, {}, KIT)
+        record = resolve({'name': 'cup', 'intent': 'coffee cup'}, palette, folder, {}, kit)
         assert record['provider'] == 'generate' and record['source']['model'] == RECRAFT_MODEL and seen[0]['controls']['colors'][0]['rgb'] == [16, 24, 32], record
         written = open(os.path.join(folder, 'cup.svg')).read()
         assert 'script' not in written and 'stroke="#ff5a36"' in written and 'viewBox' in written, written
-        assert resolve({'name': 'cup', 'intent': 'coffee cup'}, palette, folder, {'cup': record}, KIT) is record, 'unchanged entry reuses its pin'
+        assert resolve({'name': 'cup', 'intent': 'coffee cup'}, palette, folder, {'cup': record}, kit) is record, 'unchanged entry reuses its pin'
         del os.environ['RECRAFT_API_KEY']
-        record = resolve({'name': 'mug', 'intent': 'mug', 'recolor': False}, palette, folder, {}, KIT)
+        record = resolve({'name': 'mug', 'intent': 'mug', 'recolor': False}, palette, folder, {}, kit)
         assert record['provider'] == 'library' and record['source']['id'] == 'w' and record['source']['provider'] == 'wikimedia', record
         assert '#E63946' in open(os.path.join(folder, 'mug.svg')).read(), 'recolor: false keeps the file colours'
-        record = resolve({'name': 'zz', 'intent': 'a quiet bell rings', 'source': 'library'}, palette, folder, {}, KIT)
+        record = resolve({'name': 'zz', 'intent': 'a quiet bell rings', 'source': 'library'}, palette, folder, {}, kit)
         assert record['provider'] == 'kit' and record['component'] == 'Bell' and record['fallback'] == 'library: no CC0 SVG matched', record
         server.shutdown(); server.server_close()
         OPENVERSE_URL = base + '/v1/images/'  # closed now: offline
-        record = resolve({'name': 'off', 'intent': 'phone screen'}, palette, folder, {}, KIT)
+        record = resolve({'name': 'off', 'intent': 'phone screen'}, palette, folder, {}, kit)
         assert record['provider'] == 'kit' and record['component'] == 'Phone' and record['fallback'].startswith('library unavailable'), record
         write_credits(folder, {'a': {'provider': 'library', 'source': {'license': 'by', 'attribution': 'A by B', 'landing': 'L'}}, 'b': {'provider': 'library', 'source': {'license': 'cc0'}}})
         credits = open(os.path.join(folder, 'CREDITS.md')).read()
@@ -498,19 +489,19 @@ def self_check():
         # host: an SVG the host agent dropped in place is conditioned, its original kept; a PNG stays raster; never overwritten
         host_svg = os.path.join(folder, 'drop.svg')
         open(host_svg, 'w').write(dirty)
-        record = resolve({'name': 'drop', 'intent': 'coffee cup'}, palette, folder, {}, KIT)
+        record = resolve({'name': 'drop', 'intent': 'coffee cup'}, palette, folder, {}, kit)
         assert record['provider'] == 'host' and record['source']['path'].endswith('.host/drop.svg') and open(os.path.join(folder, '.host', 'drop.svg')).read() == dirty, record
-        assert 'script' not in open(host_svg).read() and resolve({'name': 'drop', 'intent': 'coffee cup'}, palette, folder, {'drop': record}, KIT) is record, 'conditioned host svg is reused'
+        assert 'script' not in open(host_svg).read() and resolve({'name': 'drop', 'intent': 'coffee cup'}, palette, folder, {'drop': record}, kit) is record, 'conditioned host svg is reused'
         png = os.path.join(folder, 'photo.png')
         subprocess.run([FFMPEG, '-v', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=red:s=64x48', '-frames:v', '1', png], check=True)
         before = sha(png)
-        record = resolve({'name': 'photo', 'intent': 'x'}, palette, folder, {}, KIT)
+        record = resolve({'name': 'photo', 'intent': 'x'}, palette, folder, {}, kit)
         assert record['provider'] == 'host' and record['raster'] and (record['width'], record['height']) == (64, 48) and sha(png) == before, record
-        record = resolve({'name': 'given', 'intent': 'x', 'file': host_svg}, palette, folder, {}, KIT)
+        record = resolve({'name': 'given', 'intent': 'x', 'file': host_svg}, palette, folder, {}, kit)
         assert record['provider'] == 'host' and os.path.exists(os.path.join(folder, 'given.svg')), record
         # image-command: {out} template, JSON `paths` output, a failing command falling through, vtracer missing
         os.environ['FRAMEFORGE_IMAGE_COMMAND'] = f'{FFMPEG} -v error -y -f lavfi -i "color=c=red:s=64x64,drawbox=x=16:y=16:w=32:h=32:color=white:t=fill" -frames:v 1 {{out}} # api_key=sk-secret-123 {{prompt}}'
-        record = resolve({'name': 'drawn', 'intent': 'a red tile'}, palette, folder, {}, KIT)
+        record = resolve({'name': 'drawn', 'intent': 'a red tile'}, palette, folder, {}, kit)
         assert record['provider'] == 'image-command' and record['source']['vectorized'] and record['file'].endswith('drawn.svg'), record
         assert 'sk-secret' not in record['source']['command'] and 'flat vector illustration' in record['source']['prompt'], record
         assert '<path' in open(os.path.join(folder, 'drawn.svg')).read()
@@ -518,12 +509,12 @@ def self_check():
         os.environ['FRAMEFORGE_IMAGE_COMMAND'] = f'{FFMPEG} -v error -y -f lavfi -i color=c=blue:s=32x32 -frames:v 1 {side} && echo \'{{"paths": ["{side}"]}}\' # "{{prompt}}"'
         real_vectorize = globals()['vectorize']
         globals()['vectorize'] = lambda png: None
-        record = resolve({'name': 'drawn', 'intent': 'a blue tile'}, palette, folder, {'drawn': record}, KIT)
+        record = resolve({'name': 'drawn', 'intent': 'a blue tile'}, palette, folder, {'drawn': record}, kit)
         globals()['vectorize'] = real_vectorize
         assert record['provider'] == 'image-command' and record['raster'] and record['file'].endswith('drawn.png') and 'vtracer unavailable' in record['fallback'], record
         assert not os.path.exists(os.path.join(folder, 'drawn.svg')), 'the earlier svg output of this entry is removed'
         os.environ['FRAMEFORGE_IMAGE_COMMAND'] = 'exit 3'
-        record = resolve({'name': 'down', 'intent': 'phone'}, palette, folder, {}, KIT)
+        record = resolve({'name': 'down', 'intent': 'phone'}, palette, folder, {}, kit)
         assert record['provider'] == 'kit' and record['fallback'].startswith('image-command failed: exit 3'), record
         del os.environ['FRAMEFORGE_IMAGE_COMMAND']
     print('art self-check ok (host svg/png/file, image-command {out}/paths/fail/no-vtracer, sanitizer, palette slots, recolor, kit match, mock Recraft, mock Openverse, offline fallback, credits)')

@@ -16,7 +16,7 @@
 
 ## 내 앱: Frameforge
 
-Frameforge는 React 19, TypeScript, Vite로 만든 로컬 영상 도구다. `src/core/index.tsx`와 `src/core/math.ts`는 Remotion 공개 API의 일부(`Composition`, `Sequence`, `Series`, `Loop`, `Freeze`, `useCurrentFrame`, `useVideoConfig`, `interpolate`, `spring`, `random`, `delayRender`, `googleFont`)를 MIT로 독립 구현한 것이다. Vite alias `frameforge`가 이 구현을 가리키므로 기존 Remotion 컴포지션은 import 지정자를 `frameforge`로 바꾸면 올라간다(`examples/community/`가 그렇게 했다). 구현 범위는 이후 크게 넓어졌다(`docs/research/feature-parity-roadmap.md`).
+Frameforge는 React 19, TypeScript, Vite로 만든 로컬 영상 도구다. `src/core/index.tsx`와 `src/core/math.ts`는 Remotion 공개 API의 일부(`Composition`, `Sequence`, `Series`, `Loop`, `Freeze`, `useCurrentFrame`, `useVideoConfig`, `interpolate`, `spring`, `random`, `delayRender`, `googleFont`)를 MIT로 독립 구현한 것이다. Vite alias `frameforge`가 이 구현을 가리키므로 기존 Remotion 컴포지션은 import 지정자를 `frameforge`로 바꾸면 올라간다(당시 저장소에 있던 커뮤니티 예제가 그렇게 했다). 구현 범위는 이후 크게 넓어졌다(`docs/research/feature-parity-roadmap.md`).
 
 코어의 시간 모델은 단순하다(관찰, `src/core/index.tsx`). `FrameProvider`가 `TimelineContext`에 `{frame, config}`를 넣고, `Sequence`는 `parent.frame - from`에 `playbackRate`와 `trimBefore`를 적용해 자식 컨텍스트를 새로 만든다. 렌더 대기는 모듈 전역 `pending` 맵과 `whenRenderReady()` 폴링으로 처리한다. 작성 당시 `Video`, `OffthreadVideo`는 호출 즉시 예외를 던졌다. 지금은 ffmpeg 프레임 추출로 구현되어 있다(로드맵 B·F 단계). `Audio`는 상수 볼륨과 트림만 지원한다.
 
@@ -24,7 +24,7 @@ Frameforge는 React 19, TypeScript, Vite로 만든 로컬 영상 도구다. `src
 
 `scripts/render.mjs`는 Vite 개발 서버를 띄우고, Chrome을 `--headless=new --remote-debugging-port=0`으로 직접 실행한 뒤 Node 내장 `fetch`와 `WebSocket`으로 CDP에 붙는다. 프레임마다 `renderFrame`을 평가하고 `Page.captureScreenshot`으로 PNG를 디스크에 쓰며, 끝나면 시스템 FFmpeg로 `libx264`, `yuv420p` 인코딩을 한다. 출력은 하드 링크로 원자적으로 게시한다. 작성 당시에는 직렬 렌더였고, 지금은 `--concurrency` 청크 병렬과 `--pipe` 스트리밍이 있다(4.2, 4.3). 오디오는 2026-10-20에 붙었다. `Audio`가 절대 시작 프레임을 레지스트리에 등록하고, 렌더러가 프레임마다 수집해 `adelay`/`amix`로 섞는다(4.4의 제안이 구현된 상태).
 
-독립 CLI `scripts/render.mjs`는 2026-10-20에 `puppeteer-core` 없이 Chrome DevTools Protocol로 다시 작성됐고, 같은 날 `LineGameSpot` 600프레임과 `Opening` 450프레임을 끝까지 렌더해 ffprobe로 확인했다. 아래 4.2와 4.3의 병렬·파이프 제안은 이 CLI 위에 얹었다.
+독립 CLI `scripts/render.mjs`는 2026-10-20에 `puppeteer-core` 없이 Chrome DevTools Protocol로 다시 작성됐고, 같은 날 당시 데모 두 편(600프레임, 450프레임)을 끝까지 렌더해 ffprobe로 확인했다. 아래 4.2와 4.3의 병렬·파이프 제안은 이 CLI 위에 얹었다.
 
 목적은 Claude 같은 AI 에이전트가 광고와 모션 그래픽 영상을 결정적 프레임 함수로 작성하게 하는 것이다. 법적 경계는 `docs/legal/remotion-license-review.md`에 있다. Remotion 구현 코드는 복사하거나 가깝게 옮기지 않고, 공개 문서와 공개 타입, 블랙박스 동작만 쓴다. Apache-2.0과 MIT 프로젝트는 깊게 읽고 패턴을 다시 구현할 수 있으며, 코드를 옮겨 오면 출처를 남긴다.
 
@@ -222,7 +222,7 @@ interface AudioClip {
 전체 렌더 없이 대표 프레임 K장만 PNG로 뽑아 한 장의 컨택트 시트로 합치는 명령이다. 기존 `renderFrame`과 캡처 코드를 그대로 재사용한다. 에이전트는 이 이미지를 보고 레이아웃을 고친다. 기준 영상이나 이전 스냅샷과의 픽셀 차이를 숫자로 내는 `--against`는 회귀 테스트에도 쓰인다(README의 픽셀 비교 작업과 같은 용도).
 
 ```sh
-npm run render -- snapshot examples/index.tsx Opening --frames 0,45,90,300 --out renders/opening-sheet.png
+npm run render -- snapshot examples/samples/kit-launch/entry.tsx KitLaunch --frames 0,45,90,300 --out renders/kit-launch-sheet.png
 ```
 
 ### 4.6 선언된 입력 변수 (P2)
@@ -284,7 +284,7 @@ GSAP 같은 라이브러리를 Frameforge 안에서 쓰고 싶을 때 `useFrameA
 ### 단계별 로드맵
 
 MVP (현재 구조 유지, 의존성 추가 없음)
-1. 독립 CLI는 검증됐다(2026-10-20, `renders/line-game-spot.mp4`). 이 단계는 끝났다.
+1. 독립 CLI는 검증됐다(2026-10-20). 이 단계는 끝났다.
 2. 결정성 정적 린트와 JSON 출력. 완료(`npm run lint:video`, `--lint-only` 대신 별도 스크립트).
 3. FFmpeg stdin 스트리밍 인코딩과 해시 기반 정적 프레임 재사용. 완료(`--pipe`, SHA-1 하드 링크).
 4. 스냅샷 컨택트 시트. 완료(`--frames`).

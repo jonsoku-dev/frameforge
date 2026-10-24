@@ -2,6 +2,36 @@
 
 이 프로젝트는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따릅니다.
 
+## [Unreleased]
+
+### 추가
+
+- **블록 카탈로그** `src/blocks/`(`@/blocks`): 글자 6, 로어서드 6변형, 카드 6, 차트 6, 코드 블록(4모드), 다이어그램 4. 공통 prop 계약, 모션 프로브, `CATALOG`. 샘플 `blocks-reel`, `data-reel`. 스킬 `frameforge-blocks`.
+- **이음새** `src/packages/seams.tsx`(`cutTheCurve`, `zoomThrough`, `inverseZoom`, `rackFocus`, `waterfallCut`, `waterfallEntry`, `nudge`, `<Seam>`)와 `scripts/seam-check.mjs`(렌더가 쓰는 `<out>.motion.json`에서 이음새 벡터를 재어 `seam_mirrored_vector`, `seam_axis_swap`, `seam_dead_beat`, `seam_speed_mismatch`, `seam_pingpong`). 독트린 `references/seams.md`. 샘플 `seam-reel`.
+- **나레이션** `scripts/assets/voice.py`(ElevenLabs, kokoro-onnx, macOS `say`, 길이 추정 무음 순, 줄별 해시 캐시, `narration.timing.json`), `useNarration`, `<Voiceover>`, `<Subtitles>`(rail/embed), `<Formula>`(KaTeX), `scripts/narration-check.mjs`. 렌더러와 개발 서버가 `narration.json`이 있으면 음성을 만들고, 믹스에서 음악이 음성 아래로 내려갑니다. 자막 독트린 `references/captions.md`. 샘플 `narrated-explainer`. 스킬 `frameforge-voice`.
+- **3D** `scripts/assets/blender.py`와 `blender_scene.py`(`3d.json` 샷을 헤드리스 Blender로 결정적 PNG 시퀀스 렌더), `scripts/assets/models.py`(Poly Haven CC0 모델·HDRI, `models.lock.json`), `<ImageSequence>`, `<Model>`, `<Turntable>`, `<StudioLights>`. 샘플 `turntable-spot`. 스킬 `frameforge-3d`.
+- **생성 배경과 효과** `<Generative>`와 시스템 9종, 효과 `colorCorrectionEffect`, `lutEffect`(.cube), `lightLeakEffect`, `vignetteEffect`, `grainEffect`, 손그림 주석 `Highlight`, `Encircle`, `Underline`, `StrikeThrough`, `Box`, `Bracket`. 샘플 `generative-ident`. 스킬 `frameforge-generative`.
+- **렌더러 출력** `.webm`(VP9, 알파), `.mov`(ProRes 4444, 알파), `.gif`, PNG 시퀀스, `--transparent`, `--scale`, `--crf`, `--codec`, `--audio-codec`, `--muted`, `--strict-audit`. 렌더마다 `<out>.motion.json`(움직임 기록)을 남깁니다.
+- **감사와 도구** 스튜디오 `audit()`가 `text_outside_safe`, `text_overlap`, `contrast_low`, `text_too_small`을 보고하고 렌더 로그에 `audit` 줄로 찍힙니다. `beatGrid`/`beatsFromSpec`/`loadBeats`와 `scripts/assets/beats.py`, `scripts/silence-detect.mjs`, `frameforge check`의 네 검사 표(frame, flash, seam, narration).
+- 조사 기록 `docs/research/motion-tools-absorption.md`(에이전트용 영상 도구 다섯 가지의 REA 증거와 흡수 방식). 의존성 `katex`(devDependencies).
+
+### 바뀜
+
+- 스튜디오와 `npm run render`, `__VIDEO_ENTRY__`의 기본 진입점이 `examples/samples/index.tsx`입니다. 렌더러의 기본 컴포지션은 `KitLaunch`입니다.
+- `art.py`가 모티프 키트 목록을 `src/assets/catalog.ts`에서만 읽습니다. 읽지 못하면(엔진에 `npm install`이 없을 때) 고정 목록으로 대신하지 않고 실패합니다.
+- 효과음 밀도 검사(0.5초 간격, 4초에 셋까지)는 MP4 렌더에서 늘 켜져 있습니다.
+- `verification.json`과 `docs/reference/verification.md`는 지금 저장소 상태만 적습니다.
+
+### 제거
+
+- 처음 데모 진입점 `examples/index.tsx`와 `examples/Opening.tsx`, 쓰지 않던 `tests/fixtures/entry.tsx`.
+- 제3자 호환 데모 `examples/community/`와 `community-compatibility.json`, `THIRD_PARTY_NOTICES.md`의 해당 절.
+- 외부 글 요약 `docs/references/opus-5-5/`.
+- 비교 실험 작품 `cmp-motion-*` 아홉 편과 플러그인 시험 작품 `plugin-smoke-claude`, `plugin-smoke-codex`, 그리고 `docs/samples/compare.md`, `plan.md`, `reviews/`, `docs/studio/process-log.md`. 비교 결과는 `docs/guides/model-playbook.md`에 두 문장으로 남겼습니다.
+- 지금 규칙 이전에 만든 작품 열네 편(saas-launch, kinetic-typo, data-story, event-teaser, app-onboarding, logo-reveal, podcast-promo, education-explainer, countdown-hype, product-feature, recipe-steps, fitness-timer, travel-poster, weather-brief). 스튜디오 테스트가 읽던 기획서는 `tests/fixtures/`로 옮겼습니다.
+- `FRAMEFORGE_SFX_GUARD=off` 탈출구, `examples/<slug>.audio.json` 사양 위치, `GENERATION` 이관 메모, 쓰지 않던 `src/components/magicui/magic-card.tsx`.
+- 커밋돼 있던 `scripts/assets/__pycache__/`. `.gitignore`에 `__pycache__/`와 `*.pyc`를 넣었습니다.
+
 ## [0.1.0] - 2026-10-20
 
 첫 공개 버전입니다. 부분 호환 프로토타입입니다. 아래 수치는 저장소 루트 `verification.json`의 기록입니다.

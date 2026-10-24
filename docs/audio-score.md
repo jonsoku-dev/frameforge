@@ -5,16 +5,15 @@
 ## 사양 위치
 
 - 샘플: `examples/samples/<slug>/audio.json`
-- `examples/` 바로 아래의 작품: `examples/<slug>.audio.json`. 생성기와 개발 서버가 이 형태를 읽지만, 지금 이 형태의 사양 파일은 없다.
 - 소리가 없는 작품은 사양을 두지 않는다.
 
-`slug`는 위치와 같아야 한다. 샘플은 폴더 이름, 스팟은 파일 이름에서 `.audio.json`을 뺀 값이다. 다르면 생성기가 오류를 낸다.
+`slug`는 폴더 이름과 같아야 한다. 다르면 생성기가 오류를 낸다. 템플릿의 `template.audio.json`처럼 `<slug>.audio.json`으로 이름을 붙인 파일은 파일 이름에서 `.audio.json`을 뺀 값과 비교한다.
 
 ## 사양 형식
 
 ```json
 {
-  "slug": "saas-launch",
+  "slug": "demo-spot",
   "fps": 30,
   "durationSeconds": 30.0,
   "bpm": 120,
@@ -179,9 +178,9 @@
 
 ## 생성 시점
 
-- 직접: `npm run score -- examples/samples/<slug>/audio.json`. 인자가 없으면 `examples/**/audio.json`과 `examples/*.audio.json`을 모두 처리한다. `--force`는 결과가 최신이어도 다시 만든다. 사양마다 한 줄 JSON(slug, files, 측정한 I/LRA/TP, 소프트 리밋 단계, 걸린 초)을 stdout에 출력한다. 경고와 안내는 stderr로 간다.
-- 스튜디오: Vite 개발 서버가 `/audio/generated/<slug>/<file>` 요청을 받았는데 파일이 없으면 사양을 찾아(`examples/samples/<slug>/audio.json`, 없으면 `examples/<slug>.audio.json`) 생성기를 동기로 돌린 뒤 그 파일을 보낸다. 서버 로그에 `[score] <slug>: ...` 한 줄이 남는다. 사양이 없으면 평소처럼 처리한다.
-- 렌더: `npm run render`가 Vite를 띄우기 전에 진입 파일 폴더의 `audio.json`을 생성한다. 진입이 `examples/index.tsx`이면 `examples/audio.json`을 찾는다. 그 파일이 없으므로 렌더는 아무것도 생성하지 않는다(`scripts/render.mjs`).
+- 직접: `npm run score -- examples/samples/<slug>/audio.json`. 인자가 없으면 `examples/**/audio.json`을 모두 처리한다. `--force`는 결과가 최신이어도 다시 만든다. 사양마다 한 줄 JSON(slug, files, 측정한 I/LRA/TP, 소프트 리밋 단계, 걸린 초)을 stdout에 출력한다. 경고와 안내는 stderr로 간다.
+- 스튜디오: Vite 개발 서버가 `/audio/generated/<slug>/<file>` 요청을 받았는데 파일이 없으면 사양 `examples/samples/<slug>/audio.json`을 찾아 생성기를 동기로 돌린 뒤 그 파일을 보낸다. 서버 로그에 `[score] <slug>: ...` 한 줄이 남는다. 사양이 없으면 평소처럼 처리한다.
+- 렌더: `npm run render`가 Vite를 띄우기 전에 진입 파일 폴더의 `audio.json`을 생성한다. 진입이 샘플 묶음 `examples/samples/index.tsx`이면 `examples/samples/audio.json`이 없으므로 아무것도 생성하지 않는다. 작품 하나는 그 작품의 `entry.tsx`로 렌더한다(`scripts/render.mjs`).
 
 같은 폴더의 `.spec.sha256`에 사양 원문과 `GENERATION` 상수(`scripts/assets/score.py`)의 해시를 적는다. 모든 출력 파일이 있고 해시가 같으면 건너뛴다. 생성기 코드만 고치면 다시 만들어지지 않으니 `--force`를 쓰거나 `GENERATION`을 올린다. 효과음은 항목마다 따로 해시를 매겨 `sfx.json`에 둔다. 해시는 모든 파일을 쓴 뒤에 기록하고, 각 파일은 임시 이름으로 쓴 다음 이름을 바꿔 넣으므로 중간에 멈춘 실행은 다음 실행이 처음부터 다시 한다. 30초 트랙 하나는 이 저장소의 개발 기기(Apple M4 Pro)에서 무드에 따라 3–5초 걸린다(측정값 3.1–5.1초).
 
@@ -190,8 +189,6 @@
 음악은 ffmpeg `loudnorm` 2패스로 사양의 `I`와 `TP`에 맞춘다. 원본 LRA가 목표보다 크면 loudnorm이 압축기로 바뀌어 일부러 만든 조용한 도입부를 눌러 버리므로, LRA 목표를 측정값(7–50 LU)으로 올려 두 번째 패스가 선형 이득 하나로 끝나게 한다. 마스터 리미터가 피크를 먼저 잡아 두므로 보통 첫 시도에서 선형으로 끝난다. 그래도 트루 피크 여유가 없으면 RMS의 5배, 3배, 2배에서 tanh 소프트 리밋을 차례로 걸어 다시 시도하고, 끝내 안 되면 실패한다. 효과음은 샘플 피크 −18 dBFS로 맞춘다. 모두 48 kHz, 16비트, 스테레오 PCM WAV.
 
 생성기는 정규화 전에 두 가지를 assert로 확인한다. 리미터 직전 신호에서 `slam`이고 무게 0.5 이상인 히트의 첫 150 ms가 그 히트 앞뒤 0.5초 안에서 가장 큰 피크를 갖는지(더 가벼운 히트와 `lift`, `soft`는 피크 구간 바로 앞뒤 40 ms보다만 크면 된다. 가벼운 히트는 일부러 주변보다 크지 않기 때문이다), 마지막 1초의 RMS가 가장 큰 1초 구간보다 20 dB 이상 낮은지.
-
-히트 처리는 `GENERATION`을 올리지 않고 바꿨다. 해시가 사양 원문과 `GENERATION`뿐이어서 이미 만들어진 `public/audio/generated/<slug>/`는 그대로 유효하고, 새 처리는 `--force`나 사양을 고친 뒤 다음 생성부터 적용된다. `GENERATION`을 올리면 모든 작품이 다음 요청에서 다시 만들어진다.
 
 ## 측정 도구
 

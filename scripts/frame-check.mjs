@@ -3,7 +3,7 @@ import {existsSync} from 'node:fs';
 
 // Composition check: blank frames, long static stretches, content huddled in the middle, and frames with no element of headline scale.
 // Thresholds were tuned on renders/samples: raw coverage cannot tell a sparse frame with a big headline from one with tiny labels
-// (education-explainer has lower coverage than travel-poster), so `thin` (the tallest band of inked rows) carries the scale check.
+// (a strong sample can have lower coverage than a weak one), so `thin` (the tallest band of inked rows) carries the scale check.
 const args = process.argv.slice(2);
 const flag = (name, fallback) => { const i = args.indexOf(`--${name}`); return i < 0 ? fallback : Number(args[i + 1]); };
 const file = args.find((a, i) => !a.startsWith('--') && !args[i - 1]?.match(/^--(fps|hold)$/));

@@ -1,0 +1,25 @@
+{
+  "slug": "showcase-spot",
+  "fps": 30,
+  "durationSeconds": 24.0,
+  "bpm": 120,
+  "key": "A major",
+  "mood": "upbeat",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.25, "label": "hook"},
+    {"from": 4, "to": 10, "energy": 0.4, "label": "name, product"},
+    {"from": 10, "to": 18, "energy": 0.45, "label": "data, steps"},
+    {"from": 18, "to": 22, "energy": 0.4, "label": "promise, cta"},
+    {"from": 22, "to": 24, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [
+    {"at": 4.0, "weight": 0.5, "style": "soft"},
+    {"at": 18.0, "weight": 0.5, "style": "soft"}
+  ],
+  "sfx": [
+    {"name": "whoosh", "intent": "soft paper whoosh for a card sliding across the screen", "length": 0.8},
+    {"name": "pop", "intent": "small warm pop, a card landing in place", "length": 0.5}
+  ],
+  "seed": 41,
+  "loudness": {"I": -24, "TP": -2}
+}

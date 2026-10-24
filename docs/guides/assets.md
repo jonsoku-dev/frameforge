@@ -8,7 +8,7 @@
 
 공용 음원 라이브러리는 없다(`docs/samples/rules.md`). 이유는 소리가 그 작품의 모션에 맞춰 만들어져야 한다는 사용자 규칙이다. 이 규칙은 이 문서를 요청한 작업 지시에서 옮겼다. 저장소 문서에는 `rules.md`의 "공용 음원은 없다" 한 줄만 있다. 같은 30초 트랙을 두 편이 나눠 쓰면 타격이 어느 한쪽의 사건에도 맞지 않는다.
 
-이 방식은 두 번째 세대다. 샘플 첫 라운드는 `/audio/library/<name>.wav` 공용 트랙을 썼다(`.scratch/samples/brief-common.md`). 이 경로는 지금 없다. `scripts/assets/`에는 음악·효과음 생성기 `score.py`와 효과음 소스 해결기 `sfx.py`, 측정 도구 `score-report.py`, 그림 에셋 해결기 `art.py`가 있고. 샘플 코드는 모두 `/audio/generated/<slug>/`을 가리킨다. `docs/samples/README.md`가 언급하는 `audio-library.md`는 옛 방식의 기록이다.
+`scripts/assets/`에는 음악·효과음 생성기 `score.py`, 효과음 소스 해결기 `sfx.py`, 측정 도구 `score-report.py`, 그림 에셋 해결기 `art.py`가 있다. 샘플 코드는 모두 `/audio/generated/<slug>/`을 가리킨다.
 
 ### 사양 파일
 
@@ -17,7 +17,6 @@
 | 작품 | 사양 위치 | slug |
 | --- | --- | --- |
 | 샘플 | `examples/samples/<slug>/audio.json` | 폴더 이름 |
-| `examples/` 바로 아래의 작품 | `examples/<slug>.audio.json` | 파일 이름에서 `.audio.json`을 뺀 값. 지금 이 형태의 사양 파일은 없다 |
 | 소리 없는 작품 | 사양을 두지 않는다 | 없음 |
 
 `slug`가 위치와 다르면 생성기가 오류를 낸다. 주요 필드는 아래와 같다.
@@ -66,7 +65,7 @@ cafe-morning이 예다. 장면표의 경계 150, 375프레임이 사양의 5, 12
 
 "어울리는 사건" 열은 샘플에서 쓴 예를 모은 것이다. 생성기가 정한 규칙은 아니다. 같은 프리셋을 두 이름으로 적으면 서로 다른 테이크가 나온다.
 
-배치는 움직임에서 받는 것이 기본이다. 움직이는 값을 `useMotionSound`/`<MotionProbe>`로 보고하고 `<MotionSound src role families quiet />`로 파일을 선언하면 엔진이 시작·착지·등장 사건에 소리를 놓는다(`docs/audio-score.md` 움직임에서 나오는 소리). 움직임이 없는 사건(카운트 끝, 체크)만 작품 코드가 직접 놓는다. 사건과 같은 프레임의 `<Sequence from={n} durationInFrames={30} layout="none">` 안에 `<Audio src="/audio/generated/<slug>/<name>.wav" volume={0.8} />`를 둔다. 음악은 루트에 `volume={0.9}`로 하나다. 반복 사건은 배열로 펼친다. education-explainer는 원이 떨어지는 프레임 목록 `popFrames`를 화면과 소리가 함께 쓴다(`examples/samples/education-explainer/Spot.tsx`). 그래서 타이밍을 고치면 둘이 같이 움직인다.
+배치는 움직임에서 받는 것이 기본이다. 움직이는 값을 `useMotionSound`/`<MotionProbe>`로 보고하고 `<MotionSound src role families quiet />`로 파일을 선언하면 엔진이 시작·착지·등장 사건에 소리를 놓는다(`docs/audio-score.md` 움직임에서 나오는 소리). 움직임이 없는 사건(카운트 끝, 체크)만 작품 코드가 직접 놓는다. 사건과 같은 프레임의 `<Sequence from={n} durationInFrames={30} layout="none">` 안에 `<Audio src="/audio/generated/<slug>/<name>.wav" volume={0.8} />`를 둔다. 음악은 루트에 `volume={0.9}`로 하나다. 반복 사건은 배열로 펼쳐 화면과 소리가 같은 프레임 목록을 쓰게 한다. 그래서 타이밍을 고치면 둘이 같이 움직인다.
 
 ### 음량 정책
 
@@ -81,7 +80,7 @@ LRA에는 주의할 점이 있다. 조용한 훅과 사라지는 꼬리 때문�
 세 경로가 있다. 결과는 모두 `public/audio/generated/<slug>/`이며 이 폴더는 `.gitignore`에 있다.
 
 1. 개발 서버. `vite.config.ts`의 `scoreOnDemand` 미들웨어가 `/audio/generated/<slug>/<file>` 요청에 파일이 없으면 사양을 찾아 생성기를 동기로 돌린다. 서버 로그에 `[score] <slug>: ...`가 남는다.
-2. 렌더. `npm run render`가 Vite를 띄우기 전에 진입 파일 폴더의 `audio.json`을 생성한다. 진입이 `examples/index.tsx`면 `examples/audio.json`을 찾고, 그 파일이 없으므로 아무것도 생성하지 않는다(`scripts/render.mjs`).
+2. 렌더. `npm run render`가 Vite를 띄우기 전에 진입 파일 폴더의 `audio.json`을 생성한다. 기본 진입은 `examples/samples/index.tsx`이고 그 폴더에는 `audio.json`이 없으므로 아무것도 생성하지 않는다(`scripts/render.mjs`). 사양은 `examples/samples/<slug>/audio.json`에만 둔다.
 3. 직접 실행.
 
 ```sh
@@ -143,17 +142,15 @@ import {Check} from 'lucide-react';
 | 안의 글자 | 넣지 않는다 |
 | 쓰는 곳 | 라벨 옆, 목록 행, 카드 안의 보조 표시 |
 
-새 기준으로 보면 travel-poster의 48px 아이콘(4.4%)은 미달이다. fitness-timer 104px, recipe-steps 92–128px는 통과한다.
+장면의 주인공이 되는 큰 형태는 라이브러리를 쓰지 않고 직접 그린다. 다음 장면으로 변신해야 하기 때문이다.
 
-장면의 주인공이 되는 큰 형태는 라이브러리를 쓰지 않고 직접 그린다. 다음 장면으로 변신해야 하기 때문이다. product-feature의 원, 실드, 배터리가 예다.
-
-**그려지는 등장.** `strokeDasharray`와 `strokeDashoffset`을 프레임 함수로 돌린다. lucide 컴포넌트는 이 속성을 SVG로 넘긴다. weather-brief가 이렇게 쓴다(`examples/samples/weather-brief/Spot.tsx`).
+**그려지는 등장.** `strokeDasharray`와 `strokeDashoffset`을 프레임 함수로 돌린다. lucide 컴포넌트는 이 속성을 SVG로 넘긴다.
 
 ```tsx
 <Icon size={88} strokeWidth={2.5} color={ink} strokeDasharray={220} strokeDashoffset={220 * (1 - draw)} />
 ```
 
-220은 24단위 viewBox 안의 가장 긴 경로보다 긴 값이다(추정. 아이콘마다 경로 길이가 다르므로 새 아이콘은 키프레임으로 확인한다). 다른 방법은 `pop`으로 스케일을 키우는 것이다. recipe-steps의 체크가 그렇다.
+220은 24단위 viewBox 안의 가장 긴 경로보다 긴 값이다(추정. 아이콘마다 경로 길이가 다르므로 새 아이콘은 키프레임으로 확인한다). 다른 방법은 `pop`으로 스케일을 키우는 것이다.
 
 **라이선스.** 콜아웃 마커에 Lucide 말고 다른 세트를 쓰면 라이선스를 `prompt.md`에 적는다(`docs/samples/rules.md`). 콜아웃 밖에서는 어느 세트도 쓰지 않는다.
 
@@ -183,7 +180,7 @@ curl -s -A "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36"
   "https://fonts.googleapis.com/css2?family=Manrope" | grep -ci "U+ac\|U+d5\|U+b[0-9a-f]"
 ```
 
-라틴 전용 디스플레이 글꼴(Anton, Bebas Neue)은 영문과 숫자에만 쓰고 한글은 UI 가족에 맡긴다. countdown-hype가 Anton과 Noto Sans KR을 이렇게 나눈다. 한 단어 안에서 두 가족이 섞이면 안 된다. product-feature 초안의 "30시간"은 "30"과 "시간"이 다른 서체로 그려졌다.
+라틴 전용 디스플레이 글꼴(Anton, Bebas Neue)은 영문과 숫자에만 쓰고 한글은 UI 가족에 맡긴다. 한 단어 안에서 두 가족이 섞이면 안 된다. 초안의 "30시간"은 "30"과 "시간"이 다른 서체로 그려졌다.
 
 **글꼴별 마스크 여유.** 글꼴마다 잉크가 줄 상자를 넘는 정도가 다르다. 새 글꼴을 쓰면 Gothic A1 값(위 0.1em, 좌우 0.06em)에서 시작한다. 가드가 잘림을 보고하면 그쪽 여유를 늘리고 같은 크기의 음수 margin으로 위치를 되돌린다. 샘플에서 읽은 값은 `docs/guides/motion-graphics.md` 6절의 표에 있다. 명조(Gowun Batang)는 위 0.16em, 아래 0.26em까지 필요했다.
 
@@ -196,7 +193,7 @@ curl -s -A "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36"
 
 ## 4. 제품 화면 캡처
 
-실제 제품을 보여 줄 때는 화면을 상상으로 다시 그리지 않는다. 사이트를 방문해 캡처하고 목록을 남긴다(`docs/references/opus-5-5/motion-studio-course.md`). 화면에 없는 숫자, 버튼, 문장은 만들지 않는다.
+실제 제품을 보여 줄 때는 화면을 상상으로 다시 그리지 않는다. 사이트를 방문해 캡처하고 목록을 남긴다. 화면에 없는 숫자, 버튼, 문장은 만들지 않는다.
 
 **캡처 방법.** 캡처는 사용자가 직접 찍어 준비한다. 저장소에는 캡처 스크립트가 없다. 아래 다섯 단계를 하는 Playwright나 CDP 스크립트를 쓴다. 세부는 `docs/guides/product-explainer.md` 2절에 있다.
 
@@ -227,7 +224,7 @@ curl -s -A "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36"
 
 **팔레트 규율.** 한 편에 3–4색이다. 배경 둘, 강조 하나, 글자 하나다. 코드 맨 위에 상수로 적고 그 밖의 색은 쓰지 않는다. 깊이가 필요하면 같은 색의 투명도를 쓴다. 샘플은 같은 색이 겹치지 않도록 편마다 다른 팔레트를 받았다. 초록 `#06C755`와 Gothic A1은 첫 작품이 썼던 것이라 샘플에서 금지했다(`examples/samples/cafe-morning/prompt.md`의 "Forbidden for variety"). 그 첫 작품은 실제 브랜드를 써서 저장소에 없다.
 
-**평면색과 그라데이션.** 기본은 평면색이다. 그라데이션은 배경 한 곳까지만 허용된다(`docs/samples/rules.md`). "가운데 제목과 그라데이션"은 레퍼런스들이 꼽은 AI 기본값이다(`docs/references/opus-5-5/README.md`). 평면색은 H.264 압축에서 띠가 생기지 않고, 복호 검증에서 값을 바로 비교할 수 있다는 이점도 있다(추정. 띠 현상은 이 저장소에서 측정하지 않았다).
+**평면색과 그라데이션.** 기본은 평면색이다. 그라데이션은 배경 한 곳까지만 허용된다(`docs/samples/rules.md`). "가운데 제목과 그라데이션"은 AI처럼 보이는 기본값이다. 평면색은 H.264 압축에서 띠가 생기지 않고, 복호 검증에서 값을 바로 비교할 수 있다는 이점도 있다(추정. 띠 현상은 이 저장소에서 측정하지 않았다).
 
 **bt709 파이프라인.** 프레임 PNG는 sRGB다. `scripts/render.mjs`는 bt709 행렬과 TV 범위로 변환하고, 색 태그(primaries, transfer, matrix, range)를 붙여 인코딩한다.
 
