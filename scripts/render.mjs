@@ -1,5 +1,5 @@
 import {existsSync, constants} from 'node:fs';
-import {mkdir, mkdtemp, rm, link, copyFile, readFile, writeFile} from 'node:fs/promises';
+import {mkdir, mkdtemp, rm, link, copyFile, readdir, readFile, writeFile} from 'node:fs/promises';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {once} from 'node:events';
 import {createHash} from 'node:crypto';
@@ -21,10 +21,12 @@ const CONTAINERS = {
   mov: {codec: 'prores', audio: 'pcm', mux: ['-movflags', '+faststart']},
   gif: {codec: 'gif', audio: 'none', mux: []},
   png: {codec: 'png', audio: 'none', mux: []},
+  // The hls muxer cuts only on keyframes, so one is forced every 4 s; the segment pattern is added at encode time beside the staged playlist. One playlist, so no chunks.
+  m3u8: {codec: 'h264', audio: 'aac', mux: ['-force_key_frames', 'expr:gte(t,n_forced*4)', '-f', 'hls', '-hls_time', '4', '-hls_playlist_type', 'vod'], chunked: false},
 };
-/** Pixel formats per codec as [opaque, with alpha]; null means the codec cannot carry alpha. `chunked`: segments concat with -c copy. */
+/** Pixel formats per codec as [opaque, with alpha]; null means the codec cannot carry alpha. `chunked`: segments concat with -c copy (a container may override it). */
 const CODECS = {
-  h264: {pix: ['yuv420p', null], crf: 18, containers: ['mp4', 'mov'], chunked: true},
+  h264: {pix: ['yuv420p', null], crf: 18, containers: ['mp4', 'mov', 'm3u8'], chunked: true},
   vp9: {pix: ['yuv420p', 'yuva420p'], crf: 32, containers: ['webm'], chunked: true},
   prores: {pix: ['yuv444p10le', 'yuva444p10le'], crf: null, containers: ['mov'], chunked: true},
   gif: {pix: ['pal8', 'pal8'], crf: null, containers: ['gif'], chunked: false},
@@ -38,7 +40,7 @@ export function outputFormat(output, {codec, audioCodec, transparent = false, cr
   const name = basename(output), dot = name.lastIndexOf('.');
   const container = sequence ? 'png' : dot < 0 ? '' : name.slice(dot + 1).toLowerCase();
   const spec = CONTAINERS[container];
-  if (!spec) throw new Error(`Unknown output ${output}; use .mp4, .webm, .mov, .gif or a PNG sequence (a folder/ or frames/%05d.png).`);
+  if (!spec) throw new Error(`Unknown output ${output}; use .mp4, .webm, .mov, .gif, .m3u8 or a PNG sequence (a folder/ or frames/%05d.png).`);
   if (container === 'png' && !sequence) throw new Error('A .png output needs --frames (contact sheet) or a sequence pattern (a folder/ or %05d.png).');
   const chosen = CODECS[codec ?? spec.codec];
   if (!chosen) throw new Error(`Unknown codec ${codec}; use ${Object.keys(CODECS).join(', ')}.`);
@@ -48,7 +50,7 @@ export function outputFormat(output, {codec, audioCodec, transparent = false, cr
   const audio = spec.audio === 'none' ? 'none' : audioCodec ?? spec.audio;
   if (!AUDIO[audio]) throw new Error(`Unknown audio codec ${audio}; use aac, opus, pcm or none.`);
   if (gifFps !== undefined && !(gifFps > 0)) throw new Error('--gif-fps must be a positive number.');
-  return {container, codec: codec ?? spec.codec, pixFmt, audio, sequence, transparent, crf: crf ?? chosen.crf, gifFps, mux: spec.mux, chunked: chosen.chunked};
+  return {container, codec: codec ?? spec.codec, pixFmt, audio, sequence, transparent, crf: crf ?? chosen.crf, gifFps, mux: spec.mux, chunked: spec.chunked ?? chosen.chunked};
 }
 /** ffmpeg video arguments for a format; `size` (the scaled output size) adds a resample so every frame lands at that size. */
 export function videoArgs({codec, pixFmt, crf, gifFps, transparent}, count, size) {
@@ -403,9 +405,11 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
     await mkdir(outDir, {recursive: true});
     const staging = await mkdtemp(join(outDir, '.frameforge-'));
     try {
-      const staged = join(staging, frames ? 'sheet.png' : `encoded.${format.container}`);
+      // Staged under the output's own name: an HLS playlist lists its segments by that name, and every staged file is published beside it.
+      const staged = join(staging, basename(outputLocation));
       const count = wanted.length, fps = selected.fps;
       const mixed = format?.audio === 'none' ? [] : segments;
+      const hls = format?.container === 'm3u8' ? ['-hls_segment_filename', staged.replace(/\.m3u8$/i, '_%03d.ts')] : [];
       if (frames) {
         const columns = Math.min(4, frames.length);
         await run(ffmpegPath(), ['-n', '-i', join(results[0].scratch, '%08d.png'), '-vf', `scale=480:-1,tile=${columns}x${Math.ceil(frames.length / columns)}:padding=4:color=white`, '-frames:v', '1', staged]);
@@ -413,7 +417,7 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
         // shortcut: the scratch PNGs are copied as captured (scale applies, nothing is re-encoded); the staging folder is unused.
         for (const [index, frame] of wanted.entries()) await copyFile(join(results[0].scratch, `${String(index).padStart(8, '0')}.png`), resolve(sequenceFile(frame)), constants.COPYFILE_EXCL);
       } else if (!chunked) {
-        await run(ffmpegPath(), encodeArgs(['-framerate', String(fps), '-i', join(results[0].scratch, '%08d.png')], encode(count), fps, count, mixed, staged, from, AUDIO[format.audio]));
+        await run(ffmpegPath(), encodeArgs(['-framerate', String(fps), '-i', join(results[0].scratch, '%08d.png')], [...encode(count), ...hls], fps, count, mixed, staged, from, AUDIO[format.audio]));
       } else {
         // Chunks share codec settings, so the concat demuxer joins them without re-encoding; audio is mixed once over the whole range.
         const listFile = join(directory, 'chunks.txt');
@@ -421,8 +425,8 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
         const video = results.length === 1 ? ['-i', results[0].video] : ['-f', 'concat', '-safe', '0', '-i', listFile];
         await run(ffmpegPath(), encodeArgs(video, ['-c:v', 'copy', ...format.mux], fps, count, mixed, staged, from, AUDIO[format.audio]));
       }
-      // A same-filesystem hard link publishes a complete file atomically and refuses overwrite.
-      if (!sequencePattern) await link(staged, resolve(outputLocation));
+      // Same-filesystem hard links publish complete files atomically and refuse overwrite; HLS segments land before the playlist that names them.
+      if (!sequencePattern) for (const file of (await readdir(staging)).sort((a, b) => Number(a === basename(staged)) - Number(b === basename(staged)))) await link(join(staging, file), join(outDir, file));
     } finally { await rm(staging, {recursive: true, force: true}); }
     const identicalFrames = results.reduce((sum, item) => sum + item.identical, 0);
     return {outputLocation: resolve(sequencePattern ?? outputLocation), composition: selected, frames: wanted.length, chunks: chunks.length, identicalFrames, identicalShare: Math.round(identicalFrames / wanted.length * 1000) / 1000, ...(format ? {format: {container: format.container, codec: format.codec, pixFmt: format.pixFmt, audio: format.audio, width: size.width, height: size.height}} : {}), auditFindings: findings.length, ...(checkIdempotent ? {idempotent: true} : {})};
@@ -447,9 +451,9 @@ async function main() {
     console.log(`npm run render -- [entry.tsx] [composition-id] [output] [input-props-json] [--frames 30,120,240] [--frame-range 0-299] [--concurrency 3] [--pipe] [--check-idempotent]
                  [--codec h264|vp9|prores|gif|png] [--audio-codec aac|opus|pcm|none] [--muted] [--crf N] [--transparent] [--scale S] [--gif-fps N] [--strict-audit]
 Requires local Chrome and FFmpeg. calculateMetadata runs before encoding. <Audio> and <Video> sound from public/ or a downloaded https:// URL is mixed in (volume, trim, playbackRate via atempo, pan for motion sounds); Video frames come from ffmpeg extraction.
-Output format by extension: .mp4 h264 + aac (default), .webm vp9 (libvpx-vp9, -b:v 0 -crf 32) + opus, .mov prores_ks 4444 + pcm_s16le, .gif (palettegen/paletteuse, --gif-fps caps the rate, no sound), a PNG sequence when the output ends with / or holds %05d (numbered by frame, nothing encoded). --codec overrides the codec, --audio-codec the sound codec (--muted skips the mix), --crf the quality.
+Output format by extension: .mp4 h264 + aac (default), .webm vp9 (libvpx-vp9, -b:v 0 -crf 32) + opus, .mov prores_ks 4444 + pcm_s16le, .gif (palettegen/paletteuse, --gif-fps caps the rate, no sound), .m3u8 HLS (h264 + aac in 4 s .ts segments named <name>_%03d.ts beside the playlist, one chunk, no --transparent), a PNG sequence when the output ends with / or holds %05d (numbered by frame, nothing encoded). --codec overrides the codec, --audio-codec the sound codec (--muted skips the mix), --crf the quality.
 --transparent renders over a clear page and keeps alpha (webm yuva420p, mov yuva444p10le, gif palette, png rgba; an error for h264). --scale S multiplies the output size (device scale factor; width and height must stay integers, even for h264 and vp9).
---frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s; gif and PNG sequences render in one chunk); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent fails with frame_not_idempotent when the first, middle or last frame renders differently twice.
+--frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s; gif, m3u8 and PNG sequences render in one chunk); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent fails with frame_not_idempotent when the first, middle or last frame renders differently twice.
 Every render prints {"audit": [...]} once with the layout findings (text outside the 5% safe area, overlapping text, low contrast, small labels) seen for a quarter second or more; --strict-audit turns them into a failure. A video render also writes <output>.motion.json for seam-check. FRAMEFORGE_PORT changes the Vite port (default 4318).`);
     return;
   }

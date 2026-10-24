@@ -8,4 +8,5 @@
 - Transitions: `TransitionSeries` from `@/packages/transitions` (fade, slide, wipe, flip, clockWipe, iris; linearTiming/springTiming).
 - Shapes, paths, noise, blur: `makeStar/makePolygon/...`, `getPointAtLength/evolvePath/interpolatePath`, `noise2D/3D`, `<Trail>`/`<CameraMotionBlur>` all import from `frameforge`.
 - Media: `<Video src trimBefore volume playbackRate>`, `<AnimatedImage>`, `<Lottie src>`, `<Img>`; captions via `parseSrt` + `createTikTokStyleCaptions`.
+- Existing animation code only: `<Seekable animate={el => el.animate(keyframes, {duration, fill: 'both'})}>` or `useSeekable(ref, factory)` seeks it per frame (`docs/reference/seekable.md`); new motion stays a frame function.
 - Full guide: `docs/guides/motion-graphics.md`; explainers: `docs/guides/product-explainer.md`.
