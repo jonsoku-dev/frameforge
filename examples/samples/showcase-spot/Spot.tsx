@@ -59,7 +59,7 @@ function Brand({frame, at}: {frame: number; at: number}) {
   return <AbsoluteFill style={{background: paper}}>
     {/* The promoted word sits behind the ring, the subject. */}
     <Subtitles timing={timing} style="embed" {...captions} />
-    <Hero frame={frame} at={at - SEAM / 2} size={W * 0.5} x={W * 0.45} y={H * 0.12} id="hero-brand" />
+    <Hero frame={frame} at={at - SEAM / 2} size={W * 0.3} x={W * 0.66} y={H * 0.52} id="hero-brand" />
     <LowerThird {...common(frame)} at={at + 18} size={S * 0.06} variant="mask-reveal" name="하루결" role="하루를 한 결로 · 가상 브랜드" />
   </AbsoluteFill>;
 }
@@ -67,24 +67,24 @@ function Brand({frame, at}: {frame: number; at: number}) {
 function Product({frame, at}: {frame: number; at: number}) {
   const toasts: [typeof Card, string, string][] = [[Card, '할 일', '아침 러닝 30분'], [Book, '메모', '회의 전에 읽을 것 셋'], [Calendar, '일정', '오후 3시 디자인 리뷰']];
   return <AbsoluteFill style={{background: paper}}>
-    <Hero frame={frame} at={at - 40} size={W * 0.46} x={W * 0.5} y={H * 0.2} id="hero-product" />
+    <Hero frame={frame} at={at - 40} size={W * 0.5} x={W * 0.47} y={H * 0.24} id="hero-product" />
     <GlyphRise {...common(frame)} at={at + 2} x={SIZES.marginX + S * 0.04} y={H * 0.12} size={SIZES.headline} color={ink} text="한 결로 모입니다" />
-    {toasts.map(([Icon, title, body], i) => <NotificationCard key={title} {...common(frame)} at={at + 22 + i * 14} x={SIZES.marginX + S * 0.04} y={H * 0.29 + i * S * 0.155} size={S * 0.054} icon={Icon} title={title} body={body} time={`0${7 + i}:30 · 예시`} from="right" width={W * 0.4} />)}
+    {toasts.map(([Icon, title, body], i) => <NotificationCard key={title} {...common(frame)} at={at + 22 + i * 14} x={SIZES.marginX + S * 0.04} y={H * 0.27 + i * S * 0.175} size={S * 0.054} icon={Icon} title={title} body={body} time={`0${7 + i}:30 · 예시`} from="right" width={W * 0.4} />)}
   </AbsoluteFill>;
 }
 
 function Data({frame, at, until}: {frame: number; at: number; until: number}) {
   return <AbsoluteFill style={{background: paper}}>
     <GlyphRise {...common(frame)} at={at + 2} x={SIZES.marginX + S * 0.04} y={H * 0.12} size={SIZES.headline} color={ink} text="아침 계획, 열 명 중 여덟" />
-    <Donut frame={frame} at={at + 12} out={until} palette={palette} fonts={fonts} size={SIZES.label * 1.1} x={SIZES.marginX + S * 0.04} y={H * 0.3} width={S * 0.6} height={S * 0.6} value={80} unit="%" label="아침 계획 완료" />
-    <StatCard {...common(frame)} at={at + 30} out={until} x={W * 0.52} y={H * 0.36} size={S * 0.06} value={8} unit="명" label="열 명 중 (예시)" />
+    <Donut frame={frame} at={at + 12} out={until} palette={palette} fonts={fonts} size={SIZES.label * 1.1} x={SIZES.marginX + S * 0.04} y={H * 0.27} width={S * 0.5} height={S * 0.5} value={80} unit="%" label="아침 계획 완료" />
+    <StatCard {...common(frame)} at={at + 30} out={until} x={W * 0.52} y={H * 0.3} size={S * 0.06} value={8} unit="명" label="열 명 중" example={false} />
   </AbsoluteFill>;
 }
 
 function Steps({frame, at, until}: {frame: number; at: number; until: number}) {
   return <AbsoluteFill style={{background: paper}}>
     <GlyphRise {...common(frame)} at={at + 2} x={SIZES.marginX + S * 0.04} y={H * 0.12} size={SIZES.headline} color={ink} text="세 단계면 충분합니다" />
-    <ProcessSteps frame={frame} at={at + 14} out={until} palette={palette} fonts={fonts} size={SIZES.label * 1.3} x={SIZES.marginX + S * 0.04} y={H * 0.36} width={W * 0.9 - S * 0.08} height={S * 0.4} steps={['적기', '고르기', '끝내기']} />
+    <ProcessSteps frame={frame} at={at + 14} out={until} palette={palette} fonts={fonts} size={S * 0.065} x={SIZES.marginX + S * 0.04} y={H * 0.3} width={W * 0.9 - S * 0.08} height={S * 0.52} steps={['적기', '고르기', '끝내기']} />
   </AbsoluteFill>;
 }
 
@@ -92,6 +92,8 @@ function Promise({frame, at, progress}: {frame: number; at: number; progress: nu
   const highlight = interpolate(progress, [0.35, 0.8], [0, 1], clamp);
   return <AbsoluteFill style={{background: ink}}>
     <Generative system="flowField" seed="harugyeol-flow" width={W} height={H} fit="fill" palette={{...palette, accent: soft}} params={{lines: 110, steps: 100, stepLength: 0.005, scale: 2.2, grow: 3, strokeWidth: 0.002}} style={{position: 'absolute', left: 0, top: 0, opacity: 0.55}} />
+    {/* An ink plate keeps the field's strokes out of the headline band while the lines are up. */}
+    <div style={{position: 'absolute', left: W * 0.5 - S * 0.5, top: H * 0.22, width: S, height: SIZES.headline * 3.7, background: ink, borderRadius: radius}} />
     <div style={{position: 'absolute', left: W * 0.5 - S * 0.45, top: H * 0.27, width: S * 0.9, height: SIZES.headline * 1.5}}>
       <GlyphRise {...common(frame)} at={at + 4} x={0} y={0} size={SIZES.headline * 1.3} color={paper} text="오늘의 결을" />
     </div>
