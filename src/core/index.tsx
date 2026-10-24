@@ -449,3 +449,4 @@ export * from '../packages/model';
 export * from '../packages/generative';
 export * from '../packages/annotations';
 export * from '../packages/beats';
+export * from '../packages/seekable';

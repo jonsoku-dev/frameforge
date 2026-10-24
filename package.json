@@ -32,7 +32,9 @@
     "models": "python3 scripts/assets/models.py",
     "beats": "python3 scripts/assets/beats.py",
     "seam-check": "node scripts/seam-check.mjs",
-    "narration-check": "node scripts/narration-check.mjs"
+    "narration-check": "node scripts/narration-check.mjs",
+    "geo": "python3 scripts/assets/geo.py",
+    "transcribe": "node scripts/transcribe.mjs"
   },
   "dependencies": {
     "@radix-ui/react-scroll-area": "^1.4.0",
