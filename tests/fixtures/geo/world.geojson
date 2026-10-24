@@ -1,0 +1,5 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"name":"Square","iso_a3":"SQR"},"geometry":{"type":"Polygon","coordinates":[[[0,0],[10,0],[10,10],[0,10],[0,0]]]}},
+{"type":"Feature","properties":{"name":"Islands","iso_a3":"ISL"},"geometry":{"type":"MultiPolygon","coordinates":[[[[20,0],[30,0],[30,10],[20,10],[20,0]]],[[[40,0],[45,0],[45,5],[40,5],[40,0]]]]}},
+{"type":"Feature","properties":{"name":"Coast","iso_a3":"-99"},"geometry":{"type":"LineString","coordinates":[[0,-20],[60,-20]]}}
+]}

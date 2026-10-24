@@ -1,0 +1,23 @@
+{
+  "slug": "map-story",
+  "fps": 30,
+  "durationSeconds": 20.0,
+  "bpm": 120,
+  "key": "A major",
+  "mood": "upbeat",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.3, "label": "world"},
+    {"from": 4, "to": 8, "energy": 0.55, "label": "zoom"},
+    {"from": 8, "to": 12, "energy": 0.75, "label": "route"},
+    {"from": 12, "to": 16, "energy": 0.7, "label": "markers"},
+    {"from": 16, "to": 18, "energy": 0.45, "label": "name"},
+    {"from": 18, "to": 20, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [7.0, 11.5, 16.5],
+  "sfx": [
+    {"name": "whoosh", "intent": "soft airy whoosh, a map flying closer or a paper card wiping up, short", "preset": "whoosh", "length": 0.7},
+    {"name": "tick", "intent": "dry soft tick, a pin or a label landing on a map, very short", "preset": "click", "length": 0.2}
+  ],
+  "seed": 31,
+  "loudness": {"I": -24, "TP": -2}
+}
