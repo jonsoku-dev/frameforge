@@ -43,7 +43,9 @@ function Hero({frame, at, size, x, y, id}: {frame: number; at: number; size: num
 function Hook({frame, at, progress}: {frame: number; at: number; progress: number}) {
   const circle = interpolate(progress, [0.45, 0.85], [0, 1], clamp);
   return <AbsoluteFill style={{background: ink}}>
-    <Generative system="aurora" seed="harugyeol" width={W} height={H} fit="fill" palette={palette} params={{bands: 4, speed: 0.05, height: 0.22, amplitude: 0.08, scale: 1.1}} style={{position: 'absolute', left: 0, top: 0, opacity: 0.9}} />
+    <Generative system="aurora" seed="harugyeol" width={W} height={H} fit="fill" palette={palette} params={{bands: 4, speed: 0.05, height: 0.22, amplitude: 0.08, scale: 1.1}} style={{position: 'absolute', left: 0, top: 0, opacity: 0.7}} />
+    {/* The headline band is ink so the type never lands on a pale aurora band. */}
+    <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.26, width: W * 0.72, height: SIZES.headline * 3.6, background: ink, borderRadius: radius}} />
     <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.3, display: 'flex', flexDirection: 'column', gap: S * 0.03}}>
       <GlyphRise {...common(frame)} at={at + 2} x={0} y={0} size={SIZES.headline * 1.2} color={paper} text="하루가 흩어질 때," />
       <div style={{marginTop: SIZES.headline * 1.5}}>
@@ -59,7 +61,7 @@ function Brand({frame, at}: {frame: number; at: number}) {
   return <AbsoluteFill style={{background: paper}}>
     {/* The promoted word sits behind the ring, the subject. */}
     <Subtitles timing={timing} style="embed" {...captions} />
-    <Hero frame={frame} at={at - SEAM / 2} size={W * 0.3} x={W * 0.66} y={H * 0.52} id="hero-brand" />
+    <Hero frame={frame} at={at - SEAM / 2} size={W * 0.36} x={W * 0.62} y={H * 0.6} id="hero-brand" />
     <LowerThird {...common(frame)} at={at + 18} size={S * 0.06} variant="mask-reveal" name="하루결" role="하루를 한 결로 · 가상 브랜드" />
   </AbsoluteFill>;
 }
@@ -67,17 +69,17 @@ function Brand({frame, at}: {frame: number; at: number}) {
 function Product({frame, at}: {frame: number; at: number}) {
   const toasts: [typeof Card, string, string][] = [[Card, '할 일', '아침 러닝 30분'], [Book, '메모', '회의 전에 읽을 것 셋'], [Calendar, '일정', '오후 3시 디자인 리뷰']];
   return <AbsoluteFill style={{background: paper}}>
-    <Hero frame={frame} at={at - 40} size={W * 0.5} x={W * 0.47} y={H * 0.24} id="hero-product" />
+    <Hero frame={frame} at={at - 40} size={W * 0.56} x={W * 0.44} y={H * 0.2} id="hero-product" />
     <GlyphRise {...common(frame)} at={at + 2} x={SIZES.marginX + S * 0.04} y={H * 0.12} size={SIZES.headline} color={ink} text="한 결로 모입니다" />
-    {toasts.map(([Icon, title, body], i) => <NotificationCard key={title} {...common(frame)} at={at + 22 + i * 14} x={SIZES.marginX + S * 0.04} y={H * 0.27 + i * S * 0.175} size={S * 0.054} icon={Icon} title={title} body={body} time={`0${7 + i}:30 · 예시`} from="right" width={W * 0.4} />)}
+    {toasts.map(([Icon, title, body], i) => <NotificationCard key={title} {...common(frame)} at={at + 8 + i * 12} x={SIZES.marginX + S * 0.04} y={H * 0.27 + i * S * 0.175} size={S * 0.054} icon={Icon} title={title} body={body} time={`0${7 + i}:30 · 예시`} from="right" width={W * 0.44} />)}
   </AbsoluteFill>;
 }
 
 function Data({frame, at, until}: {frame: number; at: number; until: number}) {
   return <AbsoluteFill style={{background: paper}}>
     <GlyphRise {...common(frame)} at={at + 2} x={SIZES.marginX + S * 0.04} y={H * 0.12} size={SIZES.headline} color={ink} text="아침 계획, 열 명 중 여덟" />
-    <Donut frame={frame} at={at + 12} out={until} palette={palette} fonts={fonts} size={SIZES.label * 1.1} x={SIZES.marginX + S * 0.04} y={H * 0.27} width={S * 0.5} height={S * 0.5} value={80} unit="%" label="아침 계획 완료" />
-    <StatCard {...common(frame)} at={at + 30} out={until} x={W * 0.52} y={H * 0.3} size={S * 0.06} value={8} unit="명" label="열 명 중" example={false} />
+    <Donut frame={frame} at={at + 4} out={until} palette={palette} fonts={fonts} size={SIZES.label * 1.1} x={SIZES.marginX + S * 0.04} y={H * 0.27} width={S * 0.5} height={S * 0.5} value={80} unit="%" label="아침 계획 완료" />
+    <StatCard {...common(frame)} at={at + 12} out={until} x={W * 0.52} y={H * 0.3} size={S * 0.06} value={8} unit="명" label="열 명 중" example={false} />
   </AbsoluteFill>;
 }
 
