@@ -109,7 +109,7 @@ npm run skill:install
 - 스튜디오. 기획, 과정 기록, 변수 조정, 렌더 큐를 한 화면에서 봅니다.
 - 렌더러. Chrome DevTools Protocol로 프레임을 찍고 FFmpeg로 MP4(H.264), WebM(VP9, 알파), MOV(ProRes 4444, 알파), GIF, PNG 시퀀스, HLS를 만듭니다. 구간 렌더, 병렬 청크, 파이프 인코딩, 멱등성 검사, 투명 배경, 배율을 지원합니다.
 - 소리. 작품별 `audio.json`에서 음악을 합성하고, 움직임에서 효과음 시점을 뽑고, 음악을 효과음 아래로 낮춥니다.
-- 에셋. 44종 모티프 키트와 `assets.json` 해결기(호스트 파일, 이미지 명령, Openverse CC0, 키트).
+- 에셋. 46종 모티프 키트와 `assets.json` 해결기(호스트 파일, 이미지 명령, Openverse CC0, 키트).
 - 검사. 글자 잘림 가드, 결정성 린트, 세이프 영역·겹침·대비·크기 감사, frame-check, flash-check, seam-check, narration-check, 음량 보고. `frameforge check`가 한 표로 묶습니다.
 
 API 전체는 [docs/reference/api.md](docs/reference/api.md)에 있습니다.

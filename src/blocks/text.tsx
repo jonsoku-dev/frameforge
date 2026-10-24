@@ -51,11 +51,13 @@ export function blockPlace({x, y, align = 'left'}: Pick<BlockProps, 'x' | 'y' | 
     ...(y === undefined ? {top: 0, bottom: 0, alignItems: 'center'} : {top: y})};
 }
 
-/** Glyph mask of the template: the line box is 0.8em but the ink rises 0.87em, so the mask grows 0.1em up, 0.25em down (descenders
- * of g, j, p, y) and 0.06em out without moving the glyph. Its clip edge sits at most 1.4em below the line top (either box-sizing), so a hidden glyph waits at
- * `MASK_DROP` % of its 1em box, past that edge. */
-export const blockMask: CSSProperties = {display: 'inline-block', overflow: 'hidden', height: '1.4em', paddingTop: '0.1em', marginTop: '-0.1em', marginBottom: '-0.25em', paddingInline: '0.06em', marginInline: '-0.06em'};
-export const MASK_DROP = 150;
+/** Glyph mask: the line box is 1em but the ink of a display face leaves it, so the mask grows 0.1em up, 0.4em down (deep serif
+ * descenders such as a Playfair or Bodoni j) and 0.3em out to each side (the hook of an italic j or f past its advance) without moving the
+ * glyph. Its clip edge sits at most 1.55em below the line top (either box-sizing), so a hidden glyph waits at `MASK_DROP` % of its 1em
+ * box, past that edge. Measured per font this would be tighter; a pure render has no font metrics, so the allowance covers the deepest
+ * display faces we tried. */
+export const blockMask: CSSProperties = {display: 'inline-block', overflow: 'hidden', height: '1.55em', paddingTop: '0.1em', marginTop: '-0.1em', marginBottom: '-0.4em', paddingInline: '0.3em', marginInline: '-0.3em'};
+export const MASK_DROP = 165;
 
 const nbsp = (glyph: string) => glyph === ' ' ? ' ' : glyph;
 
@@ -74,7 +76,7 @@ export function GlyphRise({text, stagger = 1, rise = 8, by = 'word', color, weig
   const last = unit[unit.length - 1] ?? 0;
   const lift = (i: number) => blockRise(frame, at + unit[i]! * stagger, rise) - (Number.isFinite(end) ? blockRise(frame, end + unit[i]! * stagger, rise, IN) : 0);
   const hidden = frame < at || frame >= end + last * stagger + rise;
-  return <div style={blockPlace(props, hidden)}>
+  return <div data-block="GlyphRise" style={blockPlace(props, hidden)}>
     <MotionProbe id={id} value={(1 - lift(0)) * 120} family="text" axis="y" />
     <span style={{display: 'flex', color: color ?? palette.ink, fontFamily: fonts.display, fontSize: size, fontWeight: weight, lineHeight: 1, letterSpacing: '-0.04em', whiteSpace: 'nowrap'}}>
       {glyphs.map((glyph, i) => <span key={i} style={blockMask}>
@@ -94,7 +96,7 @@ export function WordCascade({lines, stagger = 4, color, weight = 900, ...props}:
     return {word, at: at + index++ * stagger + heft * 1.5, dur: 10 + heft * 2.5};
   }));
   const lift = (word: {at: number; dur: number}) => blockRise(frame, word.at, word.dur) * (1 - leave);
-  return <div style={blockPlace(props, hidden)}>
+  return <div data-block="WordCascade" style={blockPlace(props, hidden)}>
     <MotionProbe id={id} value={(1 - lift(words[0]![0]!)) * 120} family="text" axis="y" />
     <div style={{display: 'flex', flexDirection: 'column', gap: size * 0.18, alignItems: {left: 'flex-start', center: 'center', right: 'flex-end'}[align], color: color ?? palette.ink, fontFamily: fonts.display, fontSize: size, fontWeight: weight, lineHeight: 1, letterSpacing: '-0.04em'}}>
       {words.map((line, li) => <div key={li} style={{display: 'flex', gap: '0.28em', whiteSpace: 'nowrap'}}>

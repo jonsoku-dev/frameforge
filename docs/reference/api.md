@@ -140,7 +140,7 @@
 
 ## 모티프 키트
 
-전체 44종: Badge, Bag, BarChart, Bell, Book, Bridge, Calendar, Camera, Card, Clock, Cloud, Coin, CoinStack, Cup, Door, Envelope, Flag, Gift, Headphones, Heart, Key, Laptop, Leaf, Lightbulb, LineChart, Lock, Mic, Moon, Mountain, Mug, Phone, Pin, PlayButton, Rocket, Scooter, SpeechBubble, Star, Sun, Tag, Ticket, Tower, Trophy, Wave, Window.
+전체 46종: Badge, Bag, BarChart, Bell, Book, Bottle, Bridge, Calendar, Camera, Card, Clock, Cloud, Coin, CoinStack, Cup, Door, Envelope, Flag, Gift, Glass, Headphones, Heart, Key, Laptop, Leaf, Lightbulb, LineChart, Lock, Mic, Moon, Mountain, Mug, Phone, Pin, PlayButton, Rocket, Scooter, SpeechBubble, Star, Sun, Tag, Ticket, Tower, Trophy, Wave, Window.
 
 `src/assets/`는 직접 그린 파라미터 벡터 에셋입니다. 모든 에셋이 400 viewBox, 8px 그리드, 정면 시점, 같은 선 굵기(`stroke`, 기본 `size × 0.045`)와 모서리(`radius`, 기본 `size × 0.04`)를 씁니다. 색은 `ink`(선)와 `accent`·`soft`·`paper`(면)만 받습니다. `draw`(0–1)는 선을 그려 넣고, `parts`(0–N)는 `meta.parts` 순서대로 조립 단계를 드러냅니다.
 

@@ -52,7 +52,7 @@ export function LowerThird({variant = 'clean-bar', name, role, side = 'left', en
       {slid(second, role, roleStyle)}
     </div>,
   }[variant];
-  return <div style={place}>
+  return <div data-block="LowerThird" style={place}>
     <MotionProbe id={id} value={(1 - shape) * dir * size * 2} family="card" axis="x" />
     {body}
   </div>;

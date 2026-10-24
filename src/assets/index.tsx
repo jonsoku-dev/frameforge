@@ -43,3 +43,5 @@ export {Lightbulb, meta as LightbulbMeta} from './Lightbulb';
 export {Rocket, meta as RocketMeta} from './Rocket';
 export {Flag, meta as FlagMeta} from './Flag';
 export {Gift, meta as GiftMeta} from './Gift';
+export {Bottle, bottleNeck, meta as BottleMeta} from './Bottle';
+export {Glass, glassLevel, meta as GlassMeta} from './Glass';

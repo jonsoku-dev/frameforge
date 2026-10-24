@@ -1,5 +1,6 @@
 import type {CSSProperties, ReactNode} from 'react';
 import {AbsoluteFill, Audio, Easing, MotionProbe, MotionSound, Sequence, breathe, drift, googleFont, interpolate, spring, useCurrentFrame} from 'frameforge';
+import {MASK_DROP, blockMask} from '@/blocks';
 import {Card, Cup, type Asset} from './assets';
 
 // Copy this folder to examples/samples/<slug>/, rename TemplateSpot, replace every TODO string, keep the sizes.
@@ -43,9 +44,9 @@ function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 
     {Array.from(text).map((glyph, index, glyphs) => {
       if (index > 0 && glyphs[index - 1] === ' ' && glyph !== ' ') word++;
       const rise = span(frame, at + word * stagger, 8);
-      // Gothic A1 ink rises 0.87em above the baseline but the 1em line box only holds 0.8em, so the mask grows 0.1em up and 0.25em down (descenders) without moving the glyph; hidden glyphs wait at 150 %, past its clip edge.
-      return <span key={index} style={{display: 'inline-block', overflow: 'hidden', height: '1.4em', paddingTop: '0.1em', marginTop: '-0.1em', marginBottom: '-0.25em', paddingInline: '0.06em', marginInline: '-0.06em'}}>
-        <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * 150}%)`, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? '\u00A0' : glyph}</span>
+      // The blocks' mask: room above, below and beside the 1em line box for ink that leaves it; hidden glyphs wait past its clip edge.
+      return <span key={index} style={blockMask}>
+        <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * MASK_DROP}%)`, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? '\u00A0' : glyph}</span>
       </span>;
     })}
   </span>;

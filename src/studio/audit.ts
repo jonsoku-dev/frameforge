@@ -78,6 +78,27 @@ function painted(node: Element, root: Element): boolean {
   return opacity > 0.05;
 }
 
+/** Whether an opaque layer that is not an ancestor of `element` paints over it at (x, y), such as a card flying in front of a card behind it
+ * in 3D. Only positive evidence counts: an element that hit-testing skips (pointer-events: none) is never called covered, and the frozen
+ * plus-lighter copies of a motion blur never cover anything. */
+function coveredAt(element: Element, x: number, y: number, root: Element): boolean {
+  const stack = document.elementsFromPoint(x, y);
+  const at = stack.indexOf(element);
+  if (at < 0) return false;
+  return stack.slice(0, at).some(node => {
+    if (node.contains(element) || !root.contains(node)) return false;
+    let opacity = 1;
+    for (let up: Element | null = node; up && up !== root.parentElement; up = up.parentElement) {
+      const style = getComputedStyle(up);
+      if (style.visibility === 'hidden' || blurCopy(up)) return false;
+      opacity *= Number(style.opacity);
+    }
+    if (opacity < 0.99) return false;
+    const style = getComputedStyle(node), color = parseCssColor(style.backgroundColor);
+    return style.backgroundImage === 'none' && color !== null && color[3] >= 1;
+  });
+}
+
 export const rectsOverlap = (a: Rect, b: Rect): number => Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
 
 /** Share of `rect`'s own area that lies outside the viewport (0 when inside, 1 when fully off screen). */
@@ -167,7 +188,10 @@ export function findLayoutFaults(root: Element, {width, height, rootColor = pars
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
     const a = boxes[i]!, b = boxes[j]!;
     const shared = rectsOverlap(a.rect, b.rect), smaller = Math.min(a.rect.width * a.rect.height, b.rect.width * b.rect.height);
-    if (smaller > 0 && shared / smaller > OVERLAP) faults.push({code: 'text_overlap', text: `${a.text} / ${b.text}`, rect: a.rect, message: `"${a.text}" and "${b.text}" overlap by ${Math.round(shared / smaller * 100)}% of the smaller`, fix: 'Separate the two texts in time or space; stacked words read as a mistake.'});
+    if (!(smaller > 0 && shared / smaller > OVERLAP)) continue;
+    const x = (Math.max(a.rect.x, b.rect.x) + Math.min(a.rect.x + a.rect.width, b.rect.x + b.rect.width)) / 2, y = (Math.max(a.rect.y, b.rect.y) + Math.min(a.rect.y + a.rect.height, b.rect.y + b.rect.height)) / 2;
+    if (coveredAt(a.element, x, y, root) || coveredAt(b.element, x, y, root)) continue;  // one text is behind an opaque layer the other sits on
+    faults.push({code: 'text_overlap', text: `${a.text} / ${b.text}`, rect: a.rect, message: `"${a.text}" and "${b.text}" overlap by ${Math.round(shared / smaller * 100)}% of the smaller`, fix: 'Separate the two texts in time or space; stacked words read as a mistake.'});
   }
   return faults;
 }

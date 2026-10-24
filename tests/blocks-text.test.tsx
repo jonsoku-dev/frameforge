@@ -1,6 +1,7 @@
 import React from 'react';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {clippedTextMessage} from '../src/studio/textGuard';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {FrameProvider} from '../src/core/index';
 import {Bell} from '@/assets';
@@ -82,13 +83,14 @@ test('GlyphRise moves each word as one unit by default, so a word never shows le
   assert.ok(lifts(39).every(v => v === 0), 'the default settles within rise 8 + stagger 1');
 });
 
-test('word masks keep descenders: the clip edge sits 0.25em below the line box and a hidden word waits past it', () => {
+test('word masks keep descenders and side hooks: the clip edge sits 0.4em below the line box, 0.3em beside it, and a hidden word waits past it', () => {
   const markup = render(34, <text.GlyphRise {...base} frame={34} text="jumpy gig" />);
-  const mask = /<span style="display:inline-block;overflow:hidden;height:([\d.]+)em;padding-top:([\d.]+)em;margin-top:-[\d.]+em;margin-bottom:-([\d.]+)em/.exec(markup);
+  const mask = /<span style="display:inline-block;overflow:hidden;height:([\d.]+)em;padding-top:([\d.]+)em;margin-top:-[\d.]+em;margin-bottom:-([\d.]+)em;padding-inline:([\d.]+)em;margin-inline:-([\d.]+)em/.exec(markup);
   assert.ok(mask, 'every glyph sits in the shared mask');
-  const [height, top, bottom] = mask.slice(1).map(Number);
+  const [height, top, bottom, side, sideBack] = mask.slice(1).map(Number);
   // Under border-box the clip edge is height − top below the line top; content-box puts it lower still.
-  assert.ok(height! - top! >= 1 + 0.25, `clip edge ${height! - top!}em leaves 0.25em under the 1em line box for g, j, p, y`);
+  assert.ok(height! - top! >= 1 + 0.4, `clip edge ${height! - top!}em leaves 0.4em under the 1em line box for a serif j`);
+  assert.ok(side! >= 0.3 && side === sideBack, `the mask reaches ${side}em beside the advance for a j hook, and the negative margin gives it back`);
   assert.ok(Math.abs(height! - top! - bottom! - 1.05) < 1e-9, 'the negative margins keep the layout height of the old mask');
   const waiting = Number(/translateY\(([-\d.e]+)%\)/.exec(render(30, <text.GlyphRise {...base} frame={30} text="jumpy gig" />))![1]);
   assert.ok(waiting / 100 >= height!, `a word waiting at ${waiting}% sits wholly below the clip edge, so nothing peeks in before the rise`);
@@ -129,4 +131,11 @@ test('catalogue ids are unique and name every exported block', () => {
   for (const name of components) assert.ok(ids.includes(name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()), `${name} is in the catalogue`);
   assert.ok(components.length >= 13, `expected at least 13 blocks, found ${components.length}`);
   for (const entry of entries) assert.ok(entry.when && entry.props.length, `${entry.id} carries props and when-to-use`);
+});
+
+test('a clipped-text failure names the block whose mask clips it and says what to change', () => {
+  const inBlock = clippedTextMessage([{text: 'j', side: 'left', px: 8, block: 'GlyphRise'}]);
+  assert.match(inBlock, /^Clipped text: "j" left 8px in <GlyphRise>\. Fix: .*widen blockMask/);
+  assert.match(clippedTextMessage([{text: 'jam', side: 'bottom', px: 3, block: null}]), /^Clipped text: "jam" bottom 3px\. Fix: grow the clipping box/);
+  assert.match(render(34, <text.GlyphRise {...base} frame={34} text="jam" />), /^<div data-block="GlyphRise"/);
 });

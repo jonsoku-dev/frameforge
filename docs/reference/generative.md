@@ -1,10 +1,10 @@
-# 생성형 배경과 그린 주석
+# 생성형 배경, 셰이더, 후처리 이펙트, 그린 주석
 
-`frameforge`가 내보내는 `<Generative>`와 아홉 개의 시스템, 그리고 글자 위에 손으로 그린 듯한 `<Highlight>` 같은 주석 컴포넌트다. 둘 다 프레임과 시드의 순수 함수다. 프레임 사이에 누적되는 상태가 없고, 같은 프레임과 시드는 같은 픽셀을 준다.
+`frameforge`가 내보내는 `<Generative>`와 아홉 개의 시스템, WebGL 셰이더 `<Shader>`와 프리셋 일곱, DOM 후처리 이펙트 다섯, 그리고 글자 위에 손으로 그린 듯한 `<Highlight>` 같은 주석 컴포넌트다. 둘 다 프레임과 시드의 순수 함수다. 프레임 사이에 누적되는 상태가 없고, 같은 프레임과 시드는 같은 픽셀을 준다.
 
 ## 철학 단계
 
-시스템을 고르기 전에 `prompt.md` 맨 위에 짧은 선언을 쓴다. 배경이 무엇을 표현하는지(한 문장), 규칙(시드와 시간의 함수, 네 색, 글자와 겨루지 않음), 거부하는 것(글로우, 먼지 파티클, 두 번째 그라데이션, 붙여 넣은 아이콘). 선언이 시스템과 인자를 정하고, 인자 중 둘쯤을 작품 변수로 노출한다. 예: `examples/samples/generative-ident/prompt.md`.
+시스템을 고르기 전에 `prompt.md` 맨 위에 짧은 선언을 쓴다. 배경이 무엇을 표현하는지(한 문장), 규칙(시드와 시간의 함수, 네 색, 글자와 겨루지 않음), 거부하는 것(먼지 파티클, 붙여 넣은 아이콘, 스톡 이미지, 마지막 글자를 가리는 이펙트). 선언이 시스템과 인자를 정하고, 인자 중 둘쯤을 작품 변수로 노출한다. 예: `examples/samples/generative-ident/prompt.md`.
 
 ## `<Generative>`
 
@@ -23,6 +23,50 @@
 | `effects` | 그린 뒤 적용할 효과 체인(`docs/reference/effects.md`) |
 
 시간 `t`는 `useCurrentFrame() / fps` 초다. `<Sequence from>` 안에 두면 그 장면의 0초부터 시작한다. 캔버스는 `Solid`와 같은 방식(`useLayoutEffect` 안의 `paintCanvas`)으로 그리므로 헤드리스 Chrome 캡처와 맞고 브라우저 시계를 쓰지 않는다.
+
+
+## `<Shader>`
+
+사진 같은 질감(매크로, 액체, 터널, 그레인)은 스톡 이미지가 아니라 셰이더 프리셋으로 만든다. 프레임마다 화면 전체를 덮는 프래그먼트 셰이더 하나를 WebGL2로 그린다.
+
+```tsx
+import {Shader, shaders} from 'frameforge';
+<Shader frag={shaders.iris} width={1920} height={1080} palette={{ink, paper, accent, soft}} seed="<slug>" uniforms={{u_dilate: open}} />
+```
+
+| prop | 뜻 |
+| --- | --- |
+| `frag` | GLSL ES 3.00 프래그먼트 소스. `#version` 줄이 없으면 머리말이 붙는다. 기본 유니폼, 소스가 직접 선언하지 않은 사용자 유니폼, `out vec4 fragColor`, 도우미 `hash(cell)`, `vnoise(p)`, `fbm(p)`, `centred()`(짧은 변이 -0.5..0.5) |
+| `uniforms` | 숫자는 `float`, 길이 2–4 배열은 `vec2–vec4`, `#rgb`/`#rrggbb` 문자열은 0..1 `vec3` |
+| `palette` | `u_ink`, `u_paper`, `u_accent`, `u_soft`(vec3)를 채운다 |
+| `seed` | `u_seed`(0..1). 같은 시드는 같은 그림 |
+| `width`, `height`, `pixelDensity` | 캔버스 논리 크기와 배율 |
+
+기본 유니폼은 `u_time`(초, `useCurrentFrame() / fps`), `u_frame`, `u_resolution`(그리기 버퍼 px), `u_seed`다. 캔버스는 `preserveDrawingBuffer`로 만들고 `useLayoutEffect` 안에서 그 프레임을 그린 뒤 `gl.finish()`로 끝내므로, 렌더러가 캡처하는 화면은 그 프레임의 그림이다. 첫 프레임은 컨텍스트가 생기고 한 번 그릴 때까지 `delayRender`로 붙잡는다. 컴파일 오류는 `<Shader> fragment shader failed to compile: ERROR: 0:<사용자 소스의 줄>: ...`로 그 프레임을 실패시킨다. 해시는 정수 해시다. `fract(sin(...))` 해시는 GPU마다 결과가 달라 쓰지 않는다.
+
+| 프리셋 | 그림 | 추가 유니폼 |
+| --- | --- | --- |
+| `iris` | 숨 쉬는 동공 둘레의 방사형 홍채 섬유, 어두운 테두리, 젖은 하이라이트 하나 | `u_dilate` 0..1 |
+| `tunnel` | 휘어지는 카메라 터널. 띠 무늬 벽이 다가오고 먼 끝은 ink로 사라진다 | `u_speed`(기본 1) |
+| `liquid` | 도메인 왜곡 fbm 마블링과 가는 paper 결 | `u_flow`(기본 1) |
+| `grainField` | paper 위 하프톤 점과 프레임마다 바뀌는 필름 그레인 | `u_cell` 점 간격 px(기본 10) |
+| `gradientMesh` | 시드 타원을 떠다니는 네 색 점의 메시 그라데이션, 밴딩을 막는 가는 그레인 | 없음 |
+| `streaks` | 중심에서 뻗는 광속 줄무늬 세 층, 밝은 머리와 중심 글로우 | `u_speed`(기본 1) |
+| `cubeField` | 아이소메트릭 큐브 기둥. 시드 높이가 박마다 중심에서 퍼지는 파동으로 솟는다 | `u_beat` 박 길이 초(기본 0.5), `u_cells`(기본 10) |
+
+모든 프리셋은 `u_time`과 `u_seed`의 순수 함수다. 테스트(`tests/generative.test.tsx`)는 헤드리스 Chrome에서 일곱 프리셋을 모두 컴파일해 30프레임을 두 번 렌더하고 모든 프레임이 바이트 단위로 같은지 본다.
+
+## 후처리 이펙트
+
+DOM 장면의 글자나 층을 감싼다. 자식을 한 번만 그리므로(복사본 없음) 감사가 글자를 한 번 읽는다. 움직이는 값은 `frame`으로 받는다.
+
+| 컴포넌트 | 하는 일 |
+| --- | --- |
+| `<Glow radius intensity color>` | 자식의 모양을 따라 drop-shadow 세 겹(반지름 1×, 2.5×, 6×)으로 번지는 블룸. `intensity` 0..1을 프레임으로 움직이면 맥동한다. `glowFilter`가 필터 문자열을 준다 |
+| `<ChromaticShift amount angle>` | SVG 필터로 빨강과 파랑 채널을 `angle` 방향으로 `amount` px씩 반대로 민다(`chromaticOffsets`) |
+| `<Scanlines density opacity roll frame>` | `density` px마다 어두운 주사선 하나, 프레임마다 `roll` px 흐른다 |
+| `<VhsGlitch seed amount frame>` | 시드 난류 변위로 가로 띠를 옆으로 밀고, 빨강이 번지고, 버스트 동안 잡음 띠가 지난다. 버스트는 세 프레임 단위로 시드가 정하고, 사이에도 약한 흔들림이 남는다(`vhsGlitch`) |
+| `<Extrude depth color angle shadow>` | 1px 간격 `text-shadow` 층으로 `depth` px 깊이의 돌출 3D 글자와 부드러운 그림자(`extrudeShadow`) |
 
 ## 시스템
 

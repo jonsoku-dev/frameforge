@@ -34,6 +34,7 @@ Python 스크립트에는 자체 검사가 있습니다. `scripts/assets/`를 �
 
 ```sh
 python3 scripts/assets/art.py --self-check
+python3 scripts/assets/score.py --self-check
 python3 scripts/assets/sfx.py
 ```
 

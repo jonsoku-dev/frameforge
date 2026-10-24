@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {spawnSync} from 'node:child_process';
 import {deriveSoundEvents, mapSoundEvents, type MotionSample} from '../src/core/sound';
 
 const series = (key: string, values: number[], family: MotionSample['family'] = 'card', axis: MotionSample['axis'] = 'y', from = 0): MotionSample[] =>
@@ -58,4 +59,11 @@ test('mapping honours roles, families, quiet frames and the density policy', () 
   // Eight equal landings 15 frames apart keep the first three, not the last three.
   const dense = mapSoundEvents(Array.from({length: 8}, (_, i) => ({key: `d${i}`, frame: 100 + i * 15, role: 'land' as const, intensity: 0.5, pan: 0, family: 'card' as const, frames: 1})), [{src: '/p.wav', role: 'land', volume: 0.6}], 30);
   assert.deepEqual(dense.map(clip => clip.startFrame), [100, 115, 130]);
+});
+
+test('score.py self-check: a 90 bpm score of 18.667 s renders whole and every hit stands over the second before it', {timeout: 120000}, () => {
+  const result = spawnSync('python3', ['scripts/assets/score.py', '--self-check'], {encoding: 'utf8'});
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /18\.667 s at 90 bpm: hits accent/);
+  assert.match(result.stdout, /score self-check ok/);
 });

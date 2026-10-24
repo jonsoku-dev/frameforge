@@ -447,6 +447,8 @@ export * from '../packages/formula';
 export * from '../packages/image-sequence';
 export * from '../packages/model';
 export * from '../packages/generative';
+export * from '../packages/shader';
+export * from '../packages/post';
 export * from '../packages/annotations';
 export * from '../packages/beats';
 export * from '../packages/seekable';

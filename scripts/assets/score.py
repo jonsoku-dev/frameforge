@@ -1,6 +1,6 @@
 """Generate one composition's music and SFX from its audio spec. numpy + ffmpeg only, deterministic.
 
-Usage: python3 scripts/assets/score.py [--force] [spec.json ...]
+Usage: python3 scripts/assets/score.py [--force] [spec.json ...] | --self-check
 Without spec paths it reads every examples/**/audio.json.
 Writes public/audio/generated/<slug>/music.wav and <sfx name>.wav. Format and policy: docs/audio-score.md.
 """
@@ -14,7 +14,7 @@ OUT = os.path.join(ROOT, 'public', 'audio', 'generated')
 FFMPEG = os.environ.get('FFMPEG_PATH') or os.environ.get('FFMPEG', 'ffmpeg')
 NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 rng = np.random.default_rng(0)  # reseeded per file so no output depends on generation order
-GENERATION = 'v2'  # part of the output digest; raising it regenerates every composition.
+GENERATION = 'v3'  # part of the output digest; raising it regenerates every composition.
 
 
 def ts(dur):
@@ -214,7 +214,9 @@ def subtractive(kind, midis, dur, vel, env, cut, q=0.8, fenv=0.0, fdecay=0.12, d
     x = x / (len(midis) * (2 if detune else 1))
     if cut is not None:
         t = np.arange(n) / SR
-        x = svf(x, (cut[:n] if np.ndim(cut) else cut) * 2 ** (fenv * np.exp(-t / fdecay)), q)
+        # A note that starts near the end rings past the automation curve; it holds the curve's last value.
+        cut = np.pad(cut[:n], (0, max(0, n - len(cut))), mode='edge') if np.ndim(cut) else cut
+        x = svf(x, cut * 2 ** (fenv * np.exp(-t / fdecay)), q)
     return x * e * vel
 
 
@@ -300,6 +302,14 @@ def crash():
 def sub_drop():
     t = ts(0.9)
     return np.sin(2 * np.pi * np.cumsum(32 + 55 * np.exp(-t / 0.18)) / SR) * np.exp(-t / 0.35) * np.minimum(1, t / 0.004)
+
+
+def transient():
+    """The attack every hit carries on top of its kick: a 3 ms broadband crack and a 40 ms low thump, so the cut reads as a hit."""
+    t = ts(0.12)
+    crack = hp(rng.uniform(-1, 1, len(t)), 1800) * np.exp(-t / 0.003)
+    thump = np.sin(2 * np.pi * np.cumsum(70 + 180 * np.exp(-t / 0.01)) / SR) * np.exp(-t / 0.04)
+    return 0.9 * crack + thump
 
 
 def riser(dur, tone=0.4, lo=400, hi=9000):
@@ -533,7 +543,10 @@ def hit_plan(spec):
 
 # Mix bus gains and (reverb, delay) sends before the mood's send scale.
 BUSES = {'kick': (0.6, 0.02, 0), 'sub': (0.6, 0, 0), 'snare': (0.42, 0.25, 0), 'hats': (0.45, 0.08, 0.15), 'perc': (0.4, 0.3, 0),
-         'bass': (0.4, 0, 0), 'pad': (0.3, 0.45, 0.1), 'arp': (0.4, 0.3, 0.6), 'lead': (0.4, 0.25, 0.3), 'fx': (0.32, 0.6, 0)}
+         'bass': (0.4, 0, 0), 'pad': (0.3, 0.45, 0.1), 'arp': (0.4, 0.3, 0.6), 'lead': (0.4, 0.25, 0.3), 'fx': (0.32, 0.6, 0),
+         'hit': (0.6, 0.15, 0)}  # the hits' own kick, sub, crash and transient: not ducked, not compressed
+ACCENT_DB = 1.5  # a hit's loudest 20 ms beats every 20 ms of the second before it (riser and roll included) by this much in the final mix
+HIT_DUCK = (0.09, 0.3)  # the bed dips over the 90 ms before a hit and comes back over the 300 ms after it
 LEVEL_DB = 4  # level span between energy 0 and energy 1 sections
 
 
@@ -767,18 +780,19 @@ def score(spec):
             rolls = 2 + round(6 * (w - 0.4) / 0.6)
             for j in range(rolls if w >= 0.4 else 0):
                 mix.add('snare', pick('snare'), h - beat + beat * (1 - (1 - j / rolls) ** 1.5), (0.2 + 0.5 * j / rolls) * (0.5 + 0.5 * w), -0.1)
-            mix.add('kick', hit_kick, h, 1.6 * (0.5 + 0.5 * w))
+            mix.add('hit', hit_kick, h, 1.6 * (0.5 + 0.5 * w))
             if w > 0.5:
-                mix.add('sub', sub_drop(), h, 1.3 * w)
-            mix.add('fx', pools['crash'][0], h, 0.9 * (0.25 + 0.75 * w))
+                mix.add('hit', sub_drop(), h, 1.3 * w)
+            mix.add('hit', pools['crash'][0], h, 0.9 * (0.25 + 0.75 * w))
         elif style == 'lift':
             for j in range(5):
                 mix.add('hats', pick('open'), h - beat + j * beat / 4, (0.25 + 0.35 * w) * (1 if j < 4 else 1.4), 0.4)
             swell(min(1.2, 2 * beat), 0.7 * (0.3 + 0.7 * w), h)
-            mix.add('kick', hit_kick, h, 1.6 * (0.5 + 0.5 * w))  # the downbeat still needs an accent to be a local peak
+            mix.add('hit', hit_kick, h, 1.6 * (0.5 + 0.5 * w))  # the downbeat still needs an accent to be a local peak
         else:
-            mix.add('kick', pick('kick'), h, 1.2 * (0.5 + 0.5 * w))
+            mix.add('hit', pick('kick'), h, 1.2 * (0.5 + 0.5 * w))
             swell(0.5, 0.45 * (0.3 + 0.7 * w), h)
+        mix.add('hit', transient(), h, 1.2 * (0.6 + 0.4 * w))
     for k, (s, r) in enumerate(zip(secs, roles)):  # builds that do not end on a hit still rise into the next section
         if r == 'build' and not any(abs(s['to'] - h) < beat for h in hits) and k + 1 < len(secs):
             length = min(s['to'] - s['from'], bar)
@@ -792,10 +806,18 @@ def score(spec):
         if x['style'] == 'slam':
             a, b = int(max(0, x['at'] - beat) * SR), int(x['at'] * SR)
             dip[a:b] = np.minimum(dip[a:b], np.linspace(1, 10 ** (-6 * x['weight'] / 20), b - a))
-    return master(mix, m, curve, role_curve('pad'), role_curve('sc'), dip, dur, secs, beat)
+    # Every hit, whatever its style, ducks the bed (every bus but the hit layers) 6 to 10 dB around itself, so the hit stands out of the track.
+    bed = np.ones(n)
+    for x in plan:
+        h = int(x['at'] * SR)
+        a, b = max(0, h - int(HIT_DUCK[0] * SR)), min(n, h + int(HIT_DUCK[1] * SR))
+        floor = 10 ** (-(6 + 4 * x['weight']) / 20)
+        shape = np.interp(np.arange(a, b), [a, h, b], [1, floor, 1])
+        bed[a:b] = np.minimum(bed[a:b], shape)
+    return master(mix, m, curve, role_curve('pad'), role_curve('sc'), dip, bed, dur, secs, beat)
 
 
-def master(mix, m, curve, pad_gain, sc_role, dip, dur, secs, beat):
+def master(mix, m, curve, pad_gain, sc_role, dip, bed, dur, secs, beat):
     n = mix.n
     b = mix.bus
     if m.get('drum_lp'):
@@ -806,19 +828,24 @@ def master(mix, m, curve, pad_gain, sc_role, dip, dur, secs, beat):
     b['snare'] = hp(b['snare'], 110)
     b['pad'] = chorus(b['pad'].sum(axis=0)) * pad_gain
     # Sidechain: an envelope follower on the kick bus ducks the tonal buses; depth depends on the section role.
-    env = follower(b['kick'].sum(axis=0), 0.002, 0.14)
+    env = follower((b['kick'] + b['hit']).sum(axis=0), 0.002, 0.14)
     duck = 1 - m['sc'] * sc_role * np.clip(per_sample(env, n) / (np.percentile(env, 99.5) + 1e-9), 0, 1)
     for k in ('bass', 'pad', 'arp', 'lead'):
         b[k] = b[k] * duck * dip
     b['hats'] = b['hats'] * dip
-    dry = np.zeros((2, n))
+    dry, hits = np.zeros((2, n)), np.zeros((2, n))
     rev_in, dly_in = np.zeros(n), np.zeros(n)
     for k, (gain, rs, ds) in BUSES.items():
         x = b[k] * gain * m.get('gains', {}).get(k, 1.0)
-        dry += x
+        if k == 'hit':
+            hits += x
+        else:
+            dry += x * bed
         rev_in += x.sum(axis=0) * rs * m['rev']
         dly_in += x.sum(axis=0) * ds * m['dly']
-    x = widen(compress(tilt(dry + reverb(rev_in, m['size'], m['pre']) + ping_pong(dly_in, m['dly_beats'] * beat), *m['tilt'])), m['width'])
+    wet = (reverb(rev_in, m['size'], m['pre']) + ping_pong(dly_in, m['dly_beats'] * beat)) * bed
+    # The hit layers join after the bus compressor, so it cannot pull them back to the level of the track.
+    x = widen(compress(tilt(dry + wet, *m['tilt'])) + tilt(hits, *m['tilt']), m['width'])
     # Section ride: each section lands LEVEL_DB * (1 - energy) under full energy, measured after the limiter, whatever
     # its arrangement. Iterated because part of a section (the boundary crossfade, a held hit) follows its neighbour's
     # gain and the limiter is nonlinear.
@@ -882,6 +909,18 @@ def rms_db(x):
     return 20 * np.log10(np.sqrt(np.mean(x ** 2)) + 1e-12)
 
 
+def accents(final, plan):
+    """Per hit: dB by which its loudest 20 ms window (from 10 ms before to 100 ms after) beats the loudest 20 ms of the 0.9 s before it."""
+    w = SR // 50
+    level = lambda i: rms_db(final[:, i:i + w])
+    out = []
+    for x in plan:
+        h = int(x['at'] * SR)
+        before = [level(i) for i in range(max(0, h - SR), h - SR // 10, w // 4)]
+        out.append(max(level(i) for i in range(max(0, h - w // 2), h + SR // 10, w // 4)) - max(before) if before else float('inf'))
+    return out
+
+
 def check(pre, final, spec):
     peak = np.abs(pre).max(axis=0)
     for x in spec['hits']:  # before the limiter, a slam of weight 0.5+ peaks within 150 ms and beats the rest of its second
@@ -890,6 +929,8 @@ def check(pre, final, spec):
         lo, a, b, hi = (int(np.clip(t, 0, spec['durationSeconds']) * SR) for t in (h - 0.02 - reach[0] if not strong else h - 0.5, h - 0.02, h + 0.15, h + 0.15 + reach[1] if not strong else h + 0.5))
         rest = max(peak[lo:a].max(initial=0), peak[b:hi].max(initial=0))
         assert peak[a:b].max() > rest, f"hit {h}: something else around it is louder"
+    for x, accent in zip(spec['hits'], accents(final, spec['hits'])):
+        assert accent >= ACCENT_DB, f"hit {x['at']}: only {accent:.1f} dB over the second before it, under {ACCENT_DB} dB"
     win = max(rms_db(final[:, i:i + SR]) for i in range(0, final.shape[1] - SR, SR // 10))
     assert win - rms_db(final[:, -SR:]) >= 20, 'last second must sit 20 dB under the loudest second'
 
@@ -997,7 +1038,26 @@ def generate(path, force):
                       'TP': float(m['input_tp']), 'limited': limit_x, 'hits': spec['hits'], 'seconds': round(time.time() - began, 2)}))
 
 
+def self_check():
+    """Scores two specs in memory (no files): 90 bpm at 18.666 s and 18.667 s, where the last bar starts 0.4 ms before the end and its
+    pad rings 3.3 s past it, with light slams whose accent the duck and transient must carry."""
+    global rng
+    for dur in (18.666, 18.667):
+        spec = {'slug': 'self-check', 'durationSeconds': dur, 'bpm': 90, 'key': 'A minor', 'mood': 'dramatic', 'seed': 7, 'loudness': {'I': -24, 'TP': -2},
+                'sections': [{'from': 0, 'to': 2.667, 'energy': 0.3}, {'from': 2.667, 'to': 13.333, 'energy': 0.85}, {'from': 13.333, 'to': 17.333, 'energy': 0.5}, {'from': 17.333, 'to': dur, 'energy': 0.1}],
+                'hits': [2.667, {'at': 8.0, 'style': 'lift'}, {'at': 10.667, 'weight': 0.3}, {'at': 13.333, 'style': 'soft'}]}
+        validate(spec, 'self-check.audio.json')
+        rng = np.random.default_rng(spec['seed'])
+        pre, mix = score(spec)
+        assert mix.shape[1] == int(round(dur * SR)), f'{dur} s: {mix.shape[1]} samples'
+        check(pre, mix, spec)
+        print(f'{dur} s at 90 bpm: hits accent ' + ', '.join(f'{a:.1f}' for a in accents(mix, spec['hits'])) + ' dB')
+    print('score self-check ok')
+
+
 def main(argv):
+    if '--self-check' in argv:
+        return self_check()
     force = '--force' in argv
     paths = [a for a in argv if a != '--force'] or sorted(
         glob.glob(os.path.join(ROOT, 'examples', '**', 'audio.json'), recursive=True))

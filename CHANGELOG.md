@@ -10,6 +10,17 @@
 
 ### 추가
 
+- **셰이더** `<Shader frag width height uniforms palette seed>`(`src/packages/shader.tsx`)와 프리셋 `shaders.iris`, `tunnel`, `liquid`, `grainField`, `gradientMesh`, `streaks`, `cubeField`. WebGL2, 정수 해시, 컴파일 오류는 그 프레임의 오류.
+- **후처리 이펙트** `<Glow>`, `<ChromaticShift>`, `<Scanlines>`, `<VhsGlitch>`, `<Extrude>`(`src/packages/post.tsx`).
+- **키트 소품** `Bottle`(라벨, `tilt`, `bottleNeck`)과 `Glass`(`fill`, `liquid`, `ice`, `glassLevel`).
+- **점수 자체 검사** `python3 scripts/assets/score.py --self-check`. 타격마다 트랜지언트와 앞뒤 덕킹, 생성 때 타격의 강조를 잰다.
+
+### 고침
+
+- `blockMask`가 아래 0.4em, 좌우 0.3em 여유를 둔다(Bodoni Moda 이탤릭 j가 왼쪽으로 잘림). `Clipped text` 오류가 블록 이름과 고칠 방법을 말한다.
+- score.py가 90 bpm, 18.667초에서 패드 꼬리가 자동화 곡선보다 길어 numpy 모양 오류로 멈추던 것.
+- 렌더 감사가 3D에서 불투명 카드 뒤에 가려진 글자를 `text_overlap`으로 세던 것.
+
 - **보조 움직임과 흐름** `drift`, `breathe`(`src/packages/ambient.ts`), `<Stream>`/`streamPath`(`src/packages/stream.tsx`), 모두 `frameforge`에서 가져옵니다.
 - **감사** `element_cropped`(`data-subject` 요소가 프레임 밖으로 2% 넘게 나감), `subject_overlaps_text`(주인공이 글자를 20% 넘게 가림).
 - **블록 카탈로그** `src/blocks/`(`@/blocks`): 글자 6, 로어서드 6변형, 카드 6, 차트 6, 코드 블록(4모드), 다이어그램 4. 공통 prop 계약, 모션 프로브, `CATALOG`. 샘플 `blocks-reel`, `data-reel`. 스킬 `frameforge-blocks`.

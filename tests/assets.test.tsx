@@ -52,3 +52,21 @@ test('every asset shares one line weight', () => {
     assert.deepEqual([...widths], ['20'], `${name} line weight`);
   }
 });
+
+test('Bottle turns about its box centre and bottleNeck follows its lip, so a Stream leaves the neck at any tilt', () => {
+  const close = (a: number[], b: number[]) => a.every((v, i) => Math.abs(v - b[i]!) < 1e-9);
+  assert.ok(close(kit.bottleNeck({size: 400}), [200, 40]));
+  assert.ok(close(kit.bottleNeck({size: 200, tilt: 90, x: 10, y: 20}), [10 + 180, 20 + 100]), 'on its side the lip points right');
+  assert.match(render('Bottle', {tilt: 115} as Partial<ArtProps>), /transform="rotate\(115 200 200\)"/);
+  assert.doesNotMatch(render('Bottle'), /rotate\(/);
+  assert.match(render('Bottle', {label: 'GIN'} as Partial<ArtProps>), />GIN<\/text>/);
+});
+
+test('Glass fills to its level, floats its ice on the surface and draws no liquid when empty', () => {
+  const liquidTop = (fill: number) => Number(/<g data-part="2"[^>]*><path d="M[\d.]+ ([\d.]+)/.exec(render('Glass', {fill} as Partial<ArtProps>))![1]);
+  assert.ok(liquidTop(0.8) < liquidTop(0.3), 'a higher level sits higher');
+  assert.equal(liquidTop(1), kit.glassLevel(1));
+  const cubes = (props: object) => render('Glass', props as Partial<ArtProps>).match(/<rect/g)?.length ?? 0;
+  assert.equal(cubes({ice: 3}), 3); assert.equal(cubes({ice: 0}), 0); assert.equal(cubes({fill: 0, ice: 3}), 0, 'no ice in an empty glass');
+  assert.match(render('Glass', {liquid: '#000003'} as Partial<ArtProps>), /<g data-part="2"[^>]*><path[^>]*fill="#000003"/);
+});
