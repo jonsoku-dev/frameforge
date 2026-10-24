@@ -42,9 +42,11 @@ OFL에 따라 글꼴 파일만 따로 팔 수 없고, 수정한 글꼴은 예약
 | `@types/node` | 24.19.2 | MIT | devDependencies |
 | `@types/react` | 19.3.0 | MIT | devDependencies |
 | `@types/react-dom` | 19.3.0 | MIT | devDependencies |
+| `@types/katex` | 0.16.7 | MIT | devDependencies |
 | `@types/three` | 0.186.0 | MIT | devDependencies |
 | `lottie-web` | 5.13.0 | MIT | devDependencies, `<Lottie>`가 실행 중에 씁니다 |
 | `tailwindcss` | 4.3.3 | MIT | devDependencies |
+| `katex` | 0.16.22 | MIT | devDependencies, `<Formula>`의 수식 렌더러. 글꼴 파일은 KaTeX 배포본의 것(SIL OFL 1.1) |
 | `three` | 0.186.1 | MIT | devDependencies, `<ThreeCanvas>`의 선택 패키지 |
 | `tsx` | 4.23.15 | MIT | devDependencies |
 | `typescript` | 5.9.3 | Apache-2.0 | devDependencies |
@@ -67,6 +69,10 @@ Chrome과 FFmpeg는 저장소에 들어 있지 않습니다. 사용자가 설치
 | ElevenLabs (`api.elevenlabs.io`) | `ELEVENLABS_API_KEY`가 있을 때 효과음 생성 | ElevenLabs 이용 약관과 사용자의 요금제를 따릅니다. 상업적 이용 가능 여부는 요금제마다 다르므로 사용자가 확인합니다. 음악 생성 공급자는 아직 연결되지 않은 스텁입니다. |
 | Recraft (`external.api.recraft.ai`) | `RECRAFT_API_KEY`가 있을 때 벡터 그림 생성 | Recraft 이용 약관과 사용자의 요금제를 따릅니다. 사용자가 확인합니다. |
 | `FRAMEFORGE_IMAGE_COMMAND` | 호스트의 이미지 도구를 연결했을 때 | 그 도구의 약관을 따릅니다. |
+| Poly Haven (`api.polyhaven.com`) | `models.py`가 3D 모델과 HDRI를 받을 때, 키 없이 | CC0입니다. 받은 파일과 출처는 `models.lock.json`에 고정합니다. |
+| Blender (`blender` 실행 파일) | `blender.py`가 `3d.json`의 샷을 헤드리스로 렌더할 때 | Blender는 GPL이지만 별도 프로세스로 실행만 하므로 Frameforge 코드에 영향이 없고, 렌더한 이미지는 사용자의 것입니다. |
+| macOS `say`, kokoro-onnx | `voice.py`가 나레이션을 만들 때(ElevenLabs 키가 없으면) | `say`의 음성은 macOS 사용 조건을, kokoro-onnx는 Apache-2.0 모델 가중치의 조건을 따릅니다. 음성 파일은 커밋하지 않습니다. |
+| ElevenLabs 음성 합성 | `ELEVENLABS_API_KEY`가 있을 때 `voice.py`의 첫 공급자 | 위 ElevenLabs 행과 같습니다. |
 | https 미디어 URL | `<Video>`, `<AnimatedImage>`, `getVideoMetadata`에 https 주소를 줄 때 | 원본 파일의 라이선스를 따릅니다. 파일은 `.cache/remote/`에 내려받습니다. |
 
 외부 서비스를 하나도 쓰지 않아도 렌더할 수 있습니다. 음악과 효과음은 내장 합성으로, 그림은 모티프 키트로 대체합니다.
