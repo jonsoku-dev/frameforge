@@ -1,10 +1,10 @@
 {
-  "date": "2026-10-21",
+  "date": "2026-10-24",
   "status": "partial-compatible-prototype",
   "build": "pass",
   "core_tests": {
     "command": "npm test",
-    "passed": 144,
+    "passed": 213,
     "failed": 0
   },
   "numeric_api_comparison": {
@@ -270,9 +270,9 @@
   },
   "sequence_playback_rate_constancy": "throws in studio preview when playbackRate changes across frames; render mode remounts per frame so it cannot catch it",
   "samples": {
-    "date": "2026-10-21",
+    "date": "2026-10-24",
     "doc": "docs/samples/README.md",
-    "count": 9,
+    "count": 16,
     "films": [
       "cafe-morning",
       "kit-launch",
@@ -282,7 +282,14 @@
       "caption-explainer",
       "video-collage",
       "route-story",
-      "three-spin"
+      "three-spin",
+      "blocks-reel",
+      "data-reel",
+      "seam-reel",
+      "narrated-explainer",
+      "turntable-spot",
+      "generative-ident",
+      "showcase-spot"
     ],
     "template": "examples/samples/_template",
     "entry": "examples/samples/index.tsx"
@@ -407,5 +414,107 @@
     "assets": 44,
     "module": "src/assets (system.ts contract, catalog.ts, Sheet.tsx)",
     "tests": "tests/assets.test.tsx"
+  },
+  "motion_levers": {
+    "date": "2026-10-24",
+    "research": "docs/research/motion-tools-absorption.md",
+    "added": [
+      "src/blocks (33 blocks, CATALOG)",
+      "src/packages/seams.tsx + scripts/seam-check.mjs",
+      "scripts/assets/voice.py + src/packages/narration.tsx + formula.tsx + scripts/narration-check.mjs",
+      "scripts/assets/blender.py + blender_scene.py + models.py + image-sequence.tsx + model.tsx",
+      "src/core/effects.tsx (colorCorrection, lut, lightLeak, vignette, grain) + generative.tsx (9 systems) + annotations.tsx (6)",
+      "render.mjs containers webm/mov/gif/png + --transparent --scale; src/studio/audit.ts; beats.ts + beats.py; silence-detect.mjs; frameforge check"
+    ],
+    "skills": [
+      "frameforge-blocks",
+      "frameforge-voice",
+      "frameforge-3d",
+      "frameforge-generative"
+    ],
+    "full_renders": {
+      "method": "npm run render --concurrency 3 then node bin/frameforge.mjs check <mp4> --film <slug>; render audit line empty for every film",
+      "films": {
+        "blocks-reel": {
+          "frames": 900,
+          "frame_check": "PASS",
+          "flash_worst_second": 1,
+          "seam_check": "PASS (0 measured)",
+          "seconds": 52
+        },
+        "data-reel": {
+          "frames": 900,
+          "frame_check": "PASS",
+          "flash_worst_second": 0,
+          "seam_check": "PASS (0 measured)",
+          "seconds": 56
+        },
+        "seam-reel": {
+          "frames": 900,
+          "frame_check": "PASS",
+          "flash_worst_second": 1,
+          "seam_check": "PASS (5 seams, current x-)",
+          "seconds": 82
+        },
+        "narrated-explainer": {
+          "frames": 870,
+          "frame_check": "PASS",
+          "flash_worst_second": 0,
+          "narration_check": "PASS (7 lines)"
+        },
+        "turntable-spot": {
+          "frames": 720,
+          "frame_check": "PASS",
+          "flash_worst_second": 1,
+          "seconds": 62
+        },
+        "generative-ident": {
+          "frames": 540,
+          "frame_check": "PASS",
+          "flash_worst_second": 0,
+          "seconds": 65
+        },
+        "showcase-spot": {
+          "frames": 720,
+          "frame_check": "PASS",
+          "flash_worst_second": 0,
+          "seam_check": "PASS (6 seams, current x-)",
+          "narration_check": "PASS (7 lines)",
+          "seconds": 77
+        }
+      },
+      "first_pass_failures": "5 of 7 failed before fixes: static runs over 120 frames, clipped text inside an overflow box, thin share 0.093, text outside the safe area, text overlap"
+    },
+    "alpha_outputs": {
+      "mov": "prores profile 4444 yuva444p12le, alpha plane YMIN 256 YMAX 3773",
+      "png": "rgba, alpha 0..255",
+      "webm": "vp9 TAG:alpha_mode=1 (no VP9 decoder in this ffmpeg to read the plane)",
+      "gif": "bgra 15 fps"
+    },
+    "voice": {
+      "providers_exercised": [
+        "say (Yuna, ko)",
+        "silent (self-check)"
+      ],
+      "not_exercised": [
+        "elevenlabs (no key)",
+        "kokoro (not installed)"
+      ]
+    },
+    "blender": {
+      "version": "5.2.1 LTS",
+      "determinism": "two renders byte-identical (test fixture 320x180 and the sample shots)",
+      "hero_shot_seconds": {
+        "turntable-spot hero 150f": 146.5,
+        "showcase-spot hero 150f": 148.2
+      }
+    },
+    "not_verified": [
+      "listening to any mix (voice ducking is inferred from the filter graph and a real ffmpeg encode)",
+      "cross-machine Blender determinism",
+      "vp9 alpha plane pixels",
+      "kokoro and ElevenLabs voice paths",
+      "studio playback of the new samples"
+    ]
   }
 }

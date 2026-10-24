@@ -137,7 +137,7 @@ function Thread({frame}: Scene) {
 function Check({frame}: Scene) {
   return <Wipe frame={frame} at={AT.check} color={palette.accent}>
     <Panel frame={frame} at={AT.check} width={W * 0.62} height={H * 0.5}>
-      <Checklist {...common(frame)} at={AT.check + 14} out={AT.outro + 2} x={S * 0.09} y={S * 0.075} size={S * 0.07} items={['기록을 남긴다', '흐름을 잇는다', '내일을 확인한다']} />
+      <Checklist {...common(frame)} at={AT.check + 10} out={AT.outro - 12} x={S * 0.09} y={S * 0.075} size={S * 0.07} items={['기록을 남긴다', '흐름을 잇는다', '내일을 확인한다']} />
     </Panel>
     <Ticker {...common(frame)} at={AT.check + 20} out={AT.outro - 6} size={S * 0.042} speed={5} items={['서울', '부산', '대전', '광주', '제주', '강릉']} />
   </Wipe>;

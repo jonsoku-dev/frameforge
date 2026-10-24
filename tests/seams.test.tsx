@@ -108,8 +108,11 @@ test('checkSeams: clean passes, mirrored, axis swap, dead beat, speed mismatch a
   assert.deepEqual(checkSeams(dead, [30]).findings.map(f => f.code), ['seam_dead_beat']);
   const slow = [...series('a-out', 18, exitCurve(-230)), ...series('a-in', 30, entryCurve(40))];
   assert.deepEqual(checkSeams(slow, [30]).findings.map(f => f.code), ['seam_speed_mismatch']);
+  // One side at rest is a dead beat too, never a huge ratio.
   const rest = [...series('a-out', 18, exitCurve(-230)), ...series('a-in', 30, Array(12).fill(0))];
-  assert.deepEqual(checkSeams(rest, [30]).findings.map(f => [f.code, /at rest/.test(f.fix)]), [['seam_speed_mismatch', true]]);
+  assert.deepEqual(checkSeams(rest, [30]).findings.map(f => [f.code, /incoming side is at rest/.test(f.message)]), [['seam_dead_beat', true]]);
+  const still = [...series('a-out', 18, Array(12).fill(0)), ...series('a-in', 30, entryCurve(230))];
+  assert.deepEqual(checkSeams(still, [30]).findings.map(f => [f.code, /outgoing side is at rest/.test(f.message)]), [['seam_dead_beat', true]]);
   const pingpong = [...series('a-out', 18, exitCurve(-230)), ...series('a-in', 30, entryCurve(230)), ...series('b-out', 78, exitCurve(230)), ...series('b-in', 90, entryCurve(-230))];
   const report = checkSeams(pingpong, [30, 90]);
   assert.deepEqual(report.findings.map(f => [f.code, f.boundary]), [['seam_pingpong', 90]]);
@@ -117,10 +120,16 @@ test('checkSeams: clean passes, mirrored, axis swap, dead beat, speed mismatch a
   // The Z violation: a receding exit answered by a grow-from-small entry.
   const z = [...series('z-out', 18, exitCurve(-0.12).map(v => 1 + v), 'scale'), ...series('z-in', 30, entryCurve(-0.12).map(v => 1 + v), 'scale')];
   assert.deepEqual(checkSeams(z, [30]).findings.map(f => [f.code, /inverseZoom/.test(f.fix)]), [['seam_mirrored_vector', true]]);
-  // Camera probes outrank other families; without them every x/y/scale probe counts.
+  // Camera probes outrank other families; without them every x/y/scale probe counts, but the boundary is only a warning.
   const noisy = [...series('a-out', 18, exitCurve(-230)), ...series('a-in', 30, entryCurve(230)), ...series('card', 30, entryCurve(900), 'y', 'card')];
   assert.equal(seamVector(noisy, 30, 'in')!.axis, 'x');
   assert.equal(seamVector(noisy.filter(s => s.family !== 'camera'), 30, 'in')!.axis, 'y');
+  const wipe = [...series('card-a', 18, Array(12).fill(0), 'y', 'card'), ...series('card-b', 30, entryCurve(900), 'y', 'card')];
+  const unmeasured = checkSeams(wipe, [30]);
+  assert.deepEqual(unmeasured.findings.map(f => [f.code, f.severity, f.in!.axis, f.in!.camera]), [['seam_unmeasured', 'warning', 'y', false]]);
+  assert.deepEqual(unmeasured.vectors, []);
+  const half = [...series('a-out', 18, exitCurve(-230)), ...series('card-b', 30, entryCurve(900), 'y', 'card')];
+  assert.match(checkSeams(half, [30]).findings[0]!.message, /No camera probe after/);
   // No data near the boundary is a warning; a boundary outside the dump range is skipped.
   const sparse = checkSeams(series('a-out', 18, exitCurve(-230)), [30, 150], {from: 0, to: 100});
   assert.deepEqual(sparse.findings.map(f => [f.code, f.severity]), [['seam_no_motion_data', 'warning']]);

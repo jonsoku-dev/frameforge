@@ -20,7 +20,7 @@ Effects: `lightLeakEffect` on a transparent `Solid` over the seam (236–262, se
 Annotations: `Highlight` behind 형태 (flow), `Underline` under 작은 결이 and `Encircle` around 큰 물결로 (statement); all drawn by `progress` with seeded roughness, no DOM measurement.
 Sizes (short side 1080): headline 108 px, name 162 px, label 38 px (tagline 49 px), icon 65 px, hero 491 px, margins 96 / 54 px.
 
-Motion families: spring (wave entrance, wave rise, name), wipe (paper from the left, ink from the right, clip-path), glyph rise (every headline) plus the annotations' stroke draw. Camera push: one, 390–422.
+Motion families: spring (wave entrance, wave rise, name), wipe (paper from the left, ink from the right, clip-path), glyph rise (every headline) plus the annotations' stroke draw. Camera push: one, 390–422, on the name card only (scaling the whole stack moved the statement text 3 px past the safe margin at 391–405).
 
 | Frames | Fills the frame | Motion | Text |
 |---|---|---|---|

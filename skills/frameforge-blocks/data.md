@@ -20,4 +20,4 @@ Rules these blocks already keep, so you do not have to: hidden before `at` (they
 
 Catalogue: `CHART_BLOCKS`, `CODE_BLOCKS`, `DIAGRAM_BLOCKS` (`BlockEntry[]` with `id`, `title`, `family`, `props`, `when`, `sample: 'data-reel'`) feed `CATALOG`. The tokeniser is exported as `tokenize(code, lang)` for tests and custom renderings.
 
-Placement pattern from the sample: one stage box per film (`x: 160, y: 240, width: 1600, height: 760` at 1920×1080, inside the 5% safe area), a 108 px headline above it, each block `at` scene start + 10 and `out` at the next scene start, so the block fades over its last 8 frames and the next headline rises in place.
+Placement pattern from the sample: one paper stage card per film on a soft field (blocks at `x: 160, y: 240, width: 1600, height: 760` at 1920×1080, inside the 5% safe area; the card's margins keep a headline-sized band in every frame for `frame-check`), a 108 px headline above it, each block `at` scene start + 4 and `out` at the next scene start, so the block fades over its last 8 frames and the next headline rises in place.

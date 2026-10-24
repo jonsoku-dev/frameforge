@@ -114,12 +114,13 @@ function Example({frame, at}: {frame: number; at: number}) {
     <MotionProbe id="bar-focus" value={focus * full * 5 / 8} family="card" axis="x" />
     <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.26, display: 'flex', flexDirection: 'column', gap: S * 0.07}}>
       {[['전체 8시간', total, 1, soft, ink], ['집중 5시간', focus, 5 / 8, accent, paper]].map(([label, p, share, fill, text]) => <div key={label as string} style={{display: 'flex', alignItems: 'center', gap: S * 0.04}}>
-        <div style={{width: full * (share as number) * (p as number), height: barH, borderRadius: radius, background: fill as string, ...center, justifyContent: 'flex-start', overflow: 'hidden'}}>
-          <span style={{marginLeft: S * 0.03, fontFamily: ui, fontWeight: 600, fontSize: SIZES.label * 1.5, color: text as string, whiteSpace: 'nowrap', opacity: (p as number) > 0.6 ? 1 : 0}}>{label as string}</span>
+        <div style={{width: full * (share as number) * (p as number), height: barH, borderRadius: radius, background: fill as string, ...center, justifyContent: 'flex-start'}}>
+          {/* The label is hidden, not clipped, while the bar is still narrower than the text; a clipped glyph fails the render. */}
+          <span style={{marginLeft: S * 0.03, fontFamily: ui, fontWeight: 600, fontSize: SIZES.label * 1.5, color: text as string, whiteSpace: 'nowrap', visibility: (p as number) > 0.6 ? 'visible' : 'hidden'}}>{label as string}</span>
         </div>
       </div>)}
     </div>
-    <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.66}}><Label frame={frame} at={at + 50} size={SIZES.label}>숫자는 예시</Label></div>
+    <div style={{position: 'absolute', left: SIZES.marginX + S * 0.04, top: H * 0.66}}><Label frame={frame} at={at + 50} size={SIZES.label * 1.1}>숫자는 예시</Label></div>
   </AbsoluteFill>;
 }
 
@@ -146,7 +147,7 @@ function Trend({frame, at}: {frame: number; at: number}) {
     <div style={{position: 'absolute', left: W * 0.5, top: H * 0.3, display: 'flex', flexDirection: 'column', gap: S * 0.03}}>
       <Glyphs text="매일 기록하면" frame={frame} at={at + 10} />
       <Glyphs text="한 주가 선 하나로." frame={frame} at={at + 24} size={SIZES.headline * 0.8} color={accent} />
-      <Label frame={frame} at={at + 50} size={SIZES.label}>지난 7일 · 예시 데이터</Label>
+      <Label frame={frame} at={at + 50} size={SIZES.label * 1.1}>지난 7일 · 예시 데이터</Label>
     </div>
   </AbsoluteFill>;
 }

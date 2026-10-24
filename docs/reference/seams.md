@@ -26,7 +26,8 @@ npm run seam-check -- renders/x.mp4.motion.json --scenes 90,240,390 [--window 12
 - 입력은 렌더가 MP4 옆에 쓰는 `<output>.motion.json`(`{composition, fps, from, to, samples, sounds}`). `--frames` 콘택트 시트는 쓰지 않는다.
 - 경계(컷 프레임): `--scenes`가 있으면 그 값, `--prompt`가 있으면 장면표에서 각 표 행의 첫 `a-b` 범위를 읽어 첫 행을 뺀 나머지 행의 시작 프레임, 둘 다 없으면 프로브 키 집합이 둘 이상 바뀌는 프레임을 추정한다. 마지막 정지 구간은 마지막 장면 행에 넣는다(따로 두면 아무것도 움직이지 않는 경계가 된다).
 - 경계마다 나가는 벡터(컷 앞 `window`프레임, 기본 12)와 들어오는 벡터(컷부터 `window`프레임)를 잰다. 값은 프레임 비율로 정규화(x/width, y/height, scale 그대로), 차이는 프로브 키별로 계산하고, 축은 |Δ| 합이 가장 큰 축, 방향은 그 축의 Δ 합 부호, 속도는 그 축의 프레임당 평균 |Δ|. 창 안에 `camera` 가족 프로브가 하나라도 있으면 그것만 본다.
-- 코드와 기준: `seam_axis_swap`(축 다름), `seam_mirrored_vector`(같은 축, 반대 부호; z는 push↔pull), `seam_dead_beat`(양쪽 속도 0.0015/프레임 미만), `seam_speed_mismatch`(들어오는 속도/나가는 속도가 0.5–2 밖; 완벽한 거울도 나가는 쪽의 마지막 걸음(컷 프레임으로 가는 걸음)이 표본에 없어 약 1.4로 읽힌다), `seam_pingpong`(연속한 두 이음새가 같은 축 반대 방향), `seam_no_motion_data`(한쪽에 프로브 없음, 경고).
+- 경계는 양쪽 창에 모두 `camera` 가족 프로브(`<Seam>`이 보고하는 것)가 있을 때만 측정하고 오류를 낸다. 한쪽이라도 없으면 다른 가족 프로브가 보여 준 벡터를 적은 경고 `seam_unmeasured`만 낸다. `<Seam>`을 쓰지 않는 작품(와이프, 하드컷)은 경고만 받고 실패하지 않으며 종료 코드 0, `PASS with n warning(s)`를 찍는다.
+- 코드와 기준: `seam_axis_swap`(축 다름), `seam_mirrored_vector`(같은 축, 반대 부호; z는 push↔pull), `seam_dead_beat`(어느 한쪽이라도 속도 0.0015/프레임 미만: 컷 전에 멈추거나 컷 뒤에 정지에서 출발), `seam_speed_mismatch`(양쪽 다 움직이는데 들어오는 속도/나가는 속도가 0.5–2 밖; 완벽한 거울도 나가는 쪽의 마지막 걸음(컷 프레임으로 가는 걸음)이 표본에 없어 약 1.4로 읽힌다), `seam_pingpong`(측정된 연속한 두 이음새가 같은 축 반대 방향), `seam_no_motion_data`(한쪽에 프로브가 전혀 없음, 경고).
 - 렌더 범위 밖 경계는 건너뛰고 목록에 적는다(`--frame-range` 부분 렌더는 그 안의 이음새만 검사). 오류가 있으면 종료 코드 1, `--json`은 `{boundaries, skipped, current, vectors, findings}`를 찍고 finding마다 `fix` 문장이 있다.
 - 테스트용 픽스처 `tests/fixtures/seams/clean.motion.json`(통과), `mirrored.motion.json`(`seam_mirrored_vector`). 순수 함수 `seamVector`, `checkSeams`, `parseScenes`, `inferBoundaries`는 `scripts/seam-check.d.mts`로 타입이 있어 테스트가 직접 부른다.
 

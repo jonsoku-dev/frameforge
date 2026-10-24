@@ -68,7 +68,8 @@ function Cards({frame}: {frame: number}) {
   const shift = nudge({frame, at: at + 90, duration: 30, from: 0, to: W / 2 - (COIN_LAND.x - CARD.pad + CARD.w / 2)});
   return <AbsoluteFill style={{background: paper}}>
     <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + 40}}><Line frame={frame} at={at} index={0} text="한눈에 보는 이번 달" /></div>
-    <div style={{position: 'absolute', left: SIZES.marginX, top: CARD.top, display: 'flex', gap: CARD.gap, transform: `translateX(${shift}px)`}}>
+    {/* The row scrolls past the left margin on purpose while it re-centres; at rest the safe-area audit applies. */}
+    <div {...(shift ? {'data-clip': 'allow'} : {})} style={{position: 'absolute', left: SIZES.marginX, top: CARD.top, display: 'flex', gap: CARD.gap, transform: `translateX(${shift}px)`}}>
       <MotionProbe id="cards-nudge" value={shift} family="card" axis="x" />
       {CARDS.map(([Icon, title, amount], i) => {
         const w = waterfallEntry({frame, at: at + 2, index: i, weight: 1 + i * 0.4});
@@ -116,13 +117,18 @@ function Detail({frame}: {frame: number}) {
   const at = AT.detail;
   const draw = span(frame, at + 2, 40);
   const rise = waterfallEntry({frame, at, index: 0, weight: 1.5});
+  // The number counts up to its value over two seconds, then holds: the only motion of the scene's second half.
+  const count = Math.round(interpolate(frame, [at + 8, at + 68], [0, 1284000], {...clamp, easing: Easing.out(Easing.cubic)}) / 1000) * 1000;
   const tail = words(frame)[WATERFALL.words - 1]!.exit;
   return <AbsoluteFill style={{background: paper}}>
     <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + 40}}><Words frame={frame} side="exit" list={['이번', '달', '식비,', '얼마였죠?']} /></div>
     <div {...clip(tail)} style={{position: 'absolute', left: SIZES.marginX, top: 420, ...frag(tail)}}>
       <div style={{display: 'flex', flexDirection: 'column', gap: 28, transform: rise.transform, opacity: rise.opacity}}>
         <MotionProbe id="amount" value={rise.y} family="text" axis="y" />
-        <div style={{fontFamily: display, fontWeight: 900, fontSize: 200, lineHeight: 1, letterSpacing: '-0.04em', color: ink}}>1,284,000원</div>
+        <div style={{fontFamily: display, fontWeight: 900, fontSize: 200, lineHeight: 1, letterSpacing: '-0.04em', color: ink, fontVariantNumeric: 'tabular-nums'}}>
+          <MotionProbe id="count" value={count / 1284000} family="text" axis="progress" />
+          {count.toString().replace(/\B(?=(\d{3})+$)/g, ',')}원
+        </div>
         <Pill>예시 · 지난달보다 12% 적게</Pill>
       </div>
     </div>
@@ -161,13 +167,19 @@ function Sort({frame}: {frame: number}) {
 function Bigger({frame}: {frame: number}) {
   const at = AT.bigger;
   const draw = span(frame, at, 56);
-  // Lines land by 575 and the wave by 600: the stillness before the name is the only pause in the film.
+  const detail = waterfallEntry({frame, at: at + 90, index: 0, weight: 2});
+  // Lines land by 575, the wave by 596, the detail line by 650: the stillness before the name is the only pause in the film.
   return <AbsoluteFill style={{background: accent}}>
     <MotionProbe id="wave-big" value={draw} family="shape" axis="progress" />
     <Wave size={760} {...kit} ink={ink} soft={accent} paper={accent} draw={draw} style={{position: 'absolute', left: 120, top: (H - 760) / 2}} />
-    <div style={{position: 'absolute', left: 980, top: 380, display: 'flex', flexDirection: 'column', gap: 16}}>
+    <div style={{position: 'absolute', left: 980, top: 340, display: 'flex', flexDirection: 'column', gap: 16}}>
       <Line frame={frame} at={at + 2} index={0} text="모든 계좌를" color={ink} size={140} />
       <Line frame={frame} at={at + 2} index={1} text="한 물길로" color={ink} size={140} weight={1.5} />
+      {/* Lands at about 650 (start 630, 20 frames): the pause before the name runs from there to the rack focus at 678. */}
+      <div style={{marginTop: 24, transform: detail.transform, opacity: detail.opacity}}>
+        <MotionProbe id="bigger-detail" value={detail.y} family="text" axis="y" />
+        <Label color={ink} size={56}>계좌 12개 · 카드 4개 · 예시</Label>
+      </div>
     </div>
   </AbsoluteFill>;
 }

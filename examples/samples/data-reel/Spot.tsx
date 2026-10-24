@@ -15,10 +15,12 @@ const fonts = {display, ui, mono};
 const {ink, paper, accent, soft} = palette;
 const ease = Easing.bezier(0.16, 1, 0.3, 1);
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} satisfies {extrapolateLeft: 'clamp'; extrapolateRight: 'clamp'};
-// Absolute scene starts. Blocks start 10 frames after the headline, fade out 8 frames before the next scene; the last 60 frames hold.
+// Absolute scene starts. Blocks start 4 frames after the headline, fade out 8 frames before the next scene; the last 60 frames hold.
 const AT = {hook: 0, bar: 60, line: 150, race: 225, budget: 345, code: 435, flow: 525, steps: 600, timeline: 675, compare: 750, name: 815, end: 900};
-// One paper stage for every middle scene: 1600 x 760 under the headline, inside the 5% safe area.
+// One paper stage card for every middle scene: the blocks sit on it, the headline above it on the soft field. The soft margins
+// around the card keep a headline-sized band of ink in every frame, even while a headline rises and a block has not started.
 const STAGE = {x: 160, y: 240, w: 1600, h: 760};
+const CARD = {left: 112, top: 212, width: 1696, height: 828, borderRadius: 24};
 
 function span(frame: number, from: number, dur: number): number {
   return interpolate(frame, [from, from + dur], [0, 1], {...clamp, easing: ease});
@@ -40,17 +42,18 @@ function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 
 function Scene({frame, at, until, title, children}: {frame: number; at: number; until: number; title: string; children: ReactNode}) {
   if (frame < at || frame >= until) return null;
   return <>
-    <div style={{position: 'absolute', left: SIZES.marginX + 64, top: 70}}><Glyphs text={title} frame={frame} at={at + 2} /></div>
+    <div style={{position: 'absolute', left: SIZES.marginX + 64, top: 70}}><Glyphs text={title} frame={frame} at={at} /></div>
     {children}
   </>;
 }
 
-const stage = (frame: number, at: number, until: number) => ({frame, at: at + 10, out: until, palette, fonts, size: SIZES.block, x: STAGE.x, y: STAGE.y, width: STAGE.w, height: STAGE.h});
+const stage = (frame: number, at: number, until: number) => ({frame, at: at + 4, out: until, palette, fonts, size: SIZES.block, x: STAGE.x, y: STAGE.y, width: STAGE.w, height: STAGE.h});
 
 function Hook({frame}: {frame: number}) {
-  const spark = {frame, at: 4, duration: 44, palette, fonts, size: SIZES.block, stroke: 18, x: 160, y: 560, width: 1600, height: 380};
+  const spark = {frame, at: 0, duration: 48, palette, fonts, size: SIZES.block, stroke: 18, x: 160, y: 560, width: 1600, height: 380};
+  // The headline starts before frame 0 so the first frame already carries half-risen glyphs instead of an empty field.
   return <AbsoluteFill style={{background: ink}}>
-    <div style={{position: 'absolute', left: SIZES.marginX + 64, top: 250}}><Glyphs text="지출, 한눈에" frame={frame} at={6} size={176} color={paper} /></div>
+    <div style={{position: 'absolute', left: SIZES.marginX + 64, top: 250}}><Glyphs text="지출, 한눈에" frame={frame} at={-8} size={176} color={paper} /></div>
     <Sparkline {...spark} data={[42, 51, 38, 64, 57, 73, 61, 88]} />
   </AbsoluteFill>;
 }
@@ -78,7 +81,7 @@ function Name({frame}: {frame: number}) {
   const bar = span(frame, AT.name + 10, 14);
   return <AbsoluteFill style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 40}}>
     <MotionProbe id="name-bar" value={bar} family="shape" axis="progress" />
-    <Glyphs text="누리장부" frame={frame} at={AT.name + 5} size={240} color={paper} stagger={2} />
+    <Glyphs text="누리장부" frame={frame} at={AT.name + 2} size={240} color={paper} stagger={2} />
     <div style={{width: 520, height: 18, background: accent, transform: `scaleX(${bar})`}} />
     {frame >= AT.name + 13 ? <div style={{fontFamily: ui, fontWeight: 500, fontSize: 56, color: soft, opacity: span(frame, AT.name + 13, 12), lineHeight: 1}}>가계부 앱 · 가상 브랜드 · 예시 데이터</div> : null}
   </AbsoluteFill>;
@@ -95,13 +98,14 @@ export function DataReel() {
     <MotionSound src="/audio/generated/data-reel/tick.wav" role="land" families={['shape', 'card']} quiet={[108, 345, 840]} />
     <MotionProbe id="paper-wipe" value={paperIn} family="wipe" axis="progress" />
     {frame < AT.bar + 12 ? <Hook frame={frame} /> : null}
-    {frame >= AT.bar ? <AbsoluteFill style={{background: paper, clipPath: `inset(${(1 - paperIn) * 100}% 0 0 0)`}}>
+    {frame >= AT.bar ? <AbsoluteFill style={{background: soft, clipPath: `inset(${(1 - paperIn) * 100}% 0 0 0)`}}>
+      <div style={{position: 'absolute', ...CARD, background: paper}} />
       <Scene frame={frame} at={AT.bar} until={AT.line} title="월별 지출"><BarChart {...stage(frame, AT.bar, AT.line)} data={spend} target={60} unit="만" /></Scene>
       <Scene frame={frame} at={AT.line} until={AT.race} title="저축 추이"><LineChart {...stage(frame, AT.line, AT.race)} data={saving} unit="만" /></Scene>
       <Scene frame={frame} at={AT.race} until={AT.budget} title="카테고리 순위"><BarChartRace {...stage(frame, AT.race, AT.budget)} duration={96} snapshots={race} unit="만" /></Scene>
       <Scene frame={frame} at={AT.budget} until={AT.code} title="예산 달성과 소비 시간">
         <Donut {...stage(frame, AT.budget, AT.code)} width={560} height={700} y={270} value={72} label="이달 예산 달성" />
-        <Heatmap {...stage(frame, AT.budget, AT.code)} x={820} width={940} height={700} y={270} at={AT.budget + 16} rows={heat} rowLabels={['월', '화', '수', '목', '금', '토', '일']} colLabels={['아침', '점심', '저녁', '밤']} order="seeded" seed="nuri" />
+        <Heatmap {...stage(frame, AT.budget, AT.code)} x={820} width={940} height={700} y={270} at={AT.budget + 10} rows={heat} rowLabels={['월', '화', '수', '목', '금', '토', '일']} colLabels={['아침', '점심', '저녁', '밤']} order="seeded" seed="nuri" />
       </Scene>
       <Scene frame={frame} at={AT.code} until={AT.flow} title="자동 분류 규칙"><CodeBlock {...stage(frame, AT.code, AT.flow)} size={SIZES.label} height={620} y={300} code={code} lang="ts" mode="typing" charsPerFrame={5} /></Scene>
       <Scene frame={frame} at={AT.flow} until={AT.steps} title="알림이 오기까지"><Flowchart {...stage(frame, AT.flow, AT.steps)} height={360} y={440} nodes={[{id: 'pay', label: '결제'}, {id: 'tag', label: '자동 분류'}, {id: 'budget', label: '예산 비교'}, {id: 'push', label: '알림', shape: 'pill'}]} /></Scene>

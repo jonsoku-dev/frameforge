@@ -9,7 +9,7 @@ import {resolve} from 'node:path';
 
 /** Rest: mean |Δ| per frame below this is "not moving" (0.0015 of the frame ≈ 3 px/frame at 1920). */
 export const REST = 0.0015;
-/** Speed ratio in/out accepted as matched; a perfect mirror reads about 1.4 because the exit's final step (into the cut frame) is never sampled, so the exit reads slower. */
+/** Speed ratio in/out accepted as matched; a perfect mirror reads about 1.4 because the exit's final step (into the cut frame) is never sampled, so the exit reads slower. Only checked when both sides move. */
 export const RATIO = [0.5, 2];
 const SEAM_AXIS = {x: 'x', y: 'y', scale: 'z'};
 
@@ -17,7 +17,7 @@ const unit = (axis, size) => axis === 'x' ? size.width : axis === 'y' ? size.hei
 
 /** The dominant motion on one side of a boundary, or null when no probe sampled that window.
  * side 'out' reads frames [boundary - window, boundary - 1], 'in' reads [boundary, boundary + window - 1].
- * Camera-family probes win when any exist (a <Seam> reports them); otherwise every x/y/scale probe counts.
+ * Camera-family probes win when any exist (a <Seam> reports them; `camera: true`); otherwise every x/y/scale probe counts.
  * Axis = largest summed |Δ| across probes, direction = sign of the summed Δ on that axis, speed = mean |Δ| per frame on it. */
 export function seamVector(samples, boundary, side, window = 12, size = {width: 1920, height: 1080}) {
   const lo = side === 'out' ? boundary - window : boundary;
@@ -42,17 +42,19 @@ export function seamVector(samples, boundary, side, window = 12, size = {width: 
     }
     sum.steps = Math.max(sum.steps, steps);
   }
-  const keys = [...byKey.keys()];
+  const keys = [...byKey.keys()], isCamera = camera.length > 0;
   const [axis, sum] = Object.entries(sums).sort((a, b) => b[1].abs - a[1].abs)[0];
-  if (!(sum.abs > 0) || !sum.steps) return {axis: null, direction: 0, speed: 0, keys};
-  return {axis: SEAM_AXIS[axis], direction: Math.sign(sum.signed) || 0, speed: sum.abs / sum.steps, keys};
+  if (!(sum.abs > 0) || !sum.steps) return {axis: null, direction: 0, speed: 0, keys, camera: isCamera};
+  return {axis: SEAM_AXIS[axis], direction: Math.sign(sum.signed) || 0, speed: sum.abs / sum.steps, keys, camera: isCamera};
 }
 
 const fmt = v => v ? `${v.axis ?? '-'}${v.direction > 0 ? '+' : v.direction < 0 ? '-' : '0'} @ ${(v.speed * 1000).toFixed(1)}‰/f` : 'no data';
 const name = v => v.axis === 'z' ? (v.direction > 0 ? 'push (growing)' : 'pull (shrinking)') : `${v.axis}${v.direction > 0 ? '+' : '-'}`;
 
-/** Findings for every boundary. Options: {window, width, height}. Boundaries whose windows fall outside [from, to] are skipped
- * (listed in `skipped`), not reported, so a partial render checks only the seams it contains. */
+/** Findings for every boundary. Options: {window, width, height, from, to}. Boundaries whose windows fall outside [from, to]
+ * are skipped (listed in `skipped`), so a partial render checks only the seams it contains. A boundary is measured (errors
+ * possible) only when both sides carry camera-family samples, which <Seam> reports; a plain wipe or a film without seams
+ * gets `seam_unmeasured` warnings with whatever other probes showed, never a failure. */
 export function checkSeams(samples, boundaries, options = {}) {
   const window = options.window ?? 12;
   const size = {width: options.width ?? 1920, height: options.height ?? 1080};
@@ -67,13 +69,14 @@ export function checkSeams(samples, boundaries, options = {}) {
       push(boundary, 'seam_no_motion_data', `No probe samples ${!out ? 'before' : 'after'} the cut at frame ${boundary}.`, `Report the camera motion of both scenes with <Seam> or <MotionProbe family="camera" axis="x|y|scale">, or fix --scenes/--prompt so the boundary sits on the real cut.`, out, inc, 'warning');
       continue;
     }
+    if (!out.camera || !inc.camera) { push(boundary, 'seam_unmeasured', `No camera probe ${!out.camera && !inc.camera ? 'on either side of' : !out.camera ? 'before' : 'after'} the cut at frame ${boundary}; other probes read out ${fmt(out)}, in ${fmt(inc)}.`, `Join the scenes with <Seam> (or report each side's wrapper with <MotionProbe family="camera">) so the seam can be measured.`, out, inc, 'warning'); continue; }
     vectors.push({boundary, out, in: inc});
     const outRest = out.speed < REST, inRest = inc.speed < REST;
-    if (outRest && inRest) { push(boundary, 'seam_dead_beat', `Both sides are at rest around frame ${boundary} (out ${fmt(out)}, in ${fmt(inc)}).`, `Land the cut mid-motion: exit with an ease-in (power 4) over ${window} frames, enter with the mirrored ease-out, and put the cut at the midpoint (cutTheCurve/zoomThrough/inverseZoom do this).`, out, inc); continue; }
-    if (!outRest && !inRest && out.axis !== inc.axis) { push(boundary, 'seam_axis_swap', `Exit moves on ${out.axis}, entry on ${inc.axis} at frame ${boundary}.`, `Keep one axis across the cut: give the incoming scene the outgoing scene's axis (${out.axis}), or cut both to the film's current.`, out, inc); continue; }
-    if (!outRest && !inRest && out.direction !== inc.direction) { push(boundary, 'seam_mirrored_vector', `Exit is ${name(out)}, entry is ${name(inc)} at frame ${boundary}: the entry answers the exit instead of continuing it.`, out.axis === 'z' ? `Match the scale sign: a receding exit (shrinking) needs an entry that also shrinks from large to 1 (inverseZoom); a growing exit needs an entry growing from small (zoomThrough).` : `Keep the sign: an exit to the left needs an entry arriving from the right and still moving left; never mirror the vector.`, out, inc); continue; }
-    const ratio = inc.speed / Math.max(out.speed, 1e-9);
-    if (ratio < RATIO[0] || ratio > RATIO[1]) push(boundary, 'seam_speed_mismatch', `Entry speed is ${ratio.toFixed(2)}× exit speed at frame ${boundary} (out ${fmt(out)}, in ${fmt(inc)}).`, outRest || inRest ? `One side starts or ends at rest: both sides must be moving at the cut frame (exit ease-in, entry ease-out, cut at the midpoint).` : `Match the eases: exit ease-in power 4 and entry ease-out power 4 over the same distance and duration, so the entry's first speed equals the exit's last.`, out, inc);
+    if (outRest || inRest) { push(boundary, 'seam_dead_beat', `${outRest && inRest ? 'Both sides are' : outRest ? 'The outgoing side is' : 'The incoming side is'} at rest around frame ${boundary} (out ${fmt(out)}, in ${fmt(inc)}).`, `Land the cut mid-motion: exit with an ease-in (power 4) over ${window} frames, enter with the mirrored ease-out, and put the cut at the midpoint (cutTheCurve/zoomThrough/inverseZoom do this).`, out, inc); continue; }
+    if (out.axis !== inc.axis) { push(boundary, 'seam_axis_swap', `Exit moves on ${out.axis}, entry on ${inc.axis} at frame ${boundary}.`, `Keep one axis across the cut: give the incoming scene the outgoing scene's axis (${out.axis}), or cut both to the film's current.`, out, inc); continue; }
+    if (out.direction !== inc.direction) { push(boundary, 'seam_mirrored_vector', `Exit is ${name(out)}, entry is ${name(inc)} at frame ${boundary}: the entry answers the exit instead of continuing it.`, out.axis === 'z' ? `Match the scale sign: a receding exit (shrinking) needs an entry that also shrinks from large to 1 (inverseZoom); a growing exit needs an entry growing from small (zoomThrough).` : `Keep the sign: an exit to the left needs an entry arriving from the right and still moving left; never mirror the vector.`, out, inc); continue; }
+    const ratio = inc.speed / out.speed;
+    if (ratio < RATIO[0] || ratio > RATIO[1]) push(boundary, 'seam_speed_mismatch', `Entry speed is ${ratio.toFixed(2)}× exit speed at frame ${boundary} (out ${fmt(out)}, in ${fmt(inc)}).`, `Match the eases: exit ease-in power 4 and entry ease-out power 4 over the same distance and duration, so the entry's first speed equals the exit's last.`, out, inc);
   }
   // Consecutive seams on one axis must not reverse: the eye reads ping-pong as an error.
   for (let i = 1; i < vectors.length; i++) {
@@ -139,7 +142,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     console.log(`${file}: ${report.boundaries.length} seam(s) checked${report.skipped.length ? `, ${report.skipped.length} outside frames ${dump.from}-${dump.to} (${report.skipped.join(', ')})` : ''}${report.current ? `, current ${report.current}` : ''}`);
     for (const v of report.vectors) console.log(`  frame ${v.boundary}: out ${fmt(v.out)}  in ${fmt(v.in)}`);
     for (const f of report.findings) console.log(`${f.severity.toUpperCase()} ${f.code} @${f.boundary}: ${f.message}\n  fix: ${f.fix}`);
-    console.log(errors ? `FAIL: ${errors} error(s)` : 'PASS');
+    const warnings = report.findings.length - errors;
+    console.log(errors ? `FAIL: ${errors} error(s)` : warnings ? `PASS with ${warnings} warning(s)` : 'PASS');
   }
   process.exit(errors ? 1 : 0);
 }

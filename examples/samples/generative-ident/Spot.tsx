@@ -118,9 +118,11 @@ function Statement({frame}: {frame: number}) {
 
 function Name({frame}: {frame: number}) {
   const wipe = span(frame, AT.name, 16);
+  // The one camera push lives on this card alone; scaling the whole stack pushed the statement text out of the safe area.
+  const camera = push(frame, AT.name, 32, 0.04);
   const bar = span(frame, AT.name + 40, 16);
   const mark = SIZES.icon * 3.2;
-  return <AbsoluteFill style={{background: ink, clipPath: `inset(0 0 0 ${(1 - wipe) * 100}%)`, ...center, flexDirection: 'column', gap: S * 0.035}}>
+  return <AbsoluteFill style={{background: ink, clipPath: `inset(0 0 0 ${(1 - wipe) * 100}%)`, transform: `scale(${camera})`, ...center, flexDirection: 'column', gap: S * 0.035}}>
     <MotionProbe id="ink-wipe" value={wipe} family="wipe" axis="progress" />
     <Wave size={mark} ink={paper} accent={accent} soft={soft} paper={paper} stroke={STROKE * mark / (SIZES.hero * 1.35)} radius={RADIUS} style={{opacity: span(frame, AT.name + 6, 14)}} />
     <Glyphs text="물결 스튜디오" frame={frame} at={AT.name + 8} size={SIZES.headline * 1.5} color={paper} />
@@ -131,14 +133,13 @@ function Name({frame}: {frame: number}) {
 
 function GenerativeIdentSpot({auroraSeed = 'mulgyeol', auroraBands = 4, auroraSpeed = 0.06}: GenerativeIdentProps) {
   const frame = useCurrentFrame();
-  const camera = push(frame, AT.name, 32, 0.04);
   const leak = interpolate(frame, [AT.seam - 4, AT.seam + 22], [0, 1], clamp);
   return <AbsoluteFill style={{background: ink, overflow: 'hidden'}}>
     <Audio src="/audio/generated/generative-ident/music.wav" volume={0.9} />
     <MotionSound src="/audio/generated/generative-ident/whoosh.wav" role="move" families={['wipe', 'card']} quiet={[AT.flow, AT.name]} />
     <MotionSound src="/audio/generated/generative-ident/impact.wav" role="land" families={['shape', 'card']} quiet={[AT.flow, AT.name]} />
     <MotionSound src="/audio/generated/generative-ident/stroke.wav" role="appear" families={['text']} quiet={[AT.flow, AT.name]} />
-    <AbsoluteFill style={{transform: `scale(${camera})`}}>
+    <AbsoluteFill>
       {frame < AT.statement ? <Sky bands={auroraBands} speed={auroraSpeed} seed={auroraSeed} /> : null}
       {frame >= AT.flow && frame < AT.statement ? <Flow frame={frame} /> : null}
       {frame < AT.statement ? <Hero frame={frame} /> : null}

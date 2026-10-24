@@ -74,10 +74,13 @@ For every boundary the outgoing vector is read over the last `window` frames (de
 | --- | --- | --- |
 | `seam_axis_swap` | error | exit and entry move on different axes |
 | `seam_mirrored_vector` | error | same axis, opposite sign (on Z: push answered by pull or the reverse) |
-| `seam_dead_beat` | error | both sides below the rest speed, 0.0015 of the frame per frame (about 3 px) |
-| `seam_speed_mismatch` | error | entry speed / exit speed outside 0.5–2 (a perfect mirror reads about 1.4: the exit's final step into the cut frame is never sampled, so the exit reads slower) |
-| `seam_pingpong` | error | two consecutive seams on one axis with opposite directions |
-| `seam_no_motion_data` | warning | no probe within `window` frames on one side |
+| `seam_dead_beat` | error | either side below the rest speed, 0.0015 of the frame per frame (about 3 px): settling before the cut or starting from rest after it |
+| `seam_speed_mismatch` | error | both sides move but entry speed / exit speed is outside 0.5–2 (a perfect mirror reads about 1.4: the exit's final step into the cut frame is never sampled, so the exit reads slower) |
+| `seam_pingpong` | error | two consecutive measured seams on one axis with opposite directions |
+| `seam_unmeasured` | warning | one or both sides have no camera-family probe in the window; the vectors other probes showed are printed |
+| `seam_no_motion_data` | warning | no probe at all within `window` frames on one side |
+
+A boundary is measured, and can fail, only when both sides carry camera-family probes, which `<Seam>` reports. A film that does not use `<Seam>` (plain wipes, hard cuts) gets warnings, not failures: the check exits 0 and prints `PASS with n warning(s)`.
 
 Boundaries whose windows fall outside the rendered range are skipped and listed, so a `--frame-range` part render checks only the seams it contains. Exit code 1 on any error; `--json` prints `{boundaries, skipped, current, vectors, findings}` with a `fix` sentence per finding.
 

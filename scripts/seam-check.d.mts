@@ -1,6 +1,6 @@
 export type SeamSample = {key: string; frame: number; value: number; family: string; axis: string};
-export type SeamVectorReading = {axis: 'x' | 'y' | 'z' | null; direction: 1 | -1 | 0; speed: number; keys: string[]};
-export type SeamCode = 'seam_axis_swap' | 'seam_mirrored_vector' | 'seam_dead_beat' | 'seam_speed_mismatch' | 'seam_pingpong' | 'seam_no_motion_data';
+export type SeamVectorReading = {axis: 'x' | 'y' | 'z' | null; direction: 1 | -1 | 0; speed: number; keys: string[]; camera: boolean};
+export type SeamCode = 'seam_axis_swap' | 'seam_mirrored_vector' | 'seam_dead_beat' | 'seam_speed_mismatch' | 'seam_pingpong' | 'seam_no_motion_data' | 'seam_unmeasured';
 export type SeamFinding = {code: SeamCode; severity: 'error' | 'warning'; boundary: number; message: string; fix: string; out: SeamVectorReading | null; in: SeamVectorReading | null};
 export type SeamReport = {boundaries: number[]; skipped: number[]; current: string | null; vectors: {boundary: number; out: SeamVectorReading; in: SeamVectorReading}[]; findings: SeamFinding[]};
 export const REST: number;
