@@ -108,7 +108,9 @@
 - 코드: `CodeBlock`(`typing`, `highlight`, `diff`, `scroll`), `tokenize`
 - 다이어그램: `Flowchart`, `ProcessSteps`, `Timeline`, `Compare`
 
-자세한 prop은 [blocks-text.md](blocks-text.md)와 [blocks-data.md](blocks-data.md), 샘플은 `blocks-reel`, `data-reel`.
+- 지도: `MapOutline`, `RouteMap`, `Markers`, `project`, `fitBounds`, `geoPath`. 데이터는 `npm run geo -- geo.json`.
+
+자세한 prop은 [blocks-text.md](blocks-text.md), [blocks-data.md](blocks-data.md), [blocks-maps.md](blocks-maps.md), 샘플은 `blocks-reel`, `data-reel`, `map-story`.
 
 ## 이음새, 박자, 나레이션, 3D, 생성 배경
 
@@ -117,6 +119,7 @@
 - 나레이션: `narrationFrames`, `useNarration(timing)`, `<Voiceover src>`, `<Subtitles timing style="rail"|"embed">`, `<SubtitleLine>`, `captionsFromTiming`, `<Formula tex draw highlight>`. 생성은 `npm run voice -- narration.json`, 검사는 `npm run narration-check -- <film>`. [voice.md](voice.md).
 - 3D: `<ImageSequence src frames fps loop pad startFrame fit>`, `sequenceIndex(frame, fps, seqFps, frames, loop?, startFrame?)`, `sequenceFile(src, index, pad?)`, `<Model src scale position rotation color>`(색을 주면 질감 맵 대신 팔레트 색), `loadModel(src)`, `<Turntable speed phase>`, `<StudioLights intensity color>`(키 라이트가 그림자를 드리움). 렌더는 `npm run blender -- 3d.json`, 모델은 `npm run models -- models.json`. [three-d.md](three-d.md).
 - 생성 배경과 주석: `<Generative system seed width height palette params>`, `GENERATIVE_SYSTEMS`(flowField, particles, starfield, meshGradient, halftone, ripples, voronoi, noiseLines, aurora), `Highlight`, `Encircle`, `Underline`, `StrikeThrough`, `Box`, `Bracket`. [generative.md](generative.md).
+- 외부 애니메이션: `<Seekable animate>`, `useSeekable(ref, factory, deps)`, `seekableFrame`. [seekable.md](seekable.md).
 - 효과(`effects` prop): `blurEffect`, `colorMatrixEffect`, `colorCorrectionEffect`, `lutEffect`+`parseCubeLut`, `lightLeakEffect`, `vignetteEffect`, `grainEffect`. [effects.md](effects.md).
 
 ## 움직임에서 나오는 소리

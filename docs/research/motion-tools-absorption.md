@@ -32,12 +32,12 @@
 | 결정성 린트, 기계 판독 코드(`css_transition_used` 등 130여 개) | 있음(`scripts/lint.mjs`, 코드 4종) | 린트 범위는 유지. 스튜디오 감사에 `text_outside_safe` `text_overlap` `contrast_low` `text_too_small` 추가 |
 | 스냅샷 시트, `--against` 대조 | 있음 | 유지 |
 | 병렬·스트리밍 렌더, 정지 프레임 재사용 | 있음 | 유지 |
-| 출력 컨테이너: mp4, webm(VP9 알파), mov(ProRes 4444), png 시퀀스, hls | mp4만 | webm(VP9, 알파), mov(ProRes 4444, 알파), gif, png 시퀀스, `--transparent` `--crf` `--scale` `--muted`. hls는 범위 밖 |
+| 출력 컨테이너: mp4, webm(VP9 알파), mov(ProRes 4444), png 시퀀스, hls | mp4만 | webm(VP9, 알파), mov(ProRes 4444, 알파), gif, png 시퀀스, `--transparent` `--crf` `--scale` `--muted`. HLS(`.m3u8`) |
 | 블록 카탈로그 약 210개(로어서드, 코드, 차트, 지도, 배경, 전환, VFX, 카드) | 모티프 키트 44종, 도형 11종, 전환 6종 | `src/blocks/` 카탈로그: 텍스트 6, 로어서드 1×6변형, 카드 6, 차트 6, 코드 1×4모드, 다이어그램 4. 배경은 `generative`로. 지도 블록은 지리 데이터가 필요해 보류 |
 | 모션 독트린(벡터 법칙, 하나의 흐름 방향, 속도 맞춘 이음새, 중간 동작에서 컷, 이음새 게이트) | 모션 가족 셋 규칙만 | `references/seams.md`(독트린), `src/packages/seams.tsx`(이음새 곡선), `scripts/seam-check.mjs`(렌더가 남긴 `*.motion.json`에서 이음새 벡터를 재서 `seam_mirrored_vector` 등으로 보고) |
 | 자막 오버레이 모델(drop/rail/embed) | SRT 파싱만 | `references/captions.md`, `<Subtitles style="rail"|"embed">` |
-| CLI 자기 검증: `beats`, `tts`, `transcribe`, `contrast-*`, `layout`, `check` | frame-check, flash-check, 음량 보고 | `src/packages/beats.ts` + `scripts/assets/beats.py`, `scripts/assets/voice.py`, 스튜디오 감사의 대비·레이아웃, `frameforge check` 통합(frame, flash, seam, narration). 전사(transcribe)는 whisper 실행 파일이 없어 보류 |
-| 외부 애니메이션 라이브러리 어댑터(seek 계약) | Lottie 어댑터만 | 보류(React 프레임 함수가 같은 역할). 이유는 `video-engine-landscape.md` 4.8 |
+| CLI 자기 검증: `beats`, `tts`, `transcribe`, `contrast-*`, `layout`, `check` | frame-check, flash-check, 음량 보고 | `src/packages/beats.ts` + `scripts/assets/beats.py`, `scripts/assets/voice.py`, 스튜디오 감사의 대비·레이아웃, `frameforge check` 통합(frame, flash, seam, narration). 전사는 `scripts/transcribe.mjs`(whisper.cpp, 2026-10-24 설치) |
+| 외부 애니메이션 라이브러리 어댑터(seek 계약) | Lottie 어댑터만 | `<Seekable>`/`useSeekable`(Web Animations 또는 seek 어댑터). 기본은 여전히 React 프레임 함수 |
 
 ### 3.2 기준 엔진 Agent Skills(문서만)
 
@@ -49,7 +49,7 @@
 | captions(전사, SRT, 표시) | 파싱·직렬화 | `<Subtitles>`, `captionsFromTiming` → SRT |
 | silence-detection | 없음 | `scripts/silence-detect.mjs` |
 | audio-visualization | 있음(`visualizeAudio`) | 유지 |
-| maps | 없음 | 보류(지리 데이터 공급원 미정) |
+| maps | 없음 | `MapOutline`, `RouteMap`, `Markers`와 `geo.py`(Natural Earth 공개 데이터). 타일 지도 공급자는 쓰지 않음 |
 | video-editing(Track), multi-scene, calculate-metadata | 있음 | 유지 |
 
 ### 3.3 Blender용 MCP

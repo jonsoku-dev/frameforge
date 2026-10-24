@@ -33,6 +33,8 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [reference/three-d.md](reference/three-d.md) | `3d.json`, 헤드리스 Blender 렌더, Poly Haven 모델, `ImageSequence`, `Model` |
 | [reference/effects.md](reference/effects.md) | 색 보정, LUT, 라이트 리크, 비네트, 그레인 |
 | [reference/generative.md](reference/generative.md) | 생성 배경 시스템과 손그림 주석 |
+| [reference/blocks-maps.md](reference/blocks-maps.md) | 블록 카탈로그 3: 지도, 경로, 마커와 `geo.py` |
+| [reference/seekable.md](reference/seekable.md) | 외부 애니메이션 라이브러리를 프레임으로 구동하는 어댑터 |
 | [reference/tooling.md](reference/tooling.md) | 출력 형식, 박자 그리드, 레이아웃·대비 감사, 무음 탐지, `frameforge check` |
 
 ## 제작 가이드
