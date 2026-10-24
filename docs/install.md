@@ -203,11 +203,6 @@ npm run skill:uninstall -- --dry-run       # 지울 링크 목록만 출력, 아
 | `FFPROBE_PATH` | `ffprobe` | Vite 미들웨어, 스튜디오 검사, `art.py`, `frame-check.mjs`, `snapshot-diff.mjs` | ffprobe 실행 파일. `frame-check.mjs`와 `snapshot-diff.mjs`는 값이 없으면 `FFMPEG_PATH`의 `ffmpeg`를 `ffprobe`로 바꾼 경로를 씁니다. |
 | `FRAMEFORGE_SFX_LICENSES` | `cc0` | `scripts/assets/sfx.py` | Openverse 효과음의 허용 라이선스(쉼표 목록). `cc0,by`로 CC BY를 허용하면 `CREDITS.md`가 생깁니다. |
 | `FRAMEFORGE_IMAGE_COMMAND` | 없음 | `scripts/assets/art.py` | 호스트의 이미지 생성 도구를 부르는 셸 명령 템플릿. `{prompt}`와 선택적으로 `{out}`을 넣습니다. 셸로 실행됩니다. |
-| `ELEVENLABS_API_KEY` | 없음 | `scripts/assets/sfx.py`, `score.py` | 효과음 텍스트 생성. 음악 공급자 `"provider": "elevenlabs"`는 아직 연결되지 않은 스텁이라 키가 있으면 `NotImplementedError`로 멈춥니다. 키가 없으면 내장 합성을 씁니다. |
-| `ELEVENLABS_URL` | `https://api.elevenlabs.io/v1/sound-generation?output_format=pcm_48000` | `scripts/assets/sfx.py` | 효과음 생성 엔드포인트 |
-| `SUNO_API_KEY` | 없음 | `scripts/assets/score.py` | 음악 공급자 `"provider": "suno"`용. ElevenLabs 음악과 같은 스텁입니다. |
-| `RECRAFT_API_KEY` | 없음 | `scripts/assets/art.py` | Recraft 벡터 그림 생성(`recraftv4_1_vector`) |
-| `RECRAFT_URL` | `https://external.api.recraft.ai/v1` | `scripts/assets/art.py` | Recraft API 기준 주소 |
 | `OPENVERSE_URL` | `sfx.py`: `https://api.openverse.org/v1/audio/`, `art.py`: `https://api.openverse.org/v1/images/` | `sfx.py`, `art.py` | Openverse 검색 엔드포인트. 두 스크립트가 같은 이름을 다른 뜻으로 씁니다. 하나에 맞춰 설정하면 다른 하나가 틀린 엔드포인트를 부르므로, 설정할 때는 그 스크립트를 실행하는 명령에만 붙입니다. |
 
-API 키는 셸 프로필이나 실행 명령 앞에 둡니다. 저장소 안 파일에는 적지 않습니다. `art.py`는 이미지 명령을 기록할 때 이름에 `KEY`, `TOKEN`, `SECRET`, `PASSWORD`가 들어간 환경 변수의 값을 `<redacted>`로 가립니다.
+이미지 명령에 넣는 토큰 같은 비밀 값은 셸 프로필이나 실행 명령 앞에 둡니다. 저장소 안 파일에는 적지 않습니다. `art.py`는 이미지 명령을 기록할 때 이름에 `KEY`, `TOKEN`, `SECRET`, `PASSWORD`가 들어간 환경 변수의 값을 `<redacted>`로 가립니다.

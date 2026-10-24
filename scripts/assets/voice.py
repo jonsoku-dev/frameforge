@@ -6,12 +6,11 @@ ffprobe, concatenates with the gaps into public/audio/generated/<slug>/voice.wav
 examples/samples/<slug>/narration.timing.json, the small file the Spot imports. Format and policy: docs/reference/voice.md.
 
 Providers, in `auto` order (a spec's voice.provider pins one):
-  elevenlabs  POST /v1/text-to-speech/<voice>, eleven_multilingual_v2, pcm_48000; needs ELEVENLABS_API_KEY
   kokoro      the kokoro_onnx package (pip install kokoro-onnx) with model files; English and Japanese only
   say         macOS speech (Yuna for ko, Kyoko for ja, Samantha for en); absent on Linux
   silent      silence as long as the text would take to read; lines are marked estimated
 """
-import hashlib, json, os, re, shutil, subprocess, sys, tempfile, time, urllib.request, wave
+import hashlib, json, os, re, shutil, subprocess, sys, tempfile, time, wave
 import numpy as np
 import score, sfx
 
@@ -21,13 +20,11 @@ GENERATION = 'v1'  # part of every line hash; raising it regenerates every voice
 TRIM_DB, PAD_S = -45, 0.06
 PEAK_DB, TARGET_I, TARGET_TP = -3, -16, -3
 LANGUAGES = ('ko', 'en', 'ja')
-PROVIDERS = ('auto', 'elevenlabs', 'kokoro', 'say', 'silent')
+PROVIDERS = ('auto', 'kokoro', 'say', 'silent')
 SAY_VOICES = {'ko': 'Yuna', 'ja': 'Kyoko', 'en': 'Samantha'}
 KOKORO = {'en': ('en-us', 'af_sarah'), 'ja': ('ja', 'jf_alpha')}
 KOKORO_MODEL = os.environ.get('KOKORO_MODEL', os.path.expanduser('~/.cache/frameforge/kokoro/kokoro-v1.0.onnx'))
 KOKORO_VOICES = os.environ.get('KOKORO_VOICES', os.path.expanduser('~/.cache/frameforge/kokoro/voices-v1.0.bin'))
-ELEVENLABS_URL = os.environ.get('ELEVENLABS_URL', 'https://api.elevenlabs.io/v1/text-to-speech')
-ELEVENLABS_VOICE = '21m00Tcm4TlvDq8ikWAM'  # a premade multilingual voice; voice.name takes a voice id instead
 SYLLABLE = re.compile('[가-힣]')  # the same class narration-check.mjs counts
 KANA_KANJI = re.compile('[぀-ヿ一-鿿]')
 
@@ -70,7 +67,7 @@ def validate(spec, path):
 
 def availability(language):
     """Why each provider can or cannot run here. A missing reason means it can."""
-    out = {'elevenlabs': None if os.environ.get('ELEVENLABS_API_KEY') else 'ELEVENLABS_API_KEY is not set', 'say': None if shutil.which('say') else 'say is macOS only', 'silent': None}
+    out = {'say': None if shutil.which('say') else 'say is macOS only', 'silent': None}
     try:
         import kokoro_onnx  # noqa: F401
         if language not in KOKORO:
@@ -88,12 +85,12 @@ def pick(spec):
     """The provider and voice name for this run plus the reasons the earlier tiers were skipped."""
     wanted = spec.get('voice', {}).get('provider', 'auto')
     reasons = availability(spec['language'])
-    order = ['elevenlabs', 'kokoro', 'say', 'silent'] if wanted == 'auto' else [wanted]
+    order = ['kokoro', 'say', 'silent'] if wanted == 'auto' else [wanted]
     provider = next((p for p in order if reasons[p] is None), None)
     if provider is None:
         fail(f"voice.provider '{wanted}' cannot run here: {reasons[wanted]}")
     name = spec.get('voice', {}).get('name')
-    default = {'elevenlabs': ELEVENLABS_VOICE, 'kokoro': KOKORO.get(spec['language'], ('', ''))[1], 'say': SAY_VOICES[spec['language']], 'silent': 'silent'}[provider]
+    default = {'kokoro': KOKORO.get(spec['language'], ('', ''))[1], 'say': SAY_VOICES[spec['language']], 'silent': 'silent'}[provider]
     return provider, name or default, {p: reasons[p] for p in order[:order.index(provider)]}
 
 
@@ -105,13 +102,6 @@ def speak(provider, voice, language, rate, text, tmp):
     if provider == 'say':
         subprocess.run(['say', '-v', voice, '-o', raw + '.wav', '--data-format=LEF32@48000', *(['-r', str(round(180 * rate))] if rate else []), text], check=True)
         return sfx.decode(raw + '.wav')
-    if provider == 'elevenlabs':
-        body = {'text': text, 'model_id': 'eleven_multilingual_v2', **({'voice_settings': {'speed': rate}} if rate else {})}
-        request = urllib.request.Request(f'{ELEVENLABS_URL}/{voice}?output_format=pcm_48000', data=json.dumps(body).encode(),
-                                         headers={'xi-api-key': os.environ['ELEVENLABS_API_KEY'], 'Content-Type': 'application/json'})
-        with urllib.request.urlopen(request, timeout=120) as response, open(raw, 'wb') as f:
-            f.write(response.read())
-        return sfx.decode(raw, pcm=True)
     from kokoro_onnx import Kokoro
     samples, sr = Kokoro(KOKORO_MODEL, KOKORO_VOICES).create(text, voice=voice, speed=rate or 1.0, lang=KOKORO[language][0])
     with wave.open(raw + '.wav', 'wb') as f:

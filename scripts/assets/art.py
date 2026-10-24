@@ -1,9 +1,9 @@
 """Resolve the illustrations of a film's assets.json into sanitized SVG files: handed over by the host agent, drawn by an image
-command, generated, fetched from a CC0 library, or mapped to the motif kit.
+command, fetched from a CC0 library, or mapped to the motif kit.
 
 assets.json sits next to the film's audio.json:
   {"slug", "palette": {"ink", "accent", "soft", "paper"},
-   "assets": [{"name", "intent", "source"?: auto|host|image-command|generate|library|kit, "recolor"?: true, "file"?: "path"}]}
+   "assets": [{"name", "intent", "source"?: auto|host|image-command|library|kit, "recolor"?: true, "file"?: "path"}]}
 Providers, in order (an entry's `source` pins one; `auto` tries them in this order):
   host           a file the host agent (Claude, Codex, Cursor, Grok Build...) made with its own image tool and placed at
                  public/assets/generated/<slug>/<name>.svg|.png|.webp, or named in the entry's `file`. SVG is sanitized
@@ -11,7 +11,6 @@ Providers, in order (an entry's `source` pins one; `auto` tries them in this ord
                  taken as a raster asset as is (width and height recorded, no recolor). Hand-over: place the file, run `npm run art`.
   image-command  FRAMEFORGE_IMAGE_COMMAND, a shell template with {prompt} and optional {out}; the first PNG is {out} or the
                  first entry of `paths` in the JSON it prints. vtracer traces it to SVG (flat preset); without vtracer the PNG stays raster.
-  generate       Recraft vector (POST {RECRAFT_URL}/images/generations, model recraftv4_1_vector) when RECRAFT_API_KEY is set
   library        Openverse images (https://api.openverse.org/v1/images/, no key), CC0 SVG only, Wikimedia Commons preferred
   kit            a component of src/assets (`import {Cup} from '@/assets'`); no file is written
 Every SVG is sanitized (no script, foreignObject, foreign namespaces, event attributes, external references) and given a
@@ -24,9 +23,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, 'public', 'assets', 'generated')
-RECRAFT_URL = os.environ.get('RECRAFT_URL', 'https://external.api.recraft.ai/v1')
 OPENVERSE_URL = os.environ.get('OPENVERSE_URL', 'https://api.openverse.org/v1/images/')
-RECRAFT_MODEL = 'recraftv4_1_vector'
 GENERATION = 'art-1'  # bump to invalidate every resolved asset
 TIMEOUT = 20
 FFMPEG = os.environ.get('FFMPEG_PATH', 'ffmpeg')
@@ -35,7 +32,7 @@ HOST_TYPES = ('.svg', '.png', '.webp')
 VTRACER = '0.6.15'
 IMAGE_PROMPT = 'flat vector illustration, single object, centered, plain white background, no text, thick uniform outlines, limited palette'
 MAX_SVG_BYTES = 3_000_000
-SOURCES = ('auto', 'host', 'image-command', 'generate', 'library', 'kit')
+SOURCES = ('auto', 'host', 'image-command', 'library', 'kit')
 SLOTS = ('ink', 'accent', 'soft', 'paper')
 # Same thresholds as paletteSlot in src/core/art.tsx.
 PAPER_L, ACCENT_S, ACCENT_L, INK_L = 0.92, 0.35, (0.15, 0.85), 0.4
@@ -131,17 +128,6 @@ def fetch(url, data=None, headers=None, timeout=TIMEOUT):
     if len(body) > MAX_SVG_BYTES:
         raise ValueError(f'response larger than {MAX_SVG_BYTES} bytes')
     return body
-
-
-def recraft(intent, palette):
-    """Generate one SVG with Recraft and return (svg text, source record)."""
-    rgb = [{'rgb': list(rgb_of(palette[k]))} for k in ('ink', 'accent', 'soft') if k in palette]
-    body = {'prompt': f'{intent}, simple flat vector illustration, clean shapes, plain background', 'model': RECRAFT_MODEL,
-            'size': '1:1', 'response_format': 'url', 'controls': {'colors': rgb}}
-    reply = json.loads(fetch(f'{RECRAFT_URL}/images/generations', json.dumps(body).encode(), timeout=120,
-                             headers={'Authorization': f"Bearer {os.environ['RECRAFT_API_KEY']}", 'Content-Type': 'application/json'}))
-    url = reply['data'][0]['url']
-    return fetch(url, timeout=60).decode('utf-8'), {'model': RECRAFT_MODEL, 'url': url, 'license': 'recraft-generated'}
 
 
 def openverse(query):
@@ -308,14 +294,6 @@ def resolve(entry, palette, folder, manifest, catalog):
                 note(f'image-command failed: {error}')
         elif source == 'image-command':
             note('image-command: FRAMEFORGE_IMAGE_COMMAND is not set')
-        if picked is None and source in ('auto', 'generate') and os.environ.get('RECRAFT_API_KEY'):
-            try:
-                svg, src = recraft(intent, palette)
-                picked = (sanitize(svg), None, dict(src, title=intent, creator='Recraft', attribution=None), 'generate')
-            except (urllib.error.URLError, ValueError, KeyError, IndexError, ET.ParseError, OSError) as error:
-                note(f'generate failed: {error}')
-        elif source == 'generate':
-            note('generate: RECRAFT_API_KEY is not set')
         if picked is None and source in ('auto', 'library'):
             try:
                 found = library(intent)
@@ -362,7 +340,7 @@ def resolve(entry, palette, folder, manifest, catalog):
 
 
 def write_credits(folder, manifest):
-    """CC0 and generated art need no credit; anything else must be credited wherever the video is published."""
+    """CC0 art needs no credit; anything else must be credited wherever the video is published."""
     lines = [f"- `{name}.svg`: {r['source'].get('attribution') or r['source'].get('title')} ({r['source'].get('landing')})"
              for name, r in sorted(manifest.items()) if r.get('provider') == 'library' and r['source'].get('license') != 'cc0']
     path = os.path.join(folder, 'CREDITS.md')
@@ -438,16 +416,9 @@ def self_check():
     assert kit_match({'name': 'hero', 'intent': 'a steaming coffee mug'}, kit) == 'Cup' and kit_match({'name': 'x', 'intent': 'zebra'}, kit) is None
     assert kit_match({'name': 'savings', 'intent': 'stack of coins'}, kit) == 'CoinStack'
 
-    seen = []
     class Mock(http.server.BaseHTTPRequestHandler):
         def reply(self, body, kind):
             self.send_response(200); self.send_header('Content-Type', kind); self.end_headers(); self.wfile.write(body.encode())
-        def do_POST(self):
-            body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-            seen.append(body)
-            assert self.path == '/v1/images/generations' and self.headers['Authorization'] == 'Bearer test-key', (self.path, self.headers)
-            assert body['model'] == 'recraftv4_1_vector' and body['response_format'] == 'url' and 'style' not in body and 'coffee' in body['prompt'], body
-            self.reply(json.dumps({'created': 1, 'credits': 80, 'data': [{'image_id': 'img-1', 'url': f'{base}/files/gen.svg'}]}), 'application/json')
         def do_GET(self):
             if self.path.startswith('/files/'):
                 return self.reply(dirty, 'image/svg+xml')
@@ -461,19 +432,17 @@ def self_check():
     server = http.server.HTTPServer(('127.0.0.1', 0), Mock)
     base = f'http://127.0.0.1:{server.server_port}'
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    global RECRAFT_URL, OPENVERSE_URL
-    RECRAFT_URL, OPENVERSE_URL = f'{base}/v1', f'{base}/v1/images/'
-    os.environ['RECRAFT_API_KEY'] = 'test-key'
+    global OPENVERSE_URL
+    OPENVERSE_URL = f'{base}/v1/images/'
     real_fetch = globals()['fetch']
     # The library only accepts https results; route the fake https hosts to the http mock.
     globals()['fetch'] = lambda url, *a, **k: real_fetch(re.sub(r'^https://(other|wiki)\.example', base + '/files', url), *a, **k)
     with tempfile.TemporaryDirectory() as folder:
-        record = resolve({'name': 'cup', 'intent': 'coffee cup'}, palette, folder, {}, kit)
-        assert record['provider'] == 'generate' and record['source']['model'] == RECRAFT_MODEL and seen[0]['controls']['colors'][0]['rgb'] == [16, 24, 32], record
+        record = resolve({'name': 'cup', 'intent': 'mug'}, palette, folder, {}, kit)
+        assert record['provider'] == 'library' and record['source']['id'] == 'w', record
         written = open(os.path.join(folder, 'cup.svg')).read()
         assert 'script' not in written and 'stroke="#ff5a36"' in written and 'viewBox' in written, written
-        assert resolve({'name': 'cup', 'intent': 'coffee cup'}, palette, folder, {'cup': record}, kit) is record, 'unchanged entry reuses its pin'
-        del os.environ['RECRAFT_API_KEY']
+        assert resolve({'name': 'cup', 'intent': 'mug'}, palette, folder, {'cup': record}, kit) is record, 'unchanged entry reuses its pin'
         record = resolve({'name': 'mug', 'intent': 'mug', 'recolor': False}, palette, folder, {}, kit)
         assert record['provider'] == 'library' and record['source']['id'] == 'w' and record['source']['provider'] == 'wikimedia', record
         assert '#E63946' in open(os.path.join(folder, 'mug.svg')).read(), 'recolor: false keeps the file colours'
@@ -517,7 +486,7 @@ def self_check():
         record = resolve({'name': 'down', 'intent': 'phone'}, palette, folder, {}, kit)
         assert record['provider'] == 'kit' and record['fallback'].startswith('image-command failed: exit 3'), record
         del os.environ['FRAMEFORGE_IMAGE_COMMAND']
-    print('art self-check ok (host svg/png/file, image-command {out}/paths/fail/no-vtracer, sanitizer, palette slots, recolor, kit match, mock Recraft, mock Openverse, offline fallback, credits)')
+    print('art self-check ok (host svg/png/file, image-command {out}/paths/fail/no-vtracer, sanitizer, palette slots, recolor, kit match, mock Openverse, offline fallback, credits)')
 
 
 if __name__ == '__main__':  # self-check: python3 scripts/assets/art.py --self-check

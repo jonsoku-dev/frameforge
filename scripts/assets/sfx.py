@@ -1,7 +1,6 @@
-"""Resolve one sound effect of an audio spec into <name>.wav: generated from text, fetched from a CC0 library, or synthesized.
+"""Resolve one sound effect of an audio spec into <name>.wav: fetched from a CC0 library, or synthesized.
 
 Providers, in order (an entry's `source` pins one; `auto` tries them in this order):
-  generate  ElevenLabs text-to-sound (POST /v1/sound-generation, pcm_48000) when ELEVENLABS_API_KEY is set
   library   Openverse audio search (https://api.openverse.org/v1/audio/, no key, anonymous limits 20/min 200/day),
             CC0 only unless FRAMEFORGE_SFX_LICENSES=cc0,by; results are Freesound hq mp3 previews (128 kbps ceiling)
   synth     the procedural presets in score.py
@@ -13,7 +12,6 @@ import hashlib, json, os, re, subprocess, urllib.error, urllib.parse, urllib.req
 import numpy as np
 
 OPENVERSE_URL = os.environ.get('OPENVERSE_URL', 'https://api.openverse.org/v1/audio/')
-ELEVENLABS_URL = os.environ.get('ELEVENLABS_URL', 'https://api.elevenlabs.io/v1/sound-generation?output_format=pcm_48000')
 LICENSES = set(os.environ.get('FRAMEFORGE_SFX_LICENSES', 'cc0').split(','))
 PLAYABLE = {'mp3', 'wav', 'ogg', 'flac'}
 MAX_LIBRARY_MS, IDEAL_MS = 15000, 2500
@@ -39,11 +37,10 @@ def entry_hash(entry, generation):
     return hashlib.sha256((json.dumps(entry, sort_keys=True) + generation + ','.join(sorted(LICENSES))).encode()).hexdigest()[:16]
 
 
-def decode(path, pcm=False):
-    """Any audio file to float32 stereo at 48 kHz. `pcm`: the file is headerless 16-bit mono 48 kHz (what the text-to-sound API returns)."""
+def decode(path):
+    """Any audio file to float32 stereo at 48 kHz."""
     import score
-    header = ['-f', 's16le', '-ar', '48000', '-ac', '1'] if pcm else []
-    raw = subprocess.run([score.FFMPEG, '-v', 'error', *header, '-i', path, '-f', 'f32le', '-ac', '2', '-ar', str(score.SR), '-'], capture_output=True, check=True).stdout
+    raw = subprocess.run([score.FFMPEG, '-v', 'error', '-i', path, '-f', 'f32le', '-ac', '2', '-ar', str(score.SR), '-'], capture_output=True, check=True).stdout
     return np.frombuffer(raw, '<f4').reshape(-1, 2).T.astype(np.float64)
 
 
@@ -101,14 +98,6 @@ def download(url, path):
         f.write(response.read())
 
 
-def elevenlabs(intent, length, path):
-    body = json.dumps({'text': intent, 'duration_seconds': min(30, max(0.5, length)), 'prompt_influence': 0.3, 'model_id': 'eleven_text_to_sound_v2'}).encode()
-    request = urllib.request.Request(ELEVENLABS_URL, data=body, headers={'xi-api-key': os.environ['ELEVENLABS_API_KEY'], 'Content-Type': 'application/json'})
-    with urllib.request.urlopen(request, timeout=90) as response, open(path, 'wb') as f:
-        f.write(response.read())
-    return {'provider': 'elevenlabs', 'model': 'eleven_text_to_sound_v2', 'format': 'pcm_48000'}
-
-
 def resolve(spec, entry, folder, tmp, synth, generation, manifest):
     """Write <folder>/<name>.wav for one entry and return its manifest record. `synth(preset, variant, length)` renders the fallback."""
     import score
@@ -123,14 +112,7 @@ def resolve(spec, entry, folder, tmp, synth, generation, manifest):
     record = {'hash': key, 'intent': intent, 'provider': None, 'fallback': None}
     raw = os.path.join(tmp, name + '.src')
     x = None
-    if intent and source in ('auto', 'generate') and os.environ.get('ELEVENLABS_API_KEY'):
-        try:
-            record['source'] = elevenlabs(intent, length, raw)
-            x = decode(raw, pcm=True) if os.path.getsize(raw) else None
-            record['provider'] = 'generate'
-        except (urllib.error.URLError, subprocess.CalledProcessError, OSError) as error:
-            record['fallback'] = f'generate failed: {error}'
-    if x is None and intent and source in ('auto', 'library'):
+    if intent and source in ('auto', 'library'):
         try:
             pick = next((p for p in map(openverse, queries(entry)) if p), None)
             if pick:
@@ -177,22 +159,14 @@ if __name__ == '__main__':  # self-check: python3 scripts/assets/sfx.py
     silence, tone = np.zeros((2, score.SR // 2)), np.sin(2 * np.pi * 440 * np.arange(score.SR) / score.SR) * 0.5
     x, trimmed = condition(np.concatenate([silence, np.stack([tone, tone])], axis=1), 0.3)
     assert abs(trimmed - (500 - PRE_ROLL_S * 1000)) < 1 and x.shape[1] == int(0.3 * score.SR) and abs(x[0, -1]) < 1e-6, (trimmed, x.shape)
-    import http.server, tempfile, threading, wave as _wave
-    class Mock(http.server.BaseHTTPRequestHandler):
-        def do_POST(self):
-            body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-            assert self.headers['xi-api-key'] == 'test-key' and body['model_id'] == 'eleven_text_to_sound_v2' and 0.5 <= body['duration_seconds'] <= 30
-            n = int(body['duration_seconds'] * 48000)
-            pcm = (np.sin(2 * np.pi * 440 * np.arange(n) / 48000) * 0.5 * 32767).astype('<i2').tobytes()
-            self.send_response(200); self.send_header('Content-Type', 'audio/pcm'); self.end_headers(); self.wfile.write(pcm)
-        log_message = lambda *a: None
-    server = http.server.HTTPServer(('127.0.0.1', 0), Mock)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    os.environ['ELEVENLABS_API_KEY'], ELEVENLABS_URL = 'test-key', f'http://127.0.0.1:{server.server_port}/v1/sound-generation'
+    import socket, tempfile, wave as _wave
+    with socket.socket() as closed:  # a port nobody listens on: the library is unavailable, so the entry falls back to synth
+        closed.bind(('127.0.0.1', 0))
+        OPENVERSE_URL = f'http://127.0.0.1:{closed.getsockname()[1]}/v1/audio/'
     with tempfile.TemporaryDirectory() as folder, tempfile.TemporaryDirectory() as tmp:
-        record = resolve({'seed': 1}, {'name': 'gen', 'intent': 'a short glass tap', 'length': 0.6}, folder, tmp, lambda *a: np.zeros((2, 48000)), 'v2', {})
-        assert record['provider'] == 'generate' and record['source']['format'] == 'pcm_48000', record
-        with _wave.open(os.path.join(folder, 'gen.wav')) as w:
+        tone = lambda preset, variant, length: np.sin(2 * np.pi * 440 * np.arange(int(length * score.SR)) / score.SR) * 0.5
+        record = resolve({'seed': 1}, {'name': 'tap', 'intent': 'a short glass tap', 'length': 0.6}, folder, tmp, tone, 'v2', {})
+        assert record['provider'] == 'synth' and record['preset'] == 'click' and record['fallback'].startswith('library unavailable'), record
+        with _wave.open(os.path.join(folder, 'tap.wav')) as w:
             assert w.getnchannels() == 2 and w.getframerate() == 48000 and abs(w.getnframes() / 48000 - 0.6) < 0.01, w.getnframes()
-    server.shutdown()
-    print('sfx self-check ok (synth rules, conditioning, mock text-to-sound)')
+    print('sfx self-check ok (synth rules, conditioning, offline library fallback to synth)')

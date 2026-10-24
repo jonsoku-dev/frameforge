@@ -122,5 +122,5 @@ VIDEO_ENTRY=examples/samples/cafe-morning/entry.tsx npm run dev
 
 - 확인 명령. 타입은 `npx tsc --noEmit`, 테스트는 `npm test`, 작품 결정성은 `npm run lint:video -- <entry.tsx>`입니다.
 - 렌더 결과는 `renders/`, 생성된 소리와 그림은 `public/audio/generated/`, `public/assets/generated/`에 쌓입니다. 모두 gitignore 대상이며 커밋하지 않습니다.
-- API 키(`ELEVENLABS_API_KEY`, `RECRAFT_API_KEY`)를 파일에 쓰지 않습니다. 환경 변수 목록은 [docs/install.md](docs/install.md#환경-변수)입니다.
+- 비밀 값(토큰, 비밀번호)을 파일에 쓰지 않습니다. 환경 변수 목록은 [docs/install.md](docs/install.md#환경-변수)입니다.
 - 제거는 [docs/uninstall.md](docs/uninstall.md)의 순서를 따릅니다.
