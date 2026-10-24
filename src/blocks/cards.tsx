@@ -44,7 +44,7 @@ export function NotificationCard({icon: Icon, title, body, time, from = 'top', w
         <div style={{fontFamily: fonts.display, fontSize: size, fontWeight: 900, lineHeight: 1.1, whiteSpace: 'nowrap'}}>{title}</div>
         <div style={{fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500, lineHeight: 1.25, whiteSpace: 'nowrap'}}>{body}</div>
       </div>
-      <div style={{fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500, alignSelf: 'flex-start', opacity: 0.6, whiteSpace: 'nowrap'}}>{time}</div>
+      <div style={{fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500, alignSelf: 'flex-start', whiteSpace: 'nowrap'}}>{time}</div>
     </div>
   </div>;
 }
@@ -56,7 +56,8 @@ export function MessageThread({messages, step = 24, typing = 10, width, ...props
   const {frame, at, size, palette, fonts, fps = 30, id = `thread-${at}`} = props;
   const {leave, hidden} = blockPhase(props, 1, 12);
   const pops = messages.map((_, i) => blockSettle(frame, at + i * step, 14, fps));
-  const avatar = (m: Message) => <div style={{width: size * 1.3, height: size * 1.3, borderRadius: '50%', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.side === 'left' ? palette.ink : palette.accent}}><span style={{color: palette.paper, fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500}}>{Array.from(m.name)[0]}</span></div>;
+  // Left avatars are paper discs with an ink outline so they read on ink and paper fields alike; right avatars are accent.
+  const avatar = (m: Message) => <div style={{width: size * 1.3, height: size * 1.3, borderRadius: '50%', flex: 'none', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.side === 'left' ? palette.paper : palette.accent, border: m.side === 'left' ? `${Math.max(2, size * 0.05)}px solid ${palette.ink}` : 'none'}}><span style={{color: m.side === 'left' ? palette.ink : palette.paper, fontFamily: fonts.ui, fontSize: size * 0.8, fontWeight: 500}}>{Array.from(m.name)[0]}</span></div>;
   const bubble = (m: Message, inner: CSSProperties, children: ReactNode) => <div style={{padding: `${size * 0.45}px ${size * 0.8}px`, borderRadius: size * 0.9, background: m.side === 'left' ? palette.soft : palette.accent, color: m.side === 'left' ? palette.ink : palette.paper, fontFamily: fonts.ui, fontSize: size, fontWeight: 500, lineHeight: 1.3, maxWidth: '80%', wordBreak: 'keep-all', transformOrigin: m.side === 'left' ? 'bottom left' : 'bottom right', ...inner}}>{children}</div>;
   return <div style={blockPlace(props, hidden)}>
     <MotionProbe id={id} value={pops.reduce((sum, pop) => sum + pop, 0)} family="card" axis="scale" />

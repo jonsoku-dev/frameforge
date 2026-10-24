@@ -25,7 +25,7 @@
 
 ## Blocks
 
-All from `@/blocks` with the shared contract (`frame`, `at`, `out`, `palette`, `fonts`, `size` 43 px for the charts and code, 48 for the donut and heatmap, 56-60 for the diagrams, placement on the 1600×760 stage at 160,240 over the 1696×828 card). No asset is drawn in this file; axes, connectors, checks and arrowheads are the blocks' own paths in one stroke width (`size × 1.5/3.5` = 18.5 px) and one corner radius (`size × 0.4`).
+All from `@/blocks` with the shared contract (`frame`, `at`, `out`, `palette`, `fonts`, `size` 43 px for the charts and code, 48 for the donut, heatmap and compare table, 56-72 for the diagrams, placement on the 1504×760 stage at 208,240 over the 1696×828 card, 96 px inside its edges). The flowchart's card shrinks to 600 px around its nodes; the process steps run full-bleed on the soft field with no card. No asset is drawn in this file; axes, connectors, checks and arrowheads are the blocks' own paths in one stroke width (`size × 1.5/3.5` = 18.5 px) and one corner radius (`size × 0.4`).
 
 ## Scene table (absolute frames, 30 fps)
 
@@ -37,8 +37,8 @@ All from `@/blocks` with the shared contract (`frame`, `at`, `out`, `palette`, `
 | 225-345 | 7.5-11.5 s | `BarChartRace` five categories over four snapshots | BarChartRace | bars re-sort 229-325 with smooth y, widths follow values, month label swaps | "카테고리 순위", 식비 교통 쇼핑 여가 구독 |
 | 345-435 | 11.5-14.5 s | `Donut` 560 px left, `Heatmap` 7×4 right | Donut, Heatmap | ring sweeps to 72% 349-394 with the counter; cells pop in a seeded order 355-400 | "예산 달성과 소비 시간", 이달 예산 달성, 요일과 시간대 |
 | 435-525 | 14.5-17.5 s | `CodeBlock` panel 1600×620 on the stage | CodeBlock (typing) | panel rises 439-453, characters type at 5 per frame with a caret, done by ~479 | "자동 분류 규칙", a TypeScript rule table |
-| 525-600 | 17.5-20 s | `Flowchart` four nodes in a row | Flowchart | nodes pop 529-569 staggered, arrows draw after both ends landed | "알림이 오기까지", 결제 → 자동 분류 → 예산 비교 → 알림 |
-| 600-675 | 20-22.5 s | `ProcessSteps` three numbered circles | ProcessSteps | the fill runs 612-664 through all three, the near step scales up | "시작은 세 단계" |
+| 525-600 | 17.5-20 s | `Flowchart` four nodes 284×288 in a row on a card shrunk to 600 px | Flowchart | nodes pop 529-569 staggered, arrows draw after both ends landed | "알림이 오기까지", 결제 → 자동 분류 → 예산 비교 → 알림 |
+| 600-675 | 20-22.5 s | `ProcessSteps` three numbered circles (137 px, 178 active) full-bleed on the soft field, no card | ProcessSteps | the fill runs 612-664 through all three, the near step scales up | "시작은 세 단계" |
 | 675-750 | 22.5-25 s | `Timeline` four milestones | Timeline | marker travels 689-739, milestones pop as it passes, labels alternate | "출시 일정", 1월 3월 5월 7월 |
 | 750-815 | 25-27.2 s | `Compare` two columns, four rows | Compare | rows rise 760-794 in sync, checks and crosses draw per cell | "기본과 프로" |
 | 815-840 | 27.2-28 s | Ink wipes up over the stage; name 240 px | — | wipe 815-827, glyphs rise 817-835, accent bar 825-839, tagline fades 828-840 | "누리장부", "가계부 앱 · 가상 브랜드 · 예시 데이터" |

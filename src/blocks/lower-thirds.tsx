@@ -26,12 +26,13 @@ export function LowerThird({variant = 'clean-bar', name, role, side = 'left', en
   const body = {
     'clean-bar': <div style={{display: 'flex', flexDirection: side === 'left' ? 'row' : 'row-reverse', alignItems: 'stretch', gap: size * 0.4}}>
       <div style={{width: size * 0.14, background: palette.accent, transform: `scaleY(${shape})`, transformOrigin: 'bottom'}} />
-      <div style={{display: 'flex', flexDirection: 'column', gap: size * 0.22, alignItems: side === 'left' ? 'flex-start' : 'flex-end'}}>{risen(first, name, nameStyle)}{risen(second, role, roleStyle)}</div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: size * 0.22, alignItems: side === 'left' ? 'flex-start' : 'flex-end'}}>{risen(shape, name, nameStyle)}{risen(first, role, roleStyle)}</div>
     </div>,
     'bold-block': <div style={{display: 'flex', flexDirection: 'column', gap: size * 0.12, alignItems: side === 'left' ? 'flex-start' : 'flex-end'}}>
       <div style={{padding: `${size * 0.3}px ${size * 0.5}px`, background: palette.ink, transform: `scaleX(${shape})`, transformOrigin: origin}}>{risen(first, name, {...nameStyle, color: palette.paper})}</div>
       <div style={{padding: `${size * 0.18}px ${size * 0.5}px`, background: palette.accent, transform: `scaleX(${second})`, transformOrigin: origin}}><span style={{...roleStyle, color: palette.paper}}>{role}</span></div>
     </div>,
+    // Kicker design: the role runs as a small line above the name, the one variant where the name is not first.
     'kicker-name': <div style={{display: 'flex', flexDirection: 'column', gap: size * 0.22, alignItems: side === 'left' ? 'flex-start' : 'flex-end'}}>
       <span style={{background: palette.accent, padding: `${size * 0.12}px ${size * 0.35}px`, borderRadius: size * 0.1, display: 'inline-block', opacity: shape, transform: `translateX(${(1 - shape) * dir * size * 0.5}px)`}}><span style={{...roleStyle, color: palette.paper}}>{role}</span></span>
       {risen(first, name, nameStyle)}

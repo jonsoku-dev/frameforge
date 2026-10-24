@@ -81,7 +81,7 @@ function Define({frame, at, progress}: {frame: number; at: number; progress: num
       {/* The promoted word sits behind the ring, the subject, not behind the labels. */}
       <div style={{position: 'absolute', inset: 0, transform: `translateX(${W * 0.31 - W / 2}px)`}}><Subtitles timing={timing} style="embed" {...captions} /></div>
       <div style={{position: 'absolute', left: W * 0.31 - size / 2, top: (H - size) / 2, ...center}}>
-        <Ring size={size} share={progress} draw={span(frame, at + 6, 30)} />
+        <Ring size={size} share={progress} draw={span(frame, at + 6, 30)} track="transparent" />
       </div>
       <div style={{position: 'absolute', left: W * 0.6, top: H * 0.5 - SIZES.label * 2, display: 'flex', flexDirection: 'column', gap: S * 0.02}}>
         <Label frame={frame} at={at + 20} size={SIZES.label * 1.6}>집중한 시간</Label>
@@ -100,7 +100,7 @@ function FormulaScene({frame, at, progress}: {frame: number; at: number; progres
       <div style={{display: 'flex', gap: S * 0.08}}>
         <Label frame={frame} at={at + 24}>분자: 집중 시간</Label>
         <Label frame={frame} at={at + 30}>분모: 전체 시간</Label>
-        <Label frame={frame} at={at + 36} color={accent}>I: 예시 지수</Label>
+        <Label frame={frame} at={at + 36}>I: 예시 지수</Label>
       </div>
     </div>
   </AbsoluteFill>;
@@ -125,7 +125,7 @@ function Example({frame, at}: {frame: number; at: number}) {
 }
 
 function Result({frame, at, progress}: {frame: number; at: number; progress: number}) {
-  const value = interpolate(progress, [0.1, 0.9], [0, 62.5], clamp);
+  const value = interpolate(progress, [0.05, 0.55], [0, 62.5], clamp);  // settled before the voice says the number
   const size = SIZES.hero * 1.7;
   return <AbsoluteFill style={{background: paper}}>
     <div style={{position: 'absolute', left: (W - size) / 2, top: (H - size) / 2, ...center}}>
