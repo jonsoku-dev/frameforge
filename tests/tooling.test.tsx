@@ -68,8 +68,9 @@ test('a narration file forms its own stem: music ducks under the voice and under
     const base = '/audio/generated/_voice-stem-test';
     const graph = (segments: ReturnType<typeof segment>[]) => { const args = encodeArgs(['-i', 'v'], ['-c:v', 'x'], 30, 90, segments, 'out.mp4'); return String(args[args.indexOf('-filter_complex') + 1]); };
     const three = graph([segment(`${base}/music.wav`, 0, 0, 89), segment(`${base}/voice.wav`, 0, 0, 29), segment(`${base}/pop.wav`, 40, 40, 60)]);
-    assert.match(three, /\[music\]\[vokey\]sidechaincompress=[^[]*release=250[^[]*\[underv\]/);
-    assert.match(three, /\[underv\]\[fxkey\]sidechaincompress/);
+    assert.match(three, /\[music\]\[vopad\]sidechaincompress=[^[]*release=250[^[]*\[underv\]/);
+    assert.match(three, /\[underv\]\[fxpad\]sidechaincompress/);
+    assert.match(three, /\[fxkey\]apad\[fxpad\]/, 'the key is padded so the bed outlives the last effect');
     assert.match(three, /\[ducked\]\[voout\]\[fxout\]amix=inputs=3/);
     const two = graph([segment(`${base}/music.wav`, 0, 0, 89), segment(`${base}/voice.wav`, 0, 0, 29)]);
     assert.match(two, /\[underv\]\[voout\]amix=inputs=2/);

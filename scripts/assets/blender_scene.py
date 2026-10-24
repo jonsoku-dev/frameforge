@@ -170,6 +170,20 @@ def make_world(scene, shot, generated):
     else:
         colour = linear(shot['background']) if shot['background'] != 'transparent' else (0.5, 0.5, 0.5, 1.0)
         lit = node(tree, 'ShaderNodeBackground', Color=colour, Strength=(0.35 if light['preset'] == 'studio' else 0.6) * strength)
+        if light.get('environment'):
+            # A soft studio sky in one hex: full colour overhead fading to 15 % below the horizon, so metal reflects a floor and a ceiling.
+            coords = tree.nodes.new('ShaderNodeTexCoord')
+            split = tree.nodes.new('ShaderNodeSeparateXYZ')
+            ramp = tree.nodes.new('ShaderNodeMapRange')
+            ramp.inputs['From Min'].default_value, ramp.inputs['From Max'].default_value = -0.3, 0.8
+            ramp.inputs['To Min'].default_value, ramp.inputs['To Max'].default_value = 0.15, 1.0
+            tint = tree.nodes.new('ShaderNodeMix'); tint.data_type, tint.blend_type = 'RGBA', 'MULTIPLY'
+            tint.inputs['Factor'].default_value = 1.0
+            tint.inputs['A'].default_value = linear(light['environment'])
+            tree.links.new(coords.outputs['Generated'], split.inputs['Vector'])
+            tree.links.new(split.outputs['Z'], ramp.inputs['Value'])
+            tree.links.new(ramp.outputs['Result'], tint.inputs['B'])
+            tree.links.new(tint.outputs['Result'], lit.inputs['Color'])
     if shot['background'] == 'transparent':
         tree.links.new(lit.outputs[0], output.inputs['Surface'])
         return
@@ -228,7 +242,9 @@ def make_shadow_catcher(scene, shot, objects):
     occlusion = tree.nodes.new('ShaderNodeAmbientOcclusion')
     occlusion.samples, occlusion.inputs['Distance'].default_value = 16, 2.2
     # fac = 1 - 0.8 * (1 - ao): open ground is transparent, ground under the subject carries up to 80 % ink.
-    opacity = tree.nodes.new('ShaderNodeMath'); opacity.operation = 'MULTIPLY_ADD'; opacity.inputs[1].default_value = 0.8; opacity.inputs[2].default_value = 0.2
+    # A number in shadowCatcher (0..1) sets how much ink the ground under the subject carries; true keeps 0.8.
+    dark = 0.8 if shot['shadowCatcher'] is True else float(shot['shadowCatcher'])
+    opacity = tree.nodes.new('ShaderNodeMath'); opacity.operation = 'MULTIPLY_ADD'; opacity.inputs[1].default_value = dark; opacity.inputs[2].default_value = 1 - dark
     tree.links.new(occlusion.outputs['AO'], opacity.inputs[0])
     mix = tree.nodes.new('ShaderNodeMixShader')
     tree.links.new(opacity.outputs[0], mix.inputs['Fac'])

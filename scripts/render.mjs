@@ -90,7 +90,8 @@ export function encodeArgs(video, encode, fps, count, segments, output, offset =
   const effects = segments.map((_, index) => index).filter(index => !music.includes(index) && !voice.includes(index));
   const label = list => list.map(index => `[a${index}]`).join('');
   const sum = (list, out) => list.length === 1 ? `${label(list)}acopy[${out}]` : `${label(list)}amix=inputs=${list.length}:normalize=0:dropout_transition=0[${out}]`;
-  const duck = (bed, key, out, release) => `[${key}]asplit[${key}key][${key}out];[${bed}][${key}key]sidechaincompress=threshold=0.02:ratio=4:attack=5:release=${release}:level_sc=1[${out}]`;
+  // sidechaincompress stops at the shorter input, so the key is padded with silence or the bed would end with the last effect.
+  const duck = (bed, key, out, release) => `[${key}]asplit[${key}key][${key}out];[${key}key]apad[${key}pad];[${bed}][${key}pad]sidechaincompress=threshold=0.02:ratio=4:attack=5:release=${release}:level_sc=1[${out}]`;
   const stems = [];
   let bed = null;
   if (music.length) { stems.push(sum(music, 'music')); bed = 'music'; }
