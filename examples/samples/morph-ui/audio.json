@@ -1,0 +1,25 @@
+{
+  "slug": "morph-ui",
+  "fps": 60,
+  "durationSeconds": 16.0,
+  "bpm": 120,
+  "key": "A minor",
+  "mood": "tech",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.35, "label": "button, loader, check"},
+    {"from": 4, "to": 10, "energy": 0.7, "label": "toggle, slider, tabs"},
+    {"from": 10, "to": 14, "energy": 0.8, "label": "chart, toast, name"},
+    {"from": 14, "to": 16, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [
+    {"at": 2.0, "weight": 0.7, "style": "soft"},
+    {"at": 10.0, "weight": 1.0, "style": "lift"},
+    {"at": 13.0, "weight": 0.8, "style": "slam"}
+  ],
+  "sfx": [
+    {"name": "click", "preset": "click", "intent": "short dry trackpad click, a UI button pressed", "length": 0.25},
+    {"name": "swish", "preset": "whoosh", "intent": "soft short air swish of a camera zooming past a surface", "length": 0.5}
+  ],
+  "seed": 51,
+  "loudness": {"I": -24, "TP": -2}
+}

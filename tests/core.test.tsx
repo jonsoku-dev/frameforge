@@ -4,7 +4,7 @@ import test from 'node:test';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {readFileSync} from 'node:fs';
 import {AbsoluteFill, absoluteFillSchema, assertValidInterpolateEasingOption, assertValidInterpolatePosterizeOption, collectFrameHints, Config, CurrentScaleContext, Experimental, Folder, FolderContext, getStaticFiles, Html5Audio, Html5Video, IFrame, interpolateColors, MediaPlaybackError, prefetch, setStaticFiles, useBufferState, useCurrentScale, useIsInsideNonPremountFreeze, usePixelDensity, Video, VERSION, watchStaticFile} from '../src/core/index';
-import {Audio, collectAudio, Composition, Still, cancelRender, continueRender, delayRender, getFrameforgeEnvironment, measureSpring, whenRenderReady, Easing, FrameProvider, Freeze, Loop, RegistryContext, Sequence, Series, getInputProps, getRegisteredRoot, googleFont, googleFontHref, interpolate, random, registerRoot, resolveCompositionMetadata, setInputProps, spring, staticFile, useCurrentFrame, useVideoConfig, type CompositionDefinition} from '../src/core/index';
+import {Audio, collectAudio, Composition, Still, cancelRender, continueRender, delayRender, getFrameforgeEnvironment, measureSpring, whenRenderReady, Easing, FrameProvider, Freeze, Loop, RegistryContext, Sequence, Series, getInputProps, getRegisteredRoot, googleFont, googleFontHref, interpolate, random, registerRoot, resolveCompositionMetadata, setInputProps, spring, springTrack, staticFile, useCurrentFrame, useVideoConfig, type CompositionDefinition} from '../src/core/index';
 const config = {id: 'Test', width: 320, height: 180, fps: 30, durationInFrames: 100};
 const Probe = () => <span>{useCurrentFrame()}:{useVideoConfig().durationInFrames}</span>;
 const render = (frame: number, children: React.ReactNode) => renderToStaticMarkup(<FrameProvider config={config} frame={frame}>{children}</FrameProvider>);
@@ -54,6 +54,19 @@ test('interpolate piecewise easing and extrapolation modes', () => {
 test('exponential easing keeps its nonzero initial value', () => {
   assert.equal(Easing.exp(0), 0.0009765625);
 });
+test('springTrack: holds from before the first key, settles on each target, and blends a change made mid-motion', () => {
+  const fps = 60, config = {damping: 20};
+  const keys = [{at: 10, to: 100}, {at: 200, to: 40}];
+  assert.equal(springTrack({frame: 0, fps, from: 5, keys, config}), 5);
+  assert.ok(Math.abs(springTrack({frame: 190, fps, from: 5, keys, config}) - 100) < 0.5);
+  assert.ok(Math.abs(springTrack({frame: 600, fps, from: 5, keys, config}) - 40) < 1e-3);
+  // A retarget 3 frames into the first move: no jump at the retarget frame.
+  const early = [{at: 10, to: 100}, {at: 13, to: 40}];
+  const step = (f: number) => springTrack({frame: f, fps, from: 0, keys: early, config}) - springTrack({frame: f - 1, fps, from: 0, keys: early, config});
+  assert.ok(Math.abs(step(13)) < 2 * Math.abs(step(12)) + 1e-9, `step at retarget ${step(13)} vs before ${step(12)}`);
+  assert.equal(springTrack({frame: 77.5, fps, from: 0, keys: early, config}), springTrack({frame: 77.5, fps, from: 0, keys: early, config}));
+});
+
 test('spring handles damping inputs and validates options', () => {
   for (const damping of [0, 10, 20, 40]) {
     assert.equal(spring({frame: 0, fps: 30, config: {damping}}), 0);

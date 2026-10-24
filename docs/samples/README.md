@@ -18,6 +18,7 @@
 | [blocks-reel](../../examples/samples/blocks-reel/) | `BlocksReel` | 1920×1080, 30초 | 블록 카탈로그 1: 글자 6, 로어서드 6변형, 카드 6을 한 릴에 |
 | [data-reel](../../examples/samples/data-reel/) | `DataReel` | 1920×1080, 30초 | 블록 카탈로그 2: 차트 6, 코드 블록 4모드, 다이어그램 4 |
 | [seam-reel](../../examples/samples/seam-reel/) | `SeamReel` | 1920×1080, 30초 | 이음새 다섯 기법과 캐리어, 너지, `seam-check` 통과 |
+| [morph-ui](../../examples/samples/morph-ui/) | `MorphUi` | 1920×1080, 60fps, 16초 | 연속 모핑: 도형 하나가 컷 없이 버튼·로더·토글·슬라이더·탭·차트·토스트·이름이 됨. 카메라 구도, `springTrack`, `CameraMotionBlur`, 여섯 칸 기획의 예시 |
 | [narrated-explainer](../../examples/samples/narrated-explainer/) | `NarratedExplainer` | 1920×1080, 29초 | 나레이션 먼저: `say` 음성 7줄, 측정 시간으로 장면, rail·embed 자막, KaTeX 수식 |
 | [turntable-spot](../../examples/samples/turntable-spot/) | `TurntableSpot` | 1920×1080, 24초 | 헤드리스 Blender 턴테이블·돌리 샷(`ImageSequence`), Poly Haven 모델(`Model`) |
 | [generative-ident](../../examples/samples/generative-ident/) | `GenerativeIdent` | 1920×1080, 18초 | 오로라·플로우 필드 배경, 라이트 리크 이음새, 그레인·비네트, 손그림 주석, 스튜디오 변수 |
@@ -54,6 +55,7 @@
 | blocks-reel | 900 | 통과(thin 0.04, huddled 0.09) | 1 | 통과(측정 0) | 해당 없음 | 51s |
 | data-reel | 900 | 통과(thin 0, huddled 0.00) | 0 | 통과(측정 0) | 해당 없음 | 54s |
 | seam-reel | 900 | 통과 | 0 | 통과(5곳, 흐름 x−) | 해당 없음 | 51s |
+| morph-ui | 960 (60fps) | 통과(thin 0, huddled 0.00) | 0 | 통과(`Cuts: none`, 측정 0) | 해당 없음 | 50s |
 | narrated-explainer | 870 | 통과 | 0 | 통과(측정 0) | 통과(7줄) | 65s |
 | turntable-spot | 720 | 통과 | 0 | 통과(측정 0) | 해당 없음 | 101s |
 | generative-ident | 540 | 통과 | 0 | 통과(측정 0) | 해당 없음 | 112s |
