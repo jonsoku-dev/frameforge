@@ -13,7 +13,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [manual.md](manual.md) | 사람이 처음부터 따라 하는 설치, 첫 렌더, 작품 만들기, 제거 |
 | [install.md](install.md) | 설치 경로별 단계와 확인 명령, 환경 변수 표 |
 | [uninstall.md](uninstall.md) | 설치의 역순으로 모두 지우는 방법과 확인 명령 |
-| [plugin.md](plugin.md) | 에이전트 플러그인 구조와 스킬 일곱 개 |
+| [plugin.md](plugin.md) | 에이전트 플러그인 구조와 스킬 열한 개 |
 
 ## 레퍼런스
 
@@ -26,6 +26,14 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [reference/cli.md](reference/cli.md) | 저장소 밖 프로젝트용 `frameforge` CLI |
 | [reference/verification.md](reference/verification.md) | 검증 기록, REA 상태, 사용권 |
 | [audio-score.md](audio-score.md) | `audio.json` 형식, 음악 생성, 음량 정책, 움직임에서 나오는 소리 |
+| [reference/blocks-text.md](reference/blocks-text.md) | 블록 카탈로그 1: 글자, 로어서드, 카드 |
+| [reference/blocks-data.md](reference/blocks-data.md) | 블록 카탈로그 2: 차트, 코드, 다이어그램 |
+| [reference/seams.md](reference/seams.md) | 이음새 곡선과 `seam-check` |
+| [reference/voice.md](reference/voice.md) | 나레이션 사양, `voice.py`, `useNarration`, 자막, 수식, `narration-check` |
+| [reference/three-d.md](reference/three-d.md) | `3d.json`, 헤드리스 Blender 렌더, Poly Haven 모델, `ImageSequence`, `Model` |
+| [reference/effects.md](reference/effects.md) | 색 보정, LUT, 라이트 리크, 비네트, 그레인 |
+| [reference/generative.md](reference/generative.md) | 생성 배경 시스템과 손그림 주석 |
+| [reference/tooling.md](reference/tooling.md) | 출력 형식, 박자 그리드, 레이아웃·대비 감사, 무음 탐지, `frameforge check` |
 
 ## 제작 가이드
 
@@ -63,6 +71,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [research/remotion-parity.md](research/remotion-parity.md) | 기준 엔진과의 픽셀 동등성 측정 |
 | [research/sfx-reference-study.md](research/sfx-reference-study.md) | 효과음 제작 방식 조사 |
 | [research/asset-practice-study.md](research/asset-practice-study.md) | 모션그래픽 에셋 출처와 도구 조사 |
+| [research/motion-tools-absorption.md](research/motion-tools-absorption.md) | 에이전트용 영상 도구 다섯 가지의 REA 분석과 흡수 기록 |
 
 ## 저장소 루트
 

@@ -29,7 +29,7 @@ registerRoot(() => <>
   <Composition id="BlocksReel" component={BlocksReel} durationInFrames={900} fps={30} width={1920} height={1080} />
   <Composition id="DataReel" component={DataReel} durationInFrames={900} fps={30} width={1920} height={1080} />
   <Composition id="SeamReel" component={SeamReel} durationInFrames={900} fps={30} width={1920} height={1080} />
-  <Composition id="NarratedExplainer" component={NarratedExplainer} durationInFrames={900} fps={30} width={1920} height={1080} />
-  <Composition id="TurntableSpot" component={TurntableSpot} durationInFrames={900} fps={30} width={1920} height={1080} />
-  <Composition id="GenerativeIdent" component={GenerativeIdent} durationInFrames={900} fps={30} width={1920} height={1080} />
+  <Composition id="NarratedExplainer" component={NarratedExplainer} durationInFrames={870} fps={30} width={1920} height={1080} />
+  <Composition id="TurntableSpot" component={TurntableSpot} durationInFrames={720} fps={30} width={1920} height={1080} />
+  <Composition id="GenerativeIdent" component={GenerativeIdent} variables={GenerativeIdent.variables} durationInFrames={540} fps={30} width={1920} height={1080} />
 </>);

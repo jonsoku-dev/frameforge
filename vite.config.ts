@@ -49,9 +49,11 @@ function scoreOnDemand(): Plugin {
         const [, slug = '', file = ''] = match;
         const target = resolve(directory, 'public/audio/generated', slug, file);
         if (existsSync(target)) return next();
-        const spec = [resolve(films, slug, 'audio.json')].find(existsSync);
+        // voice.wav comes from narration.json through voice.py; every other wav from audio.json through score.py.
+        const generator = file === 'voice.wav' ? ['voice.py', 'narration.json'] : ['score.py', 'audio.json'];
+        const spec = [resolve(films, slug, generator[1])].find(existsSync);
         if (!spec) return next();
-        const result = spawnSync('python3', [resolve(directory, 'scripts/assets/score.py'), spec], {cwd: directory, encoding: 'utf8'});
+        const result = spawnSync('python3', [resolve(directory, 'scripts/assets', generator[0]), spec], {cwd: directory, encoding: 'utf8'});
         console.log(`[score] ${slug}: ${result.status === 0 ? result.stdout.trim() : `failed: ${(result.stderr || String(result.error)).trim().split('\n').pop()}`}`);
         if (!existsSync(target)) return next();
         // Vite's public-file index predates this file, so serve it here instead of handing it on.

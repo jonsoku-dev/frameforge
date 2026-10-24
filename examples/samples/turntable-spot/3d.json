@@ -1,0 +1,21 @@
+{
+  "slug": "turntable-spot",
+  "shots": [
+    {
+      "name": "hero", "frames": 150, "fps": 30, "width": 1920, "height": 1080, "seed": 7, "engine": "eevee", "samples": 32, "transparent": true,
+      "camera": {"preset": "turntable", "radius": 13, "height": 3.5, "fov": 40},
+      "subject": {"kind": "primitive", "primitive": "torus", "scale": 1.15, "rotation": [90, 0, 0]},
+      "material": {"base": "#C8553D", "metallic": 0.0, "roughness": 0.28},
+      "light": {"preset": "studio", "strength": 1},
+      "background": "transparent", "shadowCatcher": true
+    },
+    {
+      "name": "dolly", "frames": 90, "fps": 30, "width": 1920, "height": 1080, "seed": 7, "engine": "eevee", "samples": 32, "transparent": true,
+      "camera": {"preset": "dolly", "radius": 9, "height": 3.2, "fov": 40, "from": 13, "to": 7},
+      "subject": {"kind": "primitive", "primitive": "cylinder", "scale": 1.0, "rotation": [0, 0, 20]},
+      "material": {"base": "#DCCBB8", "metallic": 0.0, "roughness": 0.45},
+      "light": {"preset": "sunset", "strength": 1},
+      "background": "transparent", "shadowCatcher": true
+    }
+  ]
+}

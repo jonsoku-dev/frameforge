@@ -1,0 +1,4 @@
+{"slug": "too-fast", "provider": "silent", "voice": "silent", "totalMs": 4000, "lines": [
+ {"id": "hook", "text": "하루에 쓰는 시간을 숫자 하나로 볼 수 있을까요 지금 바로 확인해 보세요", "startMs": 500, "endMs": 2500, "estimated": true},
+ {"id": "body", "text": "짧은 줄", "startMs": 3000, "endMs": 4000, "estimated": true}
+]}

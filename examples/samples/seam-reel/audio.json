@@ -1,0 +1,92 @@
+{
+  "slug": "seam-reel",
+  "fps": 30,
+  "durationSeconds": 30.0,
+  "bpm": 120,
+  "key": "D minor",
+  "mood": "tech",
+  "sections": [
+    {
+      "from": 0,
+      "to": 4,
+      "energy": 0.3,
+      "label": "hook"
+    },
+    {
+      "from": 4,
+      "to": 12,
+      "energy": 0.7,
+      "label": "cards and detail"
+    },
+    {
+      "from": 12,
+      "to": 18,
+      "energy": 0.8,
+      "label": "sort"
+    },
+    {
+      "from": 18,
+      "to": 26,
+      "energy": 0.65,
+      "label": "bigger"
+    },
+    {
+      "from": 26,
+      "to": 28,
+      "energy": 0.4,
+      "label": "name"
+    },
+    {
+      "from": 28,
+      "to": 30,
+      "energy": 0.1,
+      "label": "hold"
+    }
+  ],
+  "hits": [
+    {
+      "at": 3.0,
+      "weight": 0.7,
+      "style": "soft"
+    },
+    {
+      "at": 8.0,
+      "weight": 0.8,
+      "style": "lift"
+    },
+    {
+      "at": 13.0,
+      "weight": 0.7,
+      "style": "soft"
+    },
+    {
+      "at": 18.0,
+      "weight": 1.0,
+      "style": "slam"
+    },
+    {
+      "at": 23.0,
+      "weight": 0.6,
+      "style": "soft"
+    }
+  ],
+  "sfx": [
+    {
+      "name": "whoosh",
+      "preset": "whoosh",
+      "intent": "short airy whoosh of a surface sliding past the camera",
+      "length": 0.7
+    },
+    {
+      "name": "thud",
+      "preset": "impact",
+      "intent": "soft felt thud, a card settling on a table",
+      "length": 0.6
+    }
+  ],
+  "seed": 23,
+  "loudness": {
+    "I": -24,
+    "TP": -2
+  }
+}

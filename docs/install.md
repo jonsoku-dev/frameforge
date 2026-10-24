@@ -166,7 +166,7 @@ npm ci
 Cursor를 재시작하고 확인합니다.
 
 ```sh
-ls ~/.cursor/plugins/local/frameforge/skills    # frameforge-* 폴더 7개
+ls ~/.cursor/plugins/local/frameforge/skills    # frameforge-* 폴더 11개
 ```
 
 이 경로는 `docs/plugin.md`의 안내를 옮긴 것입니다. Cursor에서 플러그인이 실제로 로드되는지는 이 문서를 쓸 때 확인하지 않았습니다. Cursor가 스킬 폴더(`~/.cursor/skills`)를 읽는다면 6번 방법도 됩니다.
@@ -179,7 +179,7 @@ Grok Build처럼 플러그인 매니페스트 없이 스킬 폴더를 읽는 호
 npm run skill:install
 ```
 
-이 명령은 `~/.claude/skills`, `~/.codex/skills`, `~/.cursor/skills`, `~/.grok/skills` 중 이미 있는 폴더에만 `skills/frameforge-*` 7개를 링크합니다. 없는 폴더는 `skip <경로> (no such folder)`로 건너뜁니다. 대상에 같은 이름이 이미 있으면 지우고 다시 링크하므로, 같은 이름의 직접 만든 폴더가 있으면 먼저 옮겨 둡니다.
+이 명령은 `~/.claude/skills`, `~/.codex/skills`, `~/.cursor/skills`, `~/.grok/skills` 중 이미 있는 폴더에만 `skills/frameforge-*` 11개를 링크합니다. 없는 폴더는 `skip <경로> (no such folder)`로 건너뜁니다. 대상에 같은 이름이 이미 있으면 지우고 다시 링크하므로, 같은 이름의 직접 만든 폴더가 있으면 먼저 옮겨 둡니다.
 
 확인합니다.
 

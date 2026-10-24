@@ -1,0 +1,6 @@
+{
+  "slug": "turntable-spot",
+  "items": [
+    {"name": "vase", "kind": "model", "query": "ceramic vase", "id": "ceramic_vase_01", "resolution": "1k"}
+  ]
+}

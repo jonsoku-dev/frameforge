@@ -1,0 +1,83 @@
+import React from 'react';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {FrameProvider} from '../src/core/index';
+import {Bell} from '@/assets';
+import * as text from '../src/blocks/text';
+import * as lower from '../src/blocks/lower-thirds';
+import * as cards from '../src/blocks/cards';
+
+const config = {id: 'Blocks', width: 1920, height: 1080, fps: 30, durationInFrames: 300};
+const base: Omit<text.BlockProps, 'frame'> = {at: 30, out: 120, fps: 30, size: 54, palette: {ink: '#111', paper: '#eee', accent: '#f50', soft: '#fdc'}, fonts: {display: 'sans-serif', ui: 'sans-serif'}};
+const render = (frame: number, node: React.ReactNode) => renderToStaticMarkup(<FrameProvider config={config} frame={frame}>{node}</FrameProvider>);
+const rootHas = (markup: string, visibility: string) => new RegExp(`^<div[^>]*visibility:${visibility}`).test(markup);
+
+// Every block at frame f; `still` marks blocks that keep moving while shown (the ticker scrolls, the typing dots bob).
+type Build = (frame: number, props?: typeof base) => React.ReactElement;
+const BLOCKS: [string, Build, {still?: boolean}][] = [
+  ['GlyphRise', (f, b = base) => <text.GlyphRise {...b} frame={f} text="온결 하루" />, {}],
+  ['WordCascade', (f, b = base) => <text.WordCascade {...b} frame={f} lines={['가볍게 시작', '단단하게 잇다']} />, {}],
+  ['ZoomSwap', (f, b = base) => <text.ZoomSwap {...b} frame={f} words={['출근길', '점심']} />, {}],
+  ['Typewriter', (f, b = base) => <text.Typewriter {...b} frame={f} text="오늘의 할 일 셋" />, {}],
+  ['HighlightSweep', (f, b = base) => <text.HighlightSweep {...b} frame={f} before="작은 기록이 " word="큰 흐름" after="이 됩니다" />, {}],
+  ['Counter', (f, b = base) => <text.Counter {...b} frame={f} to={1284} unit="일" example />, {}],
+  ...(['clean-bar', 'bold-block', 'kicker-name', 'soft-pill', 'mask-reveal', 'side-rule'] as const).map((variant): [string, Build, {still?: boolean}] =>
+    [`LowerThird ${variant}`, (f, b = base) => <lower.LowerThird {...b} frame={f} variant={variant} name="김온결" role="제품 디자이너" side={variant === 'soft-pill' ? 'right' : 'left'} />, {}]),
+  ['StatCard', (f, b = base) => <cards.StatCard {...b} frame={f} value={92} unit="%" label="이어진 날 · 예시" />, {}],
+  ['NotificationCard', (f, b = base) => <cards.NotificationCard {...b} frame={f} icon={Bell} title="온결" body="오늘의 기록이 저장됐어요" time="지금" />, {}],
+  ['MessageThread', (f, b = base) => <cards.MessageThread {...b} frame={f} step={12} typing={6} messages={[{side: 'left', name: '온결', text: '오늘도 이었어요'}, {side: 'right', name: '나', text: '좋아요'}]} />, {}],
+  ['Ticker', (f, b = base) => <cards.Ticker {...b} frame={f} items={['서울', '부산', '대전']} />, {still: true}],
+  ['Checklist', (f, b = base) => <cards.Checklist {...b} frame={f} items={['기록', '연결', '확인']} />, {}],
+  ['LogoOutro', (f, b = base) => <cards.LogoOutro {...b} frame={f} brand="온결" tagline="하루를 잇다" />, {}],
+];
+
+for (const [name, block, {still}] of BLOCKS) {
+  test(`${name}: hidden before at, deterministic, moving, settled, hidden after exit`, () => {
+    assert.ok(rootHas(render(29, block(29)), 'hidden'), 'hidden before at');
+    assert.equal(render(45, block(45)), render(45, block(45)), 'same frame twice gives the same markup');
+    assert.notEqual(render(45, block(45)), render(31, block(31)), 'mid-animation differs from the first frame');
+    const settled = render(100, block(100));
+    assert.ok(rootHas(settled, 'visible'), 'visible once settled');
+    if (!still) assert.equal(settled, render(101, block(101)), 'nothing moves once settled');
+    assert.ok(rootHas(render(200, block(200)), 'hidden'), 'hidden after the exit');
+    const held = {...base, out: undefined};
+    assert.ok(rootHas(render(500, block(500, held)), 'visible'), 'without out the block holds forever');
+    if (!still) assert.equal(render(500, block(500, held)), render(501, block(501, held)), 'the hold is still');
+  });
+}
+
+test('ZoomSwap mounts one word at a time and swaps at peak blur', () => {
+  const words = ['첫째', '둘째'];
+  const at = (f: number) => render(f, <text.ZoomSwap {...base} frame={f} words={words} hold={20} swap={10} />);
+  for (const f of [40, 54, 56, 70]) {
+    const shown = words.filter(word => at(f).includes(word));
+    assert.equal(shown.length, 1, `frame ${f} shows exactly one word`);
+  }
+  assert.ok(at(54).includes('첫째') && at(56).includes('둘째'), 'the swap happens at the middle of the swap window');
+});
+
+test('Counter rounds once and groups thousands; Typewriter reveals one character per speed step', () => {
+  assert.equal(text.formatNumber(1234567.891, 1), '1,234,567.9');
+  assert.equal(text.formatNumber(999.5, 0), '1,000');
+  const typed = (f: number) => render(f, <text.Typewriter {...base} frame={f} text="abcdef" speed={3} />);
+  // The overlay span holds the typed slice; the ghost span before it holds the whole text for layout.
+  assert.ok(typed(30).includes('top:0">a<span'), 'first character at `at`');
+  assert.ok(typed(36).includes('top:0">abc<span'), 'one more every three frames');
+});
+
+test('HighlightSweep: the word is ink while the bar sweeps and paper on accent once it is full', () => {
+  const sweep = (f: number) => render(f, <text.HighlightSweep {...base} frame={f} before="a " word="b" after=" c" delay={0} sweep={10} />);
+  assert.ok(sweep(35).includes('color:#111">b<'), 'ink mid-sweep');
+  assert.ok(sweep(60).includes('background:#f50"><span') && sweep(60).includes('color:#eee">b<'), 'paper on the accent wrapper when full');
+});
+
+test('catalogue ids are unique and name every exported block', () => {
+  const entries = [...text.TEXT_BLOCKS, ...lower.LOWER_THIRD_BLOCKS, ...cards.CARD_BLOCKS];
+  const ids = entries.map(entry => entry.id);
+  assert.equal(new Set(ids).size, ids.length, 'unique ids');
+  const components = [text, lower, cards].flatMap(module => Object.entries(module).filter(([name, value]) => typeof value === 'function' && /^[A-Z]/.test(name)).map(([name]) => name));
+  for (const name of components) assert.ok(ids.includes(name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()), `${name} is in the catalogue`);
+  assert.ok(components.length >= 13, `expected at least 13 blocks, found ${components.length}`);
+  for (const entry of entries) assert.ok(entry.when && entry.props.length, `${entry.id} carries props and when-to-use`);
+});

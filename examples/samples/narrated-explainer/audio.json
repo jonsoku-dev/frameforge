@@ -1,0 +1,25 @@
+{
+  "slug": "narrated-explainer",
+  "fps": 30,
+  "durationSeconds": 29.0,
+  "bpm": 96,
+  "key": "D major",
+  "mood": "warm",
+  "sections": [
+    {"from": 0, "to": 5, "energy": 0.25, "label": "hook"},
+    {"from": 5, "to": 12.5, "energy": 0.4, "label": "define, formula"},
+    {"from": 12.5, "to": 20, "energy": 0.45, "label": "example, result"},
+    {"from": 20, "to": 25, "energy": 0.4, "label": "trend, close"},
+    {"from": 25, "to": 29, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [
+    {"at": 4.0, "weight": 0.4, "style": "soft"},
+    {"at": 16.5, "weight": 0.5, "style": "soft"}
+  ],
+  "sfx": [
+    {"name": "whoosh", "intent": "soft paper whoosh for a field wiping across the screen", "length": 0.8},
+    {"name": "pop", "intent": "small warm pop, a bar landing in place", "length": 0.5}
+  ],
+  "seed": 23,
+  "loudness": {"I": -24, "TP": -2}
+}

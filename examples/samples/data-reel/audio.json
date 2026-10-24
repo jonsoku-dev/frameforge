@@ -1,0 +1,23 @@
+{
+  "slug": "data-reel",
+  "fps": 30,
+  "durationSeconds": 30.0,
+  "bpm": 120,
+  "key": "D minor",
+  "mood": "tech",
+  "sections": [
+    {"from": 0, "to": 2, "energy": 0.3, "label": "hook"},
+    {"from": 2, "to": 12, "energy": 0.7, "label": "charts"},
+    {"from": 12, "to": 18, "energy": 0.6, "label": "budget and code"},
+    {"from": 18, "to": 26, "energy": 0.72, "label": "diagrams"},
+    {"from": 26, "to": 28, "energy": 0.5, "label": "name"},
+    {"from": 28, "to": 30, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [3.6, 11.5, 28.0],
+  "sfx": [
+    {"name": "whoosh", "intent": "soft airy whoosh rising upward, a paper panel sliding in, short", "preset": "whoosh", "length": 0.7},
+    {"name": "tick", "intent": "dry wooden tick, a bar or marker landing, very short", "preset": "click", "length": 0.2}
+  ],
+  "seed": 23,
+  "loudness": {"I": -24, "TP": -2}
+}

@@ -80,7 +80,7 @@ frameforge check out.mp4          # frame-check와 flash-check
 
 ### 3. 에이전트 플러그인으로
 
-저장소 자체가 Claude Code, Codex, Cursor, Grok Build용 플러그인입니다. 스킬 7개(`frameforge-best-practices`, `-create`, `-assets`, `-audio`, `-render`, `-studio`, `-check`)가 들어 있고 MCP 서버는 없습니다.
+저장소 자체가 Claude Code, Codex, Cursor, Grok Build용 플러그인입니다. 스킬 11개(`frameforge-best-practices`, `-create`, `-assets`, `-audio`, `-render`, `-studio`, `-check`, `-blocks`, `-voice`, `-3d`, `-generative`)가 들어 있고 MCP 서버는 없습니다.
 
 ```sh
 # Claude Code

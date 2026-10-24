@@ -1,0 +1,15 @@
+{
+  "slug": "three-d-fixture",
+  "shots": [
+    {"name": "hero", "frames": 2, "fps": 30, "width": 320, "height": 180, "seed": 7, "engine": "eevee", "samples": 4, "transparent": false,
+     "camera": {"preset": "turntable", "radius": 6, "height": 1.6, "fov": 35},
+     "subject": {"kind": "primitive", "primitive": "torus", "scale": 1, "rotation": [90, 0, 0]},
+     "material": {"base": "#FF6B4A", "metallic": 0.1, "roughness": 0.4},
+     "light": {"preset": "studio", "strength": 1},
+     "background": "#2F5BFF", "shadowCatcher": true},
+    {"name": "scripted", "frames": 1, "fps": 30, "width": 64, "height": 36, "engine": "eevee", "samples": 2,
+     "camera": {"preset": "static", "radius": 5, "height": 2, "fov": 40, "from": 30},
+     "subject": {"kind": "script", "script": "shot.py"},
+     "light": {"preset": "sunset"}, "background": "transparent"}
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "slug": "generative-ident",
+  "fps": 30,
+  "durationSeconds": 18.0,
+  "bpm": 120,
+  "key": "D minor",
+  "mood": "cinematic",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.3, "label": "open"},
+    {"from": 4, "to": 8, "energy": 0.65, "label": "flow"},
+    {"from": 8, "to": 14, "energy": 0.8, "label": "statement"},
+    {"from": 14, "to": 16, "energy": 0.5, "label": "name"},
+    {"from": 16, "to": 18, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [4.0, 13.0],
+  "sfx": [
+    {"name": "whoosh", "preset": "whoosh", "intent": "soft airy whoosh of a paper sheet wiping across the screen", "length": 0.8},
+    {"name": "impact", "preset": "impact", "intent": "deep soft impact, a drawn shape settling into place", "length": 0.9},
+    {"name": "stroke", "preset": "click", "intent": "a quick marker pen stroke on paper", "length": 0.5}
+  ],
+  "seed": 21,
+  "loudness": {"I": -24, "TP": -2}
+}

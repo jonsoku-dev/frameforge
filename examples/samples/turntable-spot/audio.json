@@ -1,0 +1,28 @@
+{
+  "slug": "turntable-spot",
+  "fps": 30,
+  "durationSeconds": 24.0,
+  "bpm": 120,
+  "key": "D major",
+  "mood": "upbeat",
+  "sections": [
+    {"from": 0, "to": 4, "energy": 0.3, "label": "hook"},
+    {"from": 4, "to": 10, "energy": 0.6, "label": "hero"},
+    {"from": 10, "to": 14, "energy": 0.8, "label": "beats"},
+    {"from": 14, "to": 18, "energy": 0.65, "label": "dolly"},
+    {"from": 18, "to": 22, "energy": 0.45, "label": "name"},
+    {"from": 22, "to": 24, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [
+    {"at": 4.0, "weight": 0.8, "style": "soft"},
+    {"at": 10.0, "weight": 1.0, "style": "slam"},
+    {"at": 14.0, "weight": 0.7, "style": "lift"},
+    {"at": 18.0, "weight": 0.9, "style": "soft"}
+  ],
+  "sfx": [
+    {"name": "whoosh", "preset": "whoosh", "intent": "soft airy whoosh of a panel sliding across", "length": 0.8},
+    {"name": "impact", "preset": "impact", "intent": "a glazed ceramic ring set down softly on a table", "length": 0.9}
+  ],
+  "seed": 7,
+  "loudness": {"I": -24, "TP": -2}
+}

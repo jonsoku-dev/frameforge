@@ -1,0 +1,28 @@
+{
+  "slug": "blocks-reel",
+  "fps": 30,
+  "durationSeconds": 30.0,
+  "bpm": 120,
+  "key": "D major",
+  "mood": "corporate",
+  "sections": [
+    {"from": 0, "to": 2, "energy": 0.3, "label": "hook"},
+    {"from": 2, "to": 10, "energy": 0.6, "label": "copy"},
+    {"from": 10, "to": 16, "energy": 0.75, "label": "numbers"},
+    {"from": 16, "to": 26, "energy": 0.8, "label": "cards"},
+    {"from": 26, "to": 28, "energy": 0.45, "label": "name"},
+    {"from": 28, "to": 30, "energy": 0.1, "label": "hold"}
+  ],
+  "hits": [
+    {"at": 2.667, "weight": 0.6, "style": "lift"},
+    {"at": 14.667, "weight": 0.7, "style": "slam"},
+    {"at": 26.667, "weight": 0.8, "style": "slam"}
+  ],
+  "sfx": [
+    {"name": "whoosh", "preset": "whoosh", "intent": "short soft airy whoosh for a panel wiping upward", "length": 0.6},
+    {"name": "pop", "preset": "pop", "intent": "small round pop of a card landing on paper", "length": 0.3},
+    {"name": "ding", "preset": "ding", "intent": "quiet clean ding of a number or check completing", "length": 0.7}
+  ],
+  "seed": 41,
+  "loudness": {"I": -24, "TP": -2}
+}

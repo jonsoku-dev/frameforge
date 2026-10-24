@@ -1,0 +1,4 @@
+{"slug": "overlap", "provider": "silent", "voice": "silent", "totalMs": 6000, "lines": [
+ {"id": "hook", "text": "하루에 쓰는 시간을 숫자 하나로", "startMs": 500, "endMs": 3000, "estimated": true},
+ {"id": "body", "text": "예시 지수는 집중한 시간의 비율입니다", "startMs": 2500, "endMs": 6000, "estimated": true}
+]}

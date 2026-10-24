@@ -2,6 +2,7 @@ import {flushSync} from 'react-dom';
 import {setInputProps, setStaticFiles, collectAudio, collectFrameHints, collectMotion, collectSoundMaps, deriveSoundEvents, mapSoundEvents, type AudioClip, type ClipRect, type StaticFile, type MotionSample, type SoundMap, type DerivedClip} from '../core/index';
 import {collectArtifacts, collectVideos, type ArtifactEntry, type VideoClip} from '../core/index';
 import {findClippedText, type ClippedText} from './textGuard';
+import {findLayoutFaults, type LayoutFault} from './audit';
 import {activeInput, Boundary, definitions, discover, info, renderMode, root, Scene, settle, target, type Info, type Props} from './runtime';
 import './style.css';
 
@@ -14,7 +15,8 @@ declare global {
       configure: (props: Props) => Promise<Info[]>;
       /** skip: the frame rendered Experimental.Null; clip: the Experimental.Clipper rectangle to capture. */
       renderFrame: (id: string, frame: number, props?: Props) => Promise<{skip: boolean; clip: ClipRect | null}>;
-      audit: () => Omit<ClippedText, 'element'>[];
+      /** Clipped text (the frame already failed on it in settle()) plus the layout faults of the last rendered frame. */
+      audit: () => (Omit<ClippedText, 'element'> | LayoutFault)[];
       audio: () => AudioClip[];
       /** The <Video> elements rendered since the last call; read-only, the frame server extracts on demand. */
       video: () => VideoClip[];
@@ -40,6 +42,7 @@ async function start() {
       document.body.classList.add('render-mode');
       const motion: MotionSample[] = [];
       let maps: SoundMap[] = [];
+      let shown: {width: number; height: number} | null = null;
       window.__FRAMEFORGE__ = {
         compositions: [...definitions.values()].map(info),
         configure: async input => {
@@ -58,6 +61,7 @@ async function start() {
           collectFrameHints();
           collectMotion();
           if (frame === 0) { motion.length = 0; maps = []; }
+          shown = composition;
           flushSync(() => root.render(<Boundary key={id} resetKey={`${frame}:${composition.durationInFrames}:${JSON.stringify(input)}`}><Scene composition={composition} frame={frame} /></Boundary>));
           await settle();
           motion.push(...collectMotion());
@@ -67,7 +71,7 @@ async function start() {
         },
         soundClips: () => mapSoundEvents(deriveSoundEvents(motion), maps, definitions.values().next().value?.fps ?? 30),
         motion: () => motion,
-        audit: () => findClippedText(target).map(({element, ...rest}) => rest),
+        audit: () => [...findClippedText(target).map(({element, ...rest}) => rest), ...(shown ? findLayoutFaults(target, shown) : [])],
         audio: collectAudio,
         video: collectVideos,
         artifacts: collectArtifacts,
