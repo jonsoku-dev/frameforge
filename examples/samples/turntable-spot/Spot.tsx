@@ -1,10 +1,10 @@
 import type {CSSProperties} from 'react';
 import type {} from '@react-three/fiber'; // brings in the <group> JSX type
 import {AbsoluteFill, Audio, Easing, Freeze, ImageSequence, Model, MotionProbe, MotionSound, Sequence, StudioLights, ThreeCanvas, Turntable, googleFont, interpolate, spring, useCurrentFrame} from 'frameforge';
-import {Cup, Heart, Leaf, type ArtProps} from '@/assets';
+import {Cup, Heart, Leaf, Mug, type ArtProps} from '@/assets';
 
-// 24 s product spot for 결 세라믹, a fictional ceramics brand: a Blender-rendered glaze ring turns on a transparent film over
-// the paper, a dolly shot of a cup body on ink, and a CC0 vase inside <ThreeCanvas> for the name. Two Blender shots come from
+// 24 s product spot for 결 세라믹, a fictional ceramics brand: a Blender-rendered mug turns on a transparent film over
+// the paper, a dolly shot moves in on a stack of stoneware tiles, and a CC0 vase inside <ThreeCanvas> for the name. Two Blender shots come from
 // 3d.json (`npm run blender`), the vase from models.json (`npm run models`).
 const W = 1920;
 const H = 1080;
@@ -21,7 +21,7 @@ const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} satisfies {e
 const center: CSSProperties = {display: 'flex', alignItems: 'center', justifyContent: 'center'};
 // Scene starts on 2 s bar lines (120 bpm); the last 60 frames are the still hold.
 const AT = {hook: 0, hero: 120, beats: 300, dolly: 420, name: 540, hold: 660};
-const RING = {x: W * 0.7, y: H * 0.5, r: S * 0.29}; // where the ring sits in the rendered hero frames (image centre shifted right)
+const RING = {x: W * 0.7, y: H * 0.5}; // where the mug sits in the rendered hero frames (image centre shifted right)
 type Asset = (props: ArtProps) => React.JSX.Element;
 
 const span = (frame: number, from: number, dur: number) => interpolate(frame, [from, from + dur], [0, 1], {...clamp, easing: ease});
@@ -40,11 +40,14 @@ function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 
 }
 
 function Hook({frame}: {frame: number}) {
-  // The plate springs up, then folds away in the last 20 frames so the ring rises onto clean paper.
+  // The kit mug is drawn in at hero size where the rendered mug will rise, then folds away in the last 20 frames.
   const grow = pop(frame, AT.hook + 4, 24) * (1 - span(frame, AT.hero - 20, 20));
+  const size = S * 0.52;
   return <AbsoluteFill style={{background: paper}}>
-    <MotionProbe id="plate" value={grow * RING.r * 2} family="shape" axis="scale" />
-    <div style={{position: 'absolute', left: RING.x - RING.r, top: RING.y - RING.r, width: RING.r * 2, height: RING.r * 2, borderRadius: '50%', background: accent, transform: `scale(${grow})`}} />
+    <MotionProbe id="plate" value={grow * size} family="shape" axis="scale" />
+    <div style={{position: 'absolute', left: RING.x - size / 2, top: RING.y - size / 2, transform: `scale(${grow})`, visibility: grow === 0 ? 'hidden' : 'visible'}}>
+      <Mug size={size} ink={ink} accent={accent} soft={soft} paper={paper} draw={span(frame, AT.hook + 8, 36)} parts={2} />
+    </div>
     <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.36, display: 'flex', flexDirection: 'column', gap: S * 0.02}}>
       <Glyphs text="손끝에 닿는 결," frame={frame} at={AT.hook + 16} />
       <Glyphs text="그 차이를 아시나요" frame={frame} at={AT.hook + 34} />
@@ -52,7 +55,7 @@ function Hook({frame}: {frame: number}) {
   </AbsoluteFill>;
 }
 
-/** The Blender ring rises where the plate was and turns for 150 frames, then holds; the type rises with it. */
+/** The Blender mug rises where the drawn mug was and turns for 150 frames, then holds; the type rises with it. */
 function Hero({frame}: {frame: number}) {
   const rise = pop(frame, AT.hero, 26, true);
   return <AbsoluteFill style={{background: paper}}>
@@ -64,8 +67,8 @@ function Hero({frame}: {frame: number}) {
     </div>
     <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.3, display: 'flex', flexDirection: 'column', gap: S * 0.03}}>
       <Glyphs text="한 바퀴," frame={frame} at={AT.hero + 4} />
-      <Glyphs text="빛이 도는 유약" frame={frame} at={AT.hero + 18} />
-      <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.3, color: ink, opacity: span(frame, AT.hero + 50, 14)}}>유약 링 · 렌더 예시</div>
+      <Glyphs text="손에 익는 유약" frame={frame} at={AT.hero + 18} />
+      <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.3, color: ink, opacity: span(frame, AT.hero + 50, 14)}}>유약 머그 · 렌더 예시</div>
     </div>
   </AbsoluteFill>;
 }
@@ -83,7 +86,7 @@ function Beats({frame}: {frame: number}) {
       {items.map(([Shape, word], i) => {
         const p = pop(frame, AT.beats + 16 + i * 10, 18);
         return <div key={word} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S * 0.03, width: (W - SIZES.marginX * 2) / 3}}>
-          <div style={{transform: `scale(${p})`, visibility: p === 0 ? 'hidden' : 'visible'}}><Shape size={size} ink={paper} accent={accent} soft={soft} paper={ink} draw={span(frame, AT.beats + 20 + i * 10, 24)} /></div>
+          <div style={{transform: `scale(${p})`, visibility: p === 0 ? 'hidden' : 'visible'}}><Shape size={size} ink={paper} accent={accent} soft={soft} paper={ink} draw={span(frame, AT.beats + 20 + i * 10, 24)} parts={Shape === Heart ? 2 : undefined} /></div>
           <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.5, color: paper, opacity: span(frame, AT.beats + 34 + i * 10, 10)}}>{word}</div>
         </div>;
       })}
@@ -91,7 +94,7 @@ function Beats({frame}: {frame: number}) {
   </AbsoluteFill>;
 }
 
-/** Paper wipes back in; the Blender dolly shot moves in on an ink-glazed sphere for 90 frames and holds. */
+/** Paper wipes back in; the Blender dolly shot moves in on a stack of ink stoneware tiles for 90 frames and holds. */
 function Dolly({frame}: {frame: number}) {
   const wipe = span(frame, AT.dolly, 14);
   const camera = push(frame, AT.dolly + 60, 50, 0.03);

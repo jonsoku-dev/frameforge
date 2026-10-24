@@ -13,24 +13,23 @@
       "transparent": true,
       "camera": {
         "preset": "turntable",
-        "radius": 13,
-        "height": 3.5,
+        "radius": 10.5,
+        "height": 4.0,
         "fov": 40
       },
       "subject": {
-        "kind": "primitive",
-        "primitive": "torus",
-        "scale": 1.15,
+        "kind": "script",
+        "script": "shots/mug.py",
         "rotation": [
-          90,
           0,
-          0
+          0,
+          -35
         ]
       },
       "material": {
         "base": "#C8553D",
         "metallic": 0.0,
-        "roughness": 0.45
+        "roughness": 0.5
       },
       "light": {
         "preset": "studio",
@@ -52,25 +51,19 @@
       "camera": {
         "preset": "dolly",
         "radius": 9,
-        "height": 2.4,
+        "height": 2.8,
         "fov": 40,
         "from": 12,
-        "to": 7.5
+        "to": 8.8
       },
       "subject": {
-        "kind": "primitive",
-        "primitive": "sphere",
-        "scale": 1.0,
-        "rotation": [
-          0,
-          0,
-          0
-        ]
+        "kind": "script",
+        "script": "shots/tile.py"
       },
       "material": {
         "base": "#1F1B18",
         "metallic": 0.0,
-        "roughness": 0.3
+        "roughness": 0.6
       },
       "light": {
         "preset": "studio",
