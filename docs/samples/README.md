@@ -51,9 +51,9 @@
 | slug | 프레임 | 프레임 검사 | 플래시(최악 1초) | seam-check | narration-check | 렌더 |
 | --- | --- | --- | --- | --- | --- | --- |
 | blocks-reel | 900 | 통과(thin 0.04, huddled 0.09) | 1 | 통과(측정 0) | 해당 없음 | 51s |
-| data-reel | 900 | 통과(thin 0, huddled 0.00) | 0 | 통과(측정 0) | 해당 없음 | 기록 없음 |
+| data-reel | 900 | 통과(thin 0, huddled 0.00) | 0 | 통과(측정 0) | 해당 없음 | 54s |
 | seam-reel | 900 | 통과 | 0 | 통과(5곳, 흐름 x−) | 해당 없음 | 51s |
-| narrated-explainer | 870 | 통과 | 0 | 통과(측정 0) | 통과(7줄) | 기록 없음 |
+| narrated-explainer | 870 | 통과 | 0 | 통과(측정 0) | 통과(7줄) | 65s |
 | turntable-spot | 720 | 통과 | 0 | 통과(측정 0) | 해당 없음 | 101s |
 | generative-ident | 540 | 통과 | 0 | 통과(측정 0) | 해당 없음 | 112s |
 | showcase-spot | 720 | 통과 | 0 | 통과(6곳, 흐름 x−) | 통과(7줄) | 72s |
