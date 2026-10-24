@@ -46,7 +46,7 @@ cafe-morning이 예다. 장면표의 경계 150, 375프레임이 사양의 5, 12
 
 ### 효과음 프리셋과 배치
 
-효과음 소스는 `intent` 문장으로 텍스트 생성(`ELEVENLABS_API_KEY`) → Openverse CC0 녹음 → 아래 합성 프리셋 순으로 정해진다(`scripts/assets/sfx.py`, `docs/audio-score.md` 효과음 절). 프리셋은 폴백이고 전체 표(variant 포함)는 `docs/audio-score.md`에 있다.
+효과음 소스는 `intent` 문장으로 Openverse CC0 녹음 → 아래 합성 프리셋 순으로 정해진다(`scripts/assets/sfx.py`, `docs/audio-score.md` 효과음 절). 프리셋은 폴백이고 전체 표(variant 포함)는 `docs/audio-score.md`에 있다.
 
 | 프리셋 | 길이 | 소리 | 어울리는 사건 |
 | --- | --- | --- | --- |
@@ -110,7 +110,6 @@ npm run score
 2. **에셋 해결기.** 작품 폴더의 `assets.json`(`{slug, palette: {ink, accent, soft, paper}, assets: [{name, intent, source, recolor, file}]}`)을 `npm run art -- examples/samples/<slug>/assets.json`(`scripts/assets/art.py`)이 해결한다. `source`가 `auto`(기본)면 이 순서로 시도하고, 값을 주면 그 소스만 쓴다.
    - `host`: 호스트 에이전트가 자기 이미지 도구로 만들어 `public/assets/generated/<slug>/<name>.svg|.png|.webp`에 둔 파일이나 항목의 `file`. SVG는 원본을 `<slug>/.host/`에 남기고 정리한다. PNG/WebP는 래스터 그대로 쓴다(색 바꾸기 없음).
    - `image-command`: 환경 변수 `FRAMEFORGE_IMAGE_COMMAND`(`{prompt}`와 선택 `{out}`이 든 셸 템플릿). 첫 PNG는 `{out}`이거나 명령이 출력한 JSON `paths`의 첫 항목이다. vtracer가 있으면 SVG로 추적하고, 없으면 PNG로 남긴다.
-   - `generate`: Recraft 벡터 생성(`RECRAFT_API_KEY`, 주소는 `RECRAFT_URL`로 바꿀 수 있음).
    - `library`: Openverse 이미지 검색의 CC0 SVG(키 없음, Wikimedia Commons 우선).
    - `kit`: `CATALOG`의 태그로 키트 컴포넌트를 고른다. 파일은 쓰지 않는다.
    SVG는 모두 스크립트, `foreignObject`, 외부 참조, 이벤트 속성을 지우고 viewBox를 붙인다. `recolor`가 참이면 밝기와 채도로 색을 팔레트 칸(ink, accent, soft, paper)에 옮긴다. 결과는 `public/assets/generated/<slug>/`(커밋하지 않음)와 선택을 해시로 고정한 매니페스트 `assets.json`, 표기가 필요한 출처가 있을 때 `CREDITS.md`다. 실패한 소스는 다음 소스로 넘어가고 매니페스트에 이유가 남는다. 개발 서버는 없는 SVG 요청에 그때 해결하고, `npm run render`는 진입 폴더에 `assets.json`이 있으면 렌더 전에 해결한다. 작품에서는 `<Art src="/assets/generated/<slug>/<name>.svg" size draw ink accent soft paper />`(가져오기 `frameforge`)로 그린다.

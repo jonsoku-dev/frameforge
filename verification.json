@@ -507,7 +507,6 @@
         "silent (self-check)"
       ],
       "not_exercised": [
-        "elevenlabs (no key)",
         "kokoro (not installed)"
       ]
     },
@@ -544,6 +543,21 @@
         "src/packages/seekable.tsx"
       ],
       "second_cross_model_review": "sonnet; accepted blocks-reel and narrated-explainer as is, data-reel and seam-reel after medium fixes; turntable-spot, showcase-spot, generative-ident fixed and re-rendered; third review not run"
+    },
+    "paid_services_removed": {
+      "date": "2026-10-24",
+      "removed": [
+        "ElevenLabs (sfx generate tier, voice provider, score stub)",
+        "Recraft (art generate tier)",
+        "Suno (score stub)"
+      ],
+      "kept_free": [
+        "Openverse",
+        "Google Fonts",
+        "Poly Haven",
+        "Natural Earth",
+        "whisper.cpp model download"
+      ]
     }
   }
 }

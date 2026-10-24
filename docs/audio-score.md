@@ -47,12 +47,11 @@
 | `sections[].role` | 선택. `intro`, `verse`, `build`, `drop`, `break`, `outro` 중 하나로 자동 판정을 덮어쓴다 |
 | `hits` | 숫자(초) 또는 `{"at": 초, "weight": 0–1, "style": "slam"｜"lift"｜"soft"}` 객체의 배열(섞어도 된다). 숫자는 무게를 문맥에서 정한다. 객체의 `weight`, `style`은 선택이고 있으면 그 값이 이긴다. 아래 "히트" 항목 |
 | `sfx` | 이름마다 파일 하나(`<name>.wav`). `intent` 문장으로 소스를 해결한다(효과음 절). 배치는 작품 코드가 정한다 |
-| `sfx[].source` | 선택. `auto`(기본), `generate`, `library`, `synth`. 효과음 절 |
+| `sfx[].source` | 선택. `auto`(기본), `library`, `synth`. 효과음 절 |
 | `sfx[].variant` | 선택. 1–3, 기본 1. 합성 프리셋마다 성격이 다른 세 가지 소리 |
 | `sfx[].length` | 선택. 초 단위 길이(0.05–10). 없으면 프리셋 기본 길이 |
 | `seed` | 무작위 세부를 바꾼다. 같은 사양과 같은 시드는 같은 바이트를 낸다 |
 | `loudness` | 음악의 목표 통합 음량 `I`(LUFS)와 트루 피크 `TP`(dBTP) |
-| `provider` | 선택. 음악의 생성기. `synth`(기본), `elevenlabs`, `suno`. 아래 "외부 생성기"를 본다. 효과음의 소스는 `sfx[].source`가 정한다 |
 
 선택 필드가 없는 기존 사양은 그대로 동작한다.
 
@@ -137,15 +136,14 @@
 
 ## 효과음
 
-효과음은 사양의 `sfx[]` 한 항목이 파일 하나다. 항목은 `name`(파일 이름)과 `intent`(무슨 소리인지 한 문장, 영어가 검색에 유리)를 적고, 선택으로 `length`(초, 한 사건이면 꼭 적는다: 라이브러리 녹음은 여러 사건을 담고 있을 때가 있다), `source`(`auto`·`generate`·`library`·`synth`, 기본 `auto`), 폴백용 `preset`·`variant`를 둔다. `intent` 없이 `preset`만 적으면 예전처럼 합성한다.
+효과음은 사양의 `sfx[]` 한 항목이 파일 하나다. 항목은 `name`(파일 이름)과 `intent`(무슨 소리인지 한 문장, 영어가 검색에 유리)를 적고, 선택으로 `length`(초, 한 사건이면 꼭 적는다: 라이브러리 녹음은 여러 사건을 담고 있을 때가 있다), `source`(`auto`·`library`·`synth`, 기본 `auto`), 폴백용 `preset`·`variant`를 둔다. `intent` 없이 `preset`만 적으면 예전처럼 합성한다.
 
 `scripts/assets/sfx.py`가 소스를 이 순서로 해결한다(2026-10-20, 근거는 `docs/research/sfx-reference-study.md`).
 
 | 순서 | 소스 | 조건 | 결과 |
 | --- | --- | --- | --- |
-| 1 | `generate`: ElevenLabs text-to-sound (`POST /v1/sound-generation`, `pcm_48000`, 길이 0.5–30초, `prompt_influence` 0.3) | `ELEVENLABS_API_KEY`가 있을 때 | 의도 문장에서 새로 만든 녹음 품질의 소리. 실 서비스 호출은 키가 없어 미검증이지만, 같은 요청·응답 형식의 로컬 모의 서버로 요청 헤더·본문·PCM 디코드·조건화까지 자체 검사한다(`python3 scripts/assets/sfx.py`). `ELEVENLABS_URL`로 엔드포인트를 바꿀 수 있다. 모델은 `eleven_text_to_sound_v2` |
-| 2 | `library`: Openverse 오디오 검색(키 없음, 익명 분당 20·하루 200, `OPENVERSE_URL`로 바꿀 수 있음) | 기본 CC0만. `FRAMEFORGE_SFX_LICENSES=cc0,by`로 CC BY 허용 | 검색어는 의도 전체 → 앞 세 단어 → 프리셋 키워드 순. mp3/wav/ogg/flac, 15초 이하, 순위 + 2.5초 초과분 + BY 벌점으로 하나 고른다. 대부분 Freesound hq mp3 미리듣기(128 kbps). CC BY를 쓰면 `CREDITS.md`가 생기고 게시할 때 표기해야 한다 |
-| 3 | `synth`: 아래 프리셋 | 항상 가능 | 네트워크가 없거나 검색이 비었을 때의 폴백. 매니페스트에 이유가 남는다 |
+| 1 | `library`: Openverse 오디오 검색(키 없음, 익명 분당 20·하루 200, `OPENVERSE_URL`로 바꿀 수 있음) | 기본 CC0만. `FRAMEFORGE_SFX_LICENSES=cc0,by`로 CC BY 허용 | 검색어는 의도 전체 → 앞 세 단어 → 프리셋 키워드 순. mp3/wav/ogg/flac, 15초 이하, 순위 + 2.5초 초과분 + BY 벌점으로 하나 고른다. 대부분 Freesound hq mp3 미리듣기(128 kbps). CC BY를 쓰면 `CREDITS.md`가 생기고 게시할 때 표기해야 한다 |
+| 2 | `synth`: 아래 프리셋 | 항상 가능 | 네트워크가 없거나 검색이 비었을 때의 폴백. 매니페스트에 이유가 남는다 |
 
 모든 소스가 같은 조건화를 거친다: 48 kHz 스테레오로 디코드, 피크 대비 −40 dB 첫 샘플에서 3 ms 앞까지 잘라 온셋이 프레임에 맞게, `length`(없으면 의도 기반 3초, 프리셋은 기본 길이)로 상한, 꼬리 10 ms 페이드, 70 Hz 하이패스, 피크 −18 dBFS. 선택은 `public/audio/generated/<slug>/sfx.json`에 고정된다(공급자, 소스 id·URL·제목·제작자·라이선스, 온셋 트림 ms, 길이). 항목 해시가 같고 파일이 있으면 네트워크를 다시 쓰지 않는다. 라이브러리 결과는 시간이 지나면 바뀔 수 있으니 재현성은 매니페스트와 생성 파일에 있다. 가져온 파일은 커밋하지 않는다.
 
@@ -167,14 +165,6 @@
 | `swell` | 1.00초 | 열리는 화음과 노이즈. 장3화음 / sus4 / 단7화음 |
 | `stinger` | 1.20초 | 짧은 슈퍼소 화음 타격, 킥, 짧은 크래시. 장 / sus4 / 단7 |
 | `shimmer` | 1.50초 | 고역 노이즈 스윕. 올라감 / 내려감 / 올랐다 내려감 |
-
-## 외부 생성기
-
-`provider`가 `elevenlabs`나 `suno`이면 생성기는 먼저 `ELEVENLABS_API_KEY` 또는 `SUNO_API_KEY`를 본다.
-
-- 키가 없으면 stderr에 한 줄을 남기고 내장 신스로 만든다. 결과 바이트는 `provider`가 없을 때와 같다.
-- 키가 있으면 `provider_elevenlabs()` 또는 `provider_suno()`를 부른다. 음악 쪽은 아직 자리만 있는 스텁이라, 보낼 요청(무드, bpm, 조성, 구간과 역할, 히트 시각으로 만든 프롬프트와 길이)을 담아 `NotImplementedError`를 낸다. 아무 파일도 쓰지 않는다. 실제 API 호출을 붙일 때는 이 두 함수만 바꾸면 된다.
-- 효과음의 ElevenLabs 호출은 스텁이 아니다. `scripts/assets/sfx.py`가 실제로 요청한다(효과음 절).
 
 ## 생성 시점
 

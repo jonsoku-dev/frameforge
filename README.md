@@ -40,7 +40,6 @@ npm run render -- examples/samples/cafe-morning/entry.tsx CafeMorning renders/ca
 | FFmpeg, ffprobe | 렌더, 검사, `<Video>` | `PATH`에 있거나 `FFMPEG_PATH`, `FFPROBE_PATH`로 지정합니다. FFmpeg 7.1.1에서 확인했습니다. |
 | Python 3, numpy | 소리가 있는 작품, 에셋 해결 | `scripts/assets/score.py`가 numpy로 음악과 효과음을 합성합니다. Python 3.14.4, numpy 2.4.4에서 확인했습니다. |
 | vtracer | 선택 | `FRAMEFORGE_IMAGE_COMMAND`로 만든 PNG를 SVG로 바꿀 때만 씁니다. 없으면 `art.py`가 `pip install --user vtracer==0.6.15`를 한 번 시도하고, 실패하면 PNG를 그대로 씁니다. |
-| API 키 | 선택 | `ELEVENLABS_API_KEY`는 효과음 생성, `RECRAFT_API_KEY`는 벡터 그림 생성에 씁니다. 키가 없으면 Openverse CC0 자료나 내장 합성, 모티프 키트로 대체합니다. |
 | 네트워크 | 선택 | `googleFont()`는 Google Fonts에서 글꼴을 받습니다. Openverse 검색과 https 미디어 다운로드도 네트워크를 씁니다. |
 
 환경 변수 전체 목록과 기본값은 [docs/install.md](docs/install.md#환경-변수)에 있습니다.
@@ -103,14 +102,14 @@ npm run skill:install
 - 패키지. 전환(`TransitionSeries`), 플레이어, 경로, 도형, 노이즈, 모션 블러, 자막, 레이아웃, 미디어 유틸, Lottie, 3D.
 - 블록 카탈로그(`@/blocks`). 글자 6, 로어서드 6변형, 카드 6, 차트 6, 코드 4모드, 다이어그램 4. 모두 프레임 함수이고 같은 prop 계약을 씁니다.
 - 이음새. 장면 사이의 컷을 한 동작으로 잇는 곡선(`cutTheCurve`, `zoomThrough`, `<Seam>`)과 렌더가 남긴 움직임 기록으로 방향·속도 불일치를 잡는 `seam-check`.
-- 나레이션. `narration.json`에서 `voice.py`(ElevenLabs, kokoro, macOS say, 추정 무음 순)가 음성을 만들고, 측정된 시간으로 장면을 짜는 `useNarration`, 오버레이 자막 `<Subtitles>`, KaTeX 수식 `<Formula>`, `narration-check`. 렌더러는 음성 아래로 음악을 낮춥니다.
+- 나레이션. `narration.json`에서 `voice.py`(kokoro, macOS say, 추정 무음 순)가 음성을 만들고, 측정된 시간으로 장면을 짜는 `useNarration`, 오버레이 자막 `<Subtitles>`, KaTeX 수식 `<Formula>`, `narration-check`. 렌더러는 음성 아래로 음악을 낮춥니다.
 - 3D. `3d.json`을 헤드리스 Blender가 결정적으로 렌더한 PNG 시퀀스를 `<ImageSequence>`로 재생, Poly Haven CC0 모델·HDRI 내려받기, `<ThreeCanvas>` 안의 `<Model>`·`<Turntable>`.
 - 지도와 전사. Natural Earth 공개 데이터로 그리는 지도 블록(경로, 마커), whisper.cpp로 음성을 자막으로 바꾸는 `transcribe`, 외부 애니메이션 라이브러리를 프레임으로 구동하는 `<Seekable>`.
 - 생성 배경과 효과. 시드와 프레임의 순수 함수인 배경 시스템 9종(`<Generative>`), 색 보정·LUT·라이트 리크·비네트·그레인 효과, 손그림 글자 주석 6종.
 - 스튜디오. 기획, 과정 기록, 변수 조정, 렌더 큐를 한 화면에서 봅니다.
 - 렌더러. Chrome DevTools Protocol로 프레임을 찍고 FFmpeg로 MP4(H.264), WebM(VP9, 알파), MOV(ProRes 4444, 알파), GIF, PNG 시퀀스, HLS를 만듭니다. 구간 렌더, 병렬 청크, 파이프 인코딩, 멱등성 검사, 투명 배경, 배율을 지원합니다.
 - 소리. 작품별 `audio.json`에서 음악을 합성하고, 움직임에서 효과음 시점을 뽑고, 음악을 효과음 아래로 낮춥니다.
-- 에셋. 44종 모티프 키트와 `assets.json` 해결기(호스트 파일, 이미지 명령, Recraft, Openverse CC0, 키트).
+- 에셋. 44종 모티프 키트와 `assets.json` 해결기(호스트 파일, 이미지 명령, Openverse CC0, 키트).
 - 검사. 글자 잘림 가드, 결정성 린트, 세이프 영역·겹침·대비·크기 감사, frame-check, flash-check, seam-check, narration-check, 음량 보고. `frameforge check`가 한 표로 묶습니다.
 
 API 전체는 [docs/reference/api.md](docs/reference/api.md)에 있습니다.
@@ -119,7 +118,7 @@ API 전체는 [docs/reference/api.md](docs/reference/api.md)에 있습니다.
 
 이 저장소의 코드는 [MIT License](LICENSE)입니다. 제3자 코드, 글꼴, 의존성은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 정리했습니다.
 
-음악, 효과음, 그림은 실행할 때 생성하거나 내려받습니다. 저장소에 커밋하지 않습니다(`public/audio/generated/`, `public/assets/generated/`, `.cache/`는 `.gitignore`에 있습니다). 생성물의 라이선스는 사용자가 확인합니다. ElevenLabs와 Recraft 생성물은 각 서비스 약관을 따릅니다. Openverse 자료는 기본으로 CC0만 씁니다. CC BY 자료를 허용하면(`FRAMEFORGE_SFX_LICENSES=cc0,by`) 생성기가 `CREDITS.md`를 만들고, 영상을 배포할 때 그 저작자 표시를 함께 실어야 합니다.
+음악, 효과음, 그림은 실행할 때 생성하거나 내려받습니다. 저장소에 커밋하지 않습니다(`public/audio/generated/`, `public/assets/generated/`, `.cache/`는 `.gitignore`에 있습니다). 생성물의 라이선스는 사용자가 확인합니다. Openverse 자료는 기본으로 CC0만 씁니다. CC BY 자료를 허용하면(`FRAMEFORGE_SFX_LICENSES=cc0,by`) 생성기가 `CREDITS.md`를 만들고, 영상을 배포할 때 그 저작자 표시를 함께 실어야 합니다.
 
 ## 문서
 

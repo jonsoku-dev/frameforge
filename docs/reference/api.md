@@ -128,11 +128,11 @@
 
 ## 효과음 소스
 
-사양의 `sfx[]`는 `intent` 한 문장으로 소리를 정하고, 생성기가 텍스트 생성(`ELEVENLABS_API_KEY`) → Openverse CC0 녹음 → 합성 프리셋 순으로 소스를 해결해 `public/audio/generated/<slug>/sfx.json`에 고정합니다. 렌더러는 효과음 아래서 음악을 사이드체인으로 낮춥니다. 자세한 내용은 `docs/audio-score.md`, 조사 근거는 `docs/research/sfx-reference-study.md`.
+사양의 `sfx[]`는 `intent` 한 문장으로 소리를 정하고, 생성기가 Openverse CC0 녹음 → 합성 프리셋 순으로 소스를 해결해 `public/audio/generated/<slug>/sfx.json`에 고정합니다. 렌더러는 효과음 아래서 음악을 사이드체인으로 낮춥니다. 자세한 내용은 `docs/audio-score.md`, 조사 근거는 `docs/research/sfx-reference-study.md`.
 
 ## 에셋 해결과 Lottie
 
-- `npm run art -- examples/samples/<slug>/assets.json`(`scripts/assets/art.py`): 작품의 `assets.json`(`{slug, palette: {ink, accent, soft, paper}, assets: [{name, intent, source, recolor, file}]}`)을 소스 순서 `host`(호스트 에이전트가 둔 SVG/PNG/WebP) → `image-command`(`FRAMEFORGE_IMAGE_COMMAND`, vtracer로 SVG 추적) → `generate`(Recraft 벡터, `RECRAFT_API_KEY`) → `library`(Openverse CC0 SVG) → `kit`(아래 모티프 키트, 파일 없음)로 해결합니다. SVG는 스크립트·외부 참조·이벤트 속성을 지우고 viewBox를 붙이며 `recolor`이면 팔레트로 색을 바꿉니다. 결과는 `public/assets/generated/<slug>/`에 쓰이고 매니페스트 `assets.json`이 선택을 해시로 고정합니다. 표기가 필요한 출처가 있으면 `CREDITS.md`가 생깁니다. 스튜디오는 없는 SVG를 요청받으면 그때 해결하고, `npm run render`는 진입 폴더에 `assets.json`이 있으면 Vite를 띄우기 전에 해결합니다. 자세한 내용은 `docs/guides/assets.md`.
+- `npm run art -- examples/samples/<slug>/assets.json`(`scripts/assets/art.py`): 작품의 `assets.json`(`{slug, palette: {ink, accent, soft, paper}, assets: [{name, intent, source, recolor, file}]}`)을 소스 순서 `host`(호스트 에이전트가 둔 SVG/PNG/WebP) → `image-command`(`FRAMEFORGE_IMAGE_COMMAND`, vtracer로 SVG 추적) → `library`(Openverse CC0 SVG) → `kit`(아래 모티프 키트, 파일 없음)로 해결합니다. SVG는 스크립트·외부 참조·이벤트 속성을 지우고 viewBox를 붙이며 `recolor`이면 팔레트로 색을 바꿉니다. 결과는 `public/assets/generated/<slug>/`에 쓰이고 매니페스트 `assets.json`이 선택을 해시로 고정합니다. 표기가 필요한 출처가 있으면 `CREDITS.md`가 생깁니다. 스튜디오는 없는 SVG를 요청받으면 그때 해결하고, `npm run render`는 진입 폴더에 `assets.json`이 있으면 Vite를 띄우기 전에 해결합니다. 자세한 내용은 `docs/guides/assets.md`.
 - `<Art src size draw ink accent soft paper style />`(가져오기 `frameforge`): 해결된 SVG를 src마다 한 번 받아 인라인으로 그립니다. `draw`(0–1)로 선을 그려 넣고 색 속성을 주면 팔레트를 바꿉니다.
 - `<Lottie src frame loop playbackRate style />`(가져오기 `frameforge`, lottie-web SVG 렌더러): 파일의 fps를 컴포지션 fps에 맞춘 프레임을 `goToAndStop`으로 보여 주므로 결정적입니다. 애니메이션 파일의 라이선스는 따로 확인합니다.
 

@@ -23,7 +23,7 @@ Frameforge는 사용자의 컴퓨터에서만 도는 개발 도구입니다. 스
 - `art.py`는 vtracer가 없으면 `pip install --user vtracer==0.6.15`를 실행합니다. 이 동작을 원하지 않으면 미리 설치하거나 `FRAMEFORGE_IMAGE_COMMAND`를 쓰지 않습니다.
 - 작품 코드(`Spot.tsx`)는 Chrome 안에서 실행되는 일반 JavaScript입니다. 남이 준 작품은 코드를 읽은 뒤 렌더합니다.
 - `npm run dev -- --host 0.0.0.0`처럼 바인딩을 바꾸면 스튜디오 화면과 Vite 개발 서버가 네트워크에 노출됩니다. 스튜디오 API는 loopback 검사로 계속 막히지만 Vite 개발 서버 자체는 운영용이 아닙니다.
-- API 키는 환경 변수로만 넘깁니다. 저장소 파일, `audio.json`, `assets.json`에 쓰지 않습니다.
+- 이미지 명령에 쓰는 토큰 같은 비밀 값은 환경 변수로만 넘깁니다. 저장소 파일, `audio.json`, `assets.json`에 쓰지 않습니다.
 
 ## 취약점 신고
 

@@ -894,29 +894,6 @@ def check(pre, final, spec):
     assert win - rms_db(final[:, -SR:]) >= 20, 'last second must sit 20 dB under the loudest second'
 
 
-# ---------------------------------------------------------------- providers
-
-def prompt_text(spec):
-    secs = '; '.join(f"{s['from']:g}-{s['to']:g} s {s.get('label', '')} (energy {s['energy']:g}, {r})"
-                     for s, r in zip(spec['sections'], section_roles(spec['sections'])))
-    hits = ', '.join(f"{h['at']:g} s" for h in spec['hits']) or 'none'
-    return (f"Instrumental {spec['mood']} music, {spec['bpm']} BPM, {spec['key']}, exactly {spec['durationSeconds']:g} seconds. "
-            f"Structure: {secs}. Accent hits (crash and sub drop) at {hits}. Fade to silence at the end. No vocals.")
-
-
-def provider_elevenlabs(spec):
-    # stub: the request this would send; not wired to the API yet.
-    raise NotImplementedError(json.dumps({'endpoint': 'elevenlabs music', 'prompt': prompt_text(spec), 'music_length_ms': int(spec['durationSeconds'] * 1000)}))
-
-
-def provider_suno(spec):
-    # stub: the request this would send; not wired to the API yet.
-    raise NotImplementedError(json.dumps({'endpoint': 'suno generate', 'prompt': prompt_text(spec), 'make_instrumental': True, 'duration': spec['durationSeconds']}))
-
-
-PROVIDERS = {'elevenlabs': ('ELEVENLABS_API_KEY', provider_elevenlabs), 'suno': ('SUNO_API_KEY', provider_suno)}
-
-
 # ---------------------------------------------------------------- spec and CLI
 
 def fail(path, msg):
@@ -952,14 +929,13 @@ def validate(s, path):
     need(isinstance(sfx, list) and all(isinstance(x, dict) and re.fullmatch(r'[a-z0-9][a-z0-9-]*', str(x.get('name', ''))) and (x.get('preset') in SFX or isinstance(x.get('intent'), str) and x['intent'].strip()) for x in sfx),
          'sfx entries need a name and an intent sentence or a preset from ' + ', '.join(SFX))
     need(all(x.get('preset') is None or x['preset'] in SFX for x in sfx), 'sfx preset must be one of ' + ', '.join(SFX))
-    need(all(x.get('source', 'auto') in ('auto', 'generate', 'library', 'synth') for x in sfx), 'sfx source must be auto, generate, library or synth')
+    need(all(x.get('source', 'auto') in ('auto', 'library', 'synth') for x in sfx), 'sfx source must be auto, library or synth')
     need(all(x.get('variant', 1) in (1, 2, 3) and num(x.get('length', 1)) and 0.05 <= x.get('length', 1) <= 10 for x in sfx), 'sfx variant must be 1..3 and length 0.05..10 seconds')
     names = [x['name'] for x in sfx]
     need(len(set(names)) == len(names) and 'music' not in names, 'sfx names must be unique and not "music"')
     need(isinstance(s.get('seed'), int), 'seed must be an integer')
     ld = s.get('loudness', {})
     need(isinstance(ld, dict) and num(ld.get('I')) and num(ld.get('TP')) and -70 <= ld['I'] <= -5 and -9 <= ld['TP'] <= 0, 'loudness needs I (-70..-5) and TP (-9..0)')
-    need(s.get('provider', 'synth') in ('synth', *PROVIDERS), 'provider must be synth, elevenlabs or suno')
     s['hits'], _ = hit_plan(s), s.setdefault('sfx', [])
     lo, hi = MOODS[s['mood']]['bpm']
     if not lo <= bpm <= hi:
@@ -976,12 +952,6 @@ def generate(path, force):
     except ValueError as error:
         fail(path, f'not JSON: {error}')
     validate(spec, path)
-    provider = spec.get('provider', 'synth')
-    if provider != 'synth':
-        env_name, call = PROVIDERS[provider]
-        if os.environ.get(env_name):
-            call(spec)
-        print(f'{path}: {env_name} is not set; using the built-in synth instead of {provider}', file=sys.stderr)
     digest = hashlib.sha256(raw + GENERATION.encode()).hexdigest()  # bump GENERATION to invalidate every old output
     folder = os.path.join(OUT, spec['slug'])
     files = ['music.wav'] + [x['name'] + '.wav' for x in spec['sfx']]

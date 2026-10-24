@@ -1,6 +1,6 @@
 ---
 name: frameforge-assets
-description: Draw, resolve or review visual assets for a Frameforge film: the parametric motif kit, assets.json resolution (host image skill, vector generation, CC0 SVG, kit), asset sheets and the quality bar. Use when assets look weak or a film needs icons, heroes, landmarks, characters.
+description: Draw, resolve or review visual assets for a Frameforge film: the parametric motif kit, assets.json resolution (host image skill, CC0 SVG, kit), asset sheets and the quality bar. Use when assets look weak or a film needs icons, heroes, landmarks, characters.
 ---
 
 # Assets

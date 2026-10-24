@@ -32,9 +32,9 @@
 | --- | --- |
 | `slug` | 폴더 이름과 같아야 한다 |
 | `language` | `ko`, `en`, `ja`. 기본 목소리와 무음 추정 속도를 정한다 |
-| `voice.provider` | `auto`(기본), `elevenlabs`, `kokoro`, `say`, `silent`. `auto`는 아래 순서로 처음 되는 것을 쓴다. 하나를 지정하면 그것만 쓰고, 안 되면 이유를 말하고 멈춘다 |
-| `voice.name` | 선택. `say`의 목소리 이름, kokoro의 voice id, ElevenLabs의 voice id |
-| `rate` | 선택. 속도 배수 0.5–2. `say`는 분당 180단어 × rate, kokoro는 `speed`, ElevenLabs는 `voice_settings.speed` |
+| `voice.provider` | `auto`(기본), `kokoro`, `say`, `silent`. `auto`는 아래 순서로 처음 되는 것을 쓴다. 하나를 지정하면 그것만 쓰고, 안 되면 이유를 말하고 멈춘다 |
+| `voice.name` | 선택. `say`의 목소리 이름, kokoro의 voice id |
+| `rate` | 선택. 속도 배수 0.5–2. `say`는 분당 180단어 × rate, kokoro는 `speed` |
 | `leadMs` | 선택. 첫 줄 앞 무음(기본 0) |
 | `gapMs` | 선택. 줄 사이 기본 쉼(기본 400) |
 | `lines[].id` | 소문자 슬러그. Spot에서 `at('hook')`로 부른다 |
@@ -49,10 +49,9 @@
 
 | 순서 | 생성기 | 조건 | 비고 |
 | --- | --- | --- | --- |
-| 1 | `elevenlabs` | `ELEVENLABS_API_KEY` | `POST /v1/text-to-speech/<voice>?output_format=pcm_48000`, `eleven_multilingual_v2`. 키는 환경 변수로만 읽고 어디에도 쓰지 않는다 |
-| 2 | `kokoro` | `pip install kokoro-onnx`와 모델 파일(`KOKORO_MODEL`, `KOKORO_VOICES`, 기본 `~/.cache/frameforge/kokoro/`) | 영어와 일본어만. 한국어는 건너뛴다 |
-| 3 | `say` | macOS | `say -v <voice> -o line.wav --data-format=LEF32@48000`. 기본 목소리 ko Yuna, ja Kyoko, en Samantha. 목록은 `say -v '?'` |
-| 4 | `silent` | 항상 | 글 길이로 잰 무음. 한국어 5음절/초, 영어 2.5단어/초, 일본어 6자/초. 타이밍에 `estimated: true` |
+| 1 | `kokoro` | `pip install kokoro-onnx`와 모델 파일(`KOKORO_MODEL`, `KOKORO_VOICES`, 기본 `~/.cache/frameforge/kokoro/`) | 영어와 일본어만. 한국어는 건너뛴다 |
+| 2 | `say` | macOS | `say -v <voice> -o line.wav --data-format=LEF32@48000`. 기본 목소리 ko Yuna, ja Kyoko, en Samantha. 목록은 `say -v '?'` |
+| 3 | `silent` | 항상 | 글 길이로 잰 무음. 한국어 5음절/초, 영어 2.5단어/초, 일본어 6자/초. 타이밍에 `estimated: true` |
 
 줄마다 `(생성기, 목소리, 언어, rate, 본문)`의 해시로 `voice/<hash>.wav`를 캐시한다. 바뀌지 않은 줄은 다시 읽지 않는다. `--force`는 전부 다시 읽는다. 줄은 −45 dB 아래 앞뒤 무음을 잘라 60 ms씩 남기고, 길이는 ffprobe로 잰다. `leadMs`, 줄, 쉼 순으로 이어 붙여 피크 −3 dBFS로 맞춘 뒤 ffmpeg loudnorm으로 −16 LUFS(TP −3)로 맞추고, 샘플 수를 `totalMs`에 고정한다. 무음 생성기의 결과는 정규화하지 않는다.
 
