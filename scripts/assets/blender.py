@@ -151,6 +151,7 @@ def self_check():
     assert close(location, (0, 4, 3)), location
     location, _ = scene.camera_pose({**cam, 'preset': 'dolly', 'from': 8, 'to': 2}, 9, 10)
     assert close(location, (0, -2, 3)), location
+    assert close(scene.camera_pose({**cam, 'preset': 'dolly'}, 9, 10)[0], (0, -4, 3)), 'a dolly without from/to stays at radius'
     assert scene.frame_range(None, 10) == (0, 9) and scene.frame_range('2-5', 10) == (2, 5) and scene.frame_range('7', 10) == (7, 7)
     for bad in ('5-2', '0-10', '-1-3'):
         try:
@@ -160,6 +161,8 @@ def self_check():
             pass
     merged = scene.merged({'name': 'x', 'camera': {'radius': 9}})
     assert merged['camera']['radius'] == 9 and merged['camera']['preset'] == 'turntable' and merged['material']['base'] == '#2F5BFF'
+    assert scene.merged({'name': 'x', 'subject': {'kind': 'glb', 'src': 'm.gltf'}})['material'] is None, 'a model keeps its own materials'
+    assert scene.merged({'name': 'x', 'subject': {'kind': 'glb', 'src': 'm.gltf'}, 'material': {'base': '#000000'}})['material']['roughness'] == 0.35
     shot = {'name': 'hero', 'frames': 2, 'fps': 30, 'width': 64, 'height': 36}
     with tempfile.TemporaryDirectory() as folder:
         script = os.path.join(folder, 'shot.py')

@@ -25,7 +25,7 @@ LIGHTS = ('studio', 'sunset', 'hdri')
 ENGINES = {'eevee': 'BLENDER_EEVEE', 'cycles': 'CYCLES'}
 # Shot defaults; blender.py validates the types, this file only fills gaps.
 DEFAULTS = {'engine': 'eevee', 'samples': 32, 'transparent': False, 'background': '#F4F4F1', 'shadowCatcher': False,
-            'camera': {'preset': 'turntable', 'radius': 6.0, 'height': 1.6, 'fov': 35.0, 'from': 0.0, 'to': 360.0},
+            'camera': {'preset': 'turntable', 'radius': 6.0, 'height': 1.6, 'fov': 35.0},
             'subject': {'kind': 'primitive', 'primitive': 'torus', 'scale': 1.0, 'rotation': [0, 0, 0]},
             'material': {'base': '#2F5BFF', 'metallic': 0.2, 'roughness': 0.35, 'emission': 0.0},
             'light': {'preset': 'studio', 'strength': 1.0}}
@@ -43,7 +43,8 @@ def camera_pose(camera, index, frames):
     `frames` (the last frame stops short of the first, so a looped sequence has no repeated frame); orbit: `from`..`to`
     degrees; dolly: radius `from`..`to` at angle 0; static: angle `from`."""
     preset, radius, height = camera['preset'], float(camera['radius']), float(camera['height'])
-    start, end = float(camera['from']), float(camera['to'])
+    # `from`/`to` are degrees for orbit and static, radii for dolly; a dolly without them stays at `radius`.
+    start, end = (float(camera.get('from', radius)), float(camera.get('to', radius))) if preset == 'dolly' else (float(camera.get('from', 0.0)), float(camera.get('to', 360.0)))
     t = index / frames if preset == 'turntable' else (index / (frames - 1) if frames > 1 else 0.0)
     angle = {'turntable': 2 * math.pi * t, 'orbit': math.radians(start + (end - start) * t), 'dolly': 0.0, 'static': math.radians(start)}[preset]
     if preset == 'dolly':
@@ -65,6 +66,8 @@ def merged(shot):
     out = {**DEFAULTS, **shot}
     for key in ('camera', 'subject', 'material', 'light'):
         out[key] = {**DEFAULTS[key], **(shot.get(key) or {})}
+    if 'material' not in shot and out['subject']['kind'] != 'primitive':
+        out['material'] = None  # an imported model or a script keeps its own materials unless the shot names one
     return out
 
 

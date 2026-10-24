@@ -32,7 +32,7 @@ Blender 4.2 이상이 필요하다(`blender`가 PATH에 있거나 `BLENDER_PATH`
 | `engine` | `eevee`(기본) / `cycles` | EEVEE는 1080p 한 프레임에 약 1초(32 샘플, M 시리즈 Mac). Cycles는 CPU로 돌고 훨씬 느리다 |
 | `samples` | 정수, 기본 32 | EEVEE의 `taa_render_samples`, Cycles의 `samples` |
 | `transparent` | 불리언 | 필름을 RGBA로 쓴다. `background: "transparent"`와 같다 |
-| `camera.preset` | `turntable` / `orbit` / `dolly` / `static` | turntable은 `frames` 동안 한 바퀴(마지막 프레임은 첫 프레임 직전에서 멈춰 루프에 겹침이 없다). orbit은 `from`°→`to`°. dolly는 각 0°에서 반지름 `from`→`to`. static은 각 `from`° |
+| `camera.preset` | `turntable` / `orbit` / `dolly` / `static` | turntable은 `frames` 동안 한 바퀴(마지막 프레임은 첫 프레임 직전에서 멈춰 루프에 겹침이 없다). orbit은 `from`°→`to`°(기본 0→360). dolly는 각 0°에서 반지름 `from`→`to`(없으면 `radius`에 머문다). static은 각 `from`°(기본 0) |
 | `camera.radius`, `height`, `fov` | 숫자 | 피사체 중심에서의 거리와 높이(단위 m), 가로 화각(도). 각 0°는 피사체 정면(-Y), 위에서 보아 반시계 방향 |
 | `subject.kind` | `primitive` / `glb` / `script` | 아래 피사체 절 |
 | `subject.scale`, `rotation` | 숫자, [x, y, z] 도 | 기본 도형의 한 변·반지름은 1 (지름 2) |
