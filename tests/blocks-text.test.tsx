@@ -57,13 +57,28 @@ test('ZoomSwap mounts one word at a time and swaps at peak blur', () => {
   assert.ok(at(54).includes('첫째') && at(56).includes('둘째'), 'the swap happens at the middle of the swap window');
 });
 
-test('Counter rounds once and groups thousands; Typewriter reveals one character per speed step', () => {
+test('Counter rounds once and groups thousands; Typewriter types whole words by default, one character per step with by="glyph"', () => {
   assert.equal(text.formatNumber(1234567.891, 1), '1,234,567.9');
   assert.equal(text.formatNumber(999.5, 0), '1,000');
-  const typed = (f: number) => render(f, <text.Typewriter {...base} frame={f} text="abcdef" speed={3} />);
+  const typed = (f: number, by?: 'word' | 'glyph') => render(f, <text.Typewriter {...base} frame={f} text="saved every day" speed={3} by={by} />);
   // The overlay span holds the typed slice; the ghost span before it holds the whole text for layout.
-  assert.ok(typed(30).includes('top:0">a<span'), 'first character at `at`');
-  assert.ok(typed(36).includes('top:0">abc<span'), 'one more every three frames');
+  const slice = (markup: string) => /top:0">([^<]*)<span/.exec(markup)![1];
+  assert.equal(slice(typed(30)), 'saved ', 'the first word at `at`');
+  assert.equal(slice(typed(33)), 'saved every ', 'one more word every three frames');
+  for (let f = 30; f < 120; f++) assert.ok(['saved ', 'saved every ', 'saved every day'].includes(slice(typed(f))), `frame ${f} shows whole words only`);
+  assert.equal(slice(typed(30, 'glyph')), 's');
+  assert.equal(slice(typed(36, 'glyph')), 'sav');
+});
+
+test('GlyphRise moves each word as one unit by default, so a word never shows letters at different heights', () => {
+  const lifts = (f: number, by?: 'word' | 'glyph') => [...render(f, <text.GlyphRise {...base} frame={f} text="ab cd" by={by} />).matchAll(/translateY\(([-\d.e]+)%\)/g)].map(m => Number(m[1]));
+  for (let f = 30; f < 45; f++) {
+    const [a, b, , c, d] = lifts(f);
+    assert.ok(a === b && c === d, `frame ${f}: glyphs of one word share their lift (${lifts(f).join(', ')})`);
+  }
+  const [a, b] = lifts(33, 'glyph');
+  assert.notEqual(a, b, 'by="glyph" staggers single glyphs');
+  assert.ok(lifts(39).every(v => v === 0), 'the default settles within rise 8 + stagger 1');
 });
 
 test('HighlightSweep: the word is ink while the bar sweeps and paper on accent once it is full', () => {

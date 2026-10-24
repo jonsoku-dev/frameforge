@@ -74,6 +74,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [research/sfx-reference-study.md](research/sfx-reference-study.md) | 효과음 제작 방식 조사 |
 | [research/asset-practice-study.md](research/asset-practice-study.md) | 모션그래픽 에셋 출처와 도구 조사 |
 | [research/motion-tools-absorption.md](research/motion-tools-absorption.md) | 에이전트용 영상 도구 다섯 가지의 REA 분석과 흡수 기록 |
+| [research/benchmark-loop.md](research/benchmark-loop.md) | 원작과의 블라인드 비교 벤치마크 루프와 회차별 변경 |
 
 ## 저장소 루트
 

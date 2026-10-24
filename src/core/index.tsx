@@ -450,3 +450,5 @@ export * from '../packages/generative';
 export * from '../packages/annotations';
 export * from '../packages/beats';
 export * from '../packages/seekable';
+export * from '../packages/ambient';
+export * from '../packages/stream';

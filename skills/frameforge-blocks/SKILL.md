@@ -43,10 +43,10 @@ Helpers exported from `@/blocks` for your own scene code: `blockRise(frame, from
 
 | id | block | family | own props | use when |
 | --- | --- | --- | --- | --- |
-| `glyph-rise` | `GlyphRise` | text | `text`, `stagger=2`, `rise=12`, `color`, `weight` | a headline or a name; glyphs rise out of a mask, the exit drops them |
+| `glyph-rise` | `GlyphRise` | text | `text`, `stagger=1`, `rise=8`, `by='word'\|'glyph'`, `color`, `weight` | a headline or a name; each word rises out of its mask as one unit (whole words at every frame), the exit drops them |
 | `word-cascade` | `WordCascade` | text | `lines[]`, `stagger=4`, `color`, `weight` | two or three lines of copy; words fall in from below, heavier words later and slower |
 | `zoom-swap` | `ZoomSwap` | text | `words[]`, `hold=36`, `swap=16` | one slot cycling alternatives; Z-axis swap through blur, never two readable |
-| `typewriter` | `Typewriter` | text | `text`, `speed=2`, `blink=15` | a sentence being written behind a block caret; the exit deletes it |
+| `typewriter` | `Typewriter` | text | `text`, `speed=4`, `blink=15`, `by='word'\|'glyph'` | a sentence being written word by word behind a block caret; the exit deletes it |
 | `highlight-sweep` | `HighlightSweep` | text | `before`, `word`, `after`, `delay=12`, `sweep=14` | stress one word; an accent bar sweeps behind it and it turns paper |
 | `counter` | `Counter` | text | `to`, `from=0`, `decimals`, `prefix`, `unit`, `count=40`, `example` | a number counting up with tabular digits and the 예시 tag |
 | `lower-third` | `LowerThird` | lower-third | `variant` (`clean-bar`, `bold-block`, `kicker-name`, `soft-pill`, `mask-reveal`, `side-rule`), `name`, `role`, `side`, `enter=16`, `exit=12` | who or what is on screen, over a running scene, in the lower corner of the safe area |
@@ -71,7 +71,7 @@ function Stats({frame}: {frame: number}) {
 }
 ```
 
-Give `out` a few frames inside the next scene's wipe so the block is still there while the wipe covers it. Keep 2–5 s per beat, one dominant motion direction, the last 2 s still (`LogoOutro` stops moving 40 frames after its `at`).
+Give `out` a few frames inside the next scene's wipe so the block is still there while the wipe covers it. Keep 2–5 s per beat, one dominant motion direction, a final hold of 1 s at most with an ambient drift allowed (`LogoOutro` settles 40 frames after its `at`; wrap it in a `drift` layer to keep it alive).
 
 ## Checks
 

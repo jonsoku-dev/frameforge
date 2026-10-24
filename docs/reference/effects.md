@@ -55,7 +55,7 @@
 
 ## grainEffect({seed, frame, amount, size})
 
-단색 필름 그레인. `(seed, frame)`마다 `random`으로 256×256 타일을 새로 만들어 캔버스에 반복하므로 같은 `(seed, frame)`은 같은 그레인, 다른 프레임은 다른 그레인이다. `amount` 0..1(기본 0.2), `size` 1 이상 픽셀(기본 1). 정지 구간에서는 `frame: Math.min(frame, HOLD)`로 고정해 마지막 2초가 바뀌지 않게 한다. `grainTile(seed, frame)`, `applyGrain(pixels, params)`, `GRAIN_TILE`을 내보낸다.
+단색 필름 그레인. `(seed, frame)`마다 `random`으로 256×256 타일을 새로 만들어 캔버스에 반복하므로 같은 `(seed, frame)`은 같은 그레인, 다른 프레임은 다른 그레인이다. `amount` 0..1(기본 0.2), `size` 1 이상 픽셀(기본 1). 그레인은 프레임마다 바뀌므로 frame-check에서 움직임으로 잡힌다. 끝 정지(1초 이하)를 완전히 세우려면 `frame: Math.min(frame, HOLD)`로 고정한다. `grainTile(seed, frame)`, `applyGrain(pixels, params)`, `GRAIN_TILE`을 내보낸다.
 
 ## 순수 함수와 테스트
 

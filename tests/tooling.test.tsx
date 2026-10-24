@@ -79,3 +79,37 @@ test('a narration file forms its own stem: music ducks under the voice and under
     rmSync(folder, {recursive: true, force: true});
   }
 });
+
+test('frame-check fails a picture frozen over 1 s outside the final hold, counts a slow drift as motion, and takes --hold', () => {
+  const folder = join('renders', 'tests', 'frame-check');
+  mkdirSync(folder, {recursive: true});
+  const clip = (name: string, x: string) => {
+    const file = join(folder, `${name}.mp4`);
+    // drawbox evaluates x once; overlay evaluates it every frame.
+    const graph = `color=c=0xF4F4F1:s=1920x1080:r=30:d=4[bg];color=c=0x2F5BFF:s=300x900:r=30:d=4[a];color=c=0x111111:s=300x900:r=30:d=4[b];[bg][a]overlay=x='${x}':y=90[c];[c][b]overlay=x='${x}+700':y=90`;
+    const made = spawnSync('ffmpeg', ['-v', 'error', '-y', '-filter_complex', graph, '-pix_fmt', 'yuv420p', file], {encoding: 'utf8'});
+    assert.equal(made.status, 0, made.stderr);
+    return file;
+  };
+  const check = (file: string, ...flags: string[]) => {
+    const run = spawnSync(process.execPath, ['scripts/frame-check.mjs', file, '--json', ...flags], {encoding: 'utf8'});
+    return {status: run.status, report: JSON.parse(run.stdout) as {hold: number; stillShare: number; motionShare: number; fails: string[]}};
+  };
+  try {
+    // Moves 400 px/s for 1 s, then holds still for 3 s.
+    const stops = clip('stops', 'if(lt(t,1),200+t*400,600)');
+    const strict = check(stops);
+    assert.equal(strict.report.hold, 30, 'the default hold is the last second');
+    assert.equal(strict.status, 1);
+    assert.ok(strict.report.fails.some(fail => /^frozen 30-89 /.test(fail)), `frozen from the frame it stopped: ${strict.report.fails.join('; ')}`);
+    const held = check(stops, '--hold', '90');
+    assert.equal(held.status, 0, `a hold over the still part passes: ${held.report.fails.join('; ')}`);
+    // 4 px/s: under the per-step threshold on almost every frame, but over half a second the edges move.
+    const drifts = check(clip('drifts', '200+t*4'));
+    assert.ok(drifts.report.stillShare > 0.8, `per step the drift reads as still (${drifts.report.stillShare})`);
+    assert.ok(drifts.report.motionShare > 0.8, `over half a second it moves (${drifts.report.motionShare})`);
+    assert.equal(drifts.status, 0, drifts.report.fails.join('; '));
+  } finally {
+    rmSync(folder, {recursive: true, force: true});
+  }
+});

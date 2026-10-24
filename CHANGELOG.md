@@ -10,6 +10,8 @@
 
 ### 추가
 
+- **보조 움직임과 흐름** `drift`, `breathe`(`src/packages/ambient.ts`), `<Stream>`/`streamPath`(`src/packages/stream.tsx`), 모두 `frameforge`에서 가져옵니다.
+- **감사** `element_cropped`(`data-subject` 요소가 프레임 밖으로 2% 넘게 나감), `subject_overlaps_text`(주인공이 글자를 20% 넘게 가림).
 - **블록 카탈로그** `src/blocks/`(`@/blocks`): 글자 6, 로어서드 6변형, 카드 6, 차트 6, 코드 블록(4모드), 다이어그램 4. 공통 prop 계약, 모션 프로브, `CATALOG`. 샘플 `blocks-reel`, `data-reel`. 스킬 `frameforge-blocks`.
 - **이음새** `src/packages/seams.tsx`(`cutTheCurve`, `zoomThrough`, `inverseZoom`, `rackFocus`, `waterfallCut`, `waterfallEntry`, `nudge`, `<Seam>`)와 `scripts/seam-check.mjs`(렌더가 쓰는 `<out>.motion.json`에서 이음새 벡터를 재어 `seam_mirrored_vector`, `seam_axis_swap`, `seam_dead_beat`, `seam_speed_mismatch`, `seam_pingpong`). 독트린 `references/seams.md`. 샘플 `seam-reel`.
 - **나레이션** `scripts/assets/voice.py`(ElevenLabs, kokoro-onnx, macOS `say`, 길이 추정 무음 순, 줄별 해시 캐시, `narration.timing.json`), `useNarration`, `<Voiceover>`, `<Subtitles>`(rail/embed), `<Formula>`(KaTeX), `scripts/narration-check.mjs`. 렌더러와 개발 서버가 `narration.json`이 있으면 음성을 만들고, 믹스에서 음악이 음성 아래로 내려갑니다. 자막 독트린 `references/captions.md`. 샘플 `narrated-explainer`. 스킬 `frameforge-voice`.
@@ -24,6 +26,9 @@
 
 ### 바뀜
 
+- **frame-check** 기본 끝 정지가 2초에서 1초로 줄었습니다(`--hold`). 0.5초 전 프레임과 비교해 얼어붙은 구간이 1초를 넘으면 실패하고, `motion share`를 출력합니다. 옛 정지 지표(앞 프레임과 비교, 4초 기준 실패)는 출력만 합니다. 예전 규칙으로 만든 샘플 렌더는 이 기준에서 실패합니다(`docs/research/benchmark-loop.md`).
+- **글자 블록** `GlyphRise` 기본이 단어 단위(`by="word"`, `stagger` 1, `rise` 8), `Typewriter` 기본이 단어 단위(`by="word"`, `speed` 4)입니다. 글자 단위는 `by="glyph"`.
+- **규칙** 모든 숏에 보조 움직임, 글자의 중간 상태 금지(스크램블 금지), 과정 영상의 원인과 결과 동시 표시, 이유를 적은 질감 도구(글로우나 비네트 하나, 그레인, 하프톤, 두 번째 그라데이션, 목적 있는 파티클, HUD 글자) 허용.
 - 스튜디오와 `npm run render`, `__VIDEO_ENTRY__`의 기본 진입점이 `examples/samples/index.tsx`입니다. 렌더러의 기본 컴포지션은 `KitLaunch`입니다.
 - `art.py`가 모티프 키트 목록을 `src/assets/catalog.ts`에서만 읽습니다. 읽지 못하면(엔진에 `npm install`이 없을 때) 고정 목록으로 대신하지 않고 실패합니다.
 - 효과음 밀도 검사(0.5초 간격, 4초에 셋까지)는 MP4 렌더에서 늘 켜져 있습니다.

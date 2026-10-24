@@ -14,5 +14,8 @@ export function Translucent() {
     <div style={{position: 'absolute', left: 420, top: 40, padding: 8, background: '#999999'}}><span style={{...font, color: '#888888', fontSize: 24}}>흐린 글자</span></div>
     <div style={{...font, position: 'absolute', left: 420, top: 200, fontSize: 32}}>겹침</div>
     <div style={{...font, position: 'absolute', left: 428, top: 204, fontSize: 32}}>겹침 둘</div>
+    <div data-subject="잘린 잔" style={{position: 'absolute', left: 520, top: 280, width: 100, height: 120, background: '#2F5BFF'}} />
+    <div data-subject="병" style={{position: 'absolute', left: 60, top: 30, width: 120, height: 80, background: '#0F172A'}} />
+    <div data-subject="라벨 붙은 병" style={{position: 'absolute', left: 200, top: 180, width: 120, height: 80, background: '#FFFFFF'}}><span style={{...font, fontSize: 24}}>2 oz</span></div>
   </AbsoluteFill>;
 }

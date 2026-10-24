@@ -45,12 +45,19 @@ const nbsp = (glyph: string) => glyph === ' ' ? ' ' : glyph;
 
 type Text = BlockProps & {color?: string; weight?: number};
 
-export function GlyphRise({text, stagger = 2, rise = 12, color, weight = 900, ...props}: Text & {text: string; stagger?: number; rise?: number}) {
+/** Index of the word each glyph belongs to; whitespace stays with the word before it. */
+const wordIndex = (glyphs: string[]) => { let w = 0; return glyphs.map((g, i) => (i > 0 && /\s/.test(glyphs[i - 1]!) && !/\s/.test(g) ? ++w : w)); };
+
+/** Glyphs rise out of their masks. `by="word"` (the default) moves each word as one unit, so every frame shows whole words on one
+ * baseline; `by="glyph"` staggers single glyphs and leaves letters at different heights mid-reveal. */
+export function GlyphRise({text, stagger = 1, rise = 8, by = 'word', color, weight = 900, ...props}: Text & {text: string; stagger?: number; rise?: number; by?: 'word' | 'glyph'}) {
   const {frame, at, size, palette, fonts, id = `glyph-${at}`} = props;
   const {end} = blockPhase(props, rise);
   const glyphs = Array.from(text);
-  const lift = (i: number) => blockRise(frame, at + i * stagger, rise) - (Number.isFinite(end) ? blockRise(frame, end + i * stagger, rise, IN) : 0);
-  const hidden = frame < at || frame >= end + (glyphs.length - 1) * stagger + rise;
+  const unit = by === 'word' ? wordIndex(glyphs) : glyphs.map((_, i) => i);
+  const last = unit[unit.length - 1] ?? 0;
+  const lift = (i: number) => blockRise(frame, at + unit[i]! * stagger, rise) - (Number.isFinite(end) ? blockRise(frame, end + unit[i]! * stagger, rise, IN) : 0);
+  const hidden = frame < at || frame >= end + last * stagger + rise;
   return <div style={blockPlace(props, hidden)}>
     <MotionProbe id={id} value={(1 - lift(0)) * 120} family="text" axis="y" />
     <span style={{display: 'flex', color: color ?? palette.ink, fontFamily: fonts.display, fontSize: size, fontWeight: weight, lineHeight: 1, letterSpacing: '-0.04em', whiteSpace: 'nowrap'}}>
@@ -112,21 +119,22 @@ export function ZoomSwap({words, hold = 36, swap = 16, color, weight = 900, ...p
   </div>;
 }
 
-/** Characters appear `speed` frames apart behind a block caret that blinks every `blink` frames; the exit deletes them again. */
-export function Typewriter({text, speed = 2, blink = 15, color, weight = 500, ...props}: Text & {text: string; speed?: number; blink?: number}) {
+/** Text arrives `speed` frames per step behind a block caret that blinks every `blink` frames; the exit deletes it step by step.
+ * `by="word"` (the default) types whole words, so no frame shows half a word; `by="glyph"` types one character per step. */
+export function Typewriter({text, speed = 4, blink = 15, by = 'word', color, weight = 500, ...props}: Text & {text: string; speed?: number; blink?: number; by?: 'word' | 'glyph'}) {
   const {frame, at, size, palette, fonts, id = `type-${at}`} = props;
   const {end} = blockPhase(props, 1);
-  const glyphs = Array.from(text);
-  const typed = frame >= end ? Math.max(0, glyphs.length - Math.floor((frame - end) / speed)) : Math.min(glyphs.length, Math.max(0, Math.floor((frame - at) / speed) + 1));
+  const steps = by === 'word' ? text.match(/\s*\S+\s*/g) ?? [text] : Array.from(text);
+  const typed = frame >= end ? Math.max(0, steps.length - Math.floor((frame - end) / speed)) : Math.min(steps.length, Math.max(0, Math.floor((frame - at) / speed) + 1));
   const caret = Math.floor(Math.max(0, frame - at) / blink) % 2 === 0;
   const hidden = frame < at || frame >= end && typed <= 0;
   const font: CSSProperties = {fontFamily: fonts.ui, fontSize: size, fontWeight: weight, lineHeight: 1.3, whiteSpace: 'pre'};
   return <div style={blockPlace(props, hidden)}>
-    <MotionProbe id={id} value={typed / glyphs.length} family="text" axis="progress" />
+    <MotionProbe id={id} value={typed / steps.length} family="text" axis="progress" />
     <span style={{position: 'relative', display: 'inline-block', color: color ?? palette.ink, ...font}}>
       <span style={{visibility: 'hidden'}}>{text}</span>
       <span style={{position: 'absolute', left: 0, top: 0}}>
-        {glyphs.slice(0, typed).join('')}
+        {steps.slice(0, typed).join('')}
         <span style={{display: 'inline-block', width: '0.5em', height: '0.95em', verticalAlign: '-0.12em', marginLeft: '0.08em', background: palette.accent, opacity: caret ? 1 : 0}} />
       </span>
     </span>
@@ -176,10 +184,10 @@ export function Counter({from = 0, to, decimals = 0, prefix = '', unit = '', cou
 }
 
 export const TEXT_BLOCKS: BlockEntry[] = [
-  {id: 'glyph-rise', title: 'Glyph rise', family: 'text', props: ['text', 'stagger=2', 'rise=12', 'color', 'weight=900'], when: 'Headlines and names: each glyph rises out of its mask; the exit drops them back.'},
+  {id: 'glyph-rise', title: 'Glyph rise', family: 'text', props: ['text', 'stagger=1', 'rise=8', "by='word'|'glyph'", 'color', 'weight=900'], when: 'Headlines and names: each word rises out of its mask as one unit (whole words at every frame); the exit drops them back.'},
   {id: 'word-cascade', title: 'Word cascade', family: 'text', props: ['lines[]', 'stagger=4', 'color', 'weight=900'], when: 'Two or three lines of copy: words fall into place from below, heavier words later and slower.'},
   {id: 'zoom-swap', title: 'Zoom swap', family: 'text', props: ['words[]', 'hold=36', 'swap=16', 'color', 'weight=900'], when: 'One slot cycling through alternatives (times, places, verbs): a Z-axis swap through blur, never two readable at once.'},
-  {id: 'typewriter', title: 'Typewriter', family: 'text', props: ['text', 'speed=2', 'blink=15', 'color', 'weight=500'], when: 'A sentence being written: characters arrive behind a blinking block caret; the exit deletes them.'},
+  {id: 'typewriter', title: 'Typewriter', family: 'text', props: ['text', 'speed=4', 'blink=15', "by='word'|'glyph'", 'color', 'weight=500'], when: 'A sentence being written: whole words arrive behind a blinking block caret; the exit deletes them.'},
   {id: 'highlight-sweep', title: 'Highlight sweep', family: 'text', props: ['before', 'word', 'after', 'delay=12', 'sweep=14', 'color', 'weight=900'], when: 'Stress one word in a sentence: an accent bar sweeps behind it and the word turns paper.'},
   {id: 'counter', title: 'Counter', family: 'text', props: ['to', 'from=0', 'decimals=0', 'prefix', 'unit', 'count=40', 'example=false', 'color', 'weight=900'], when: 'A number that counts up with tabular digits and an optional unit, prefix and 예시 tag.'},
 ];

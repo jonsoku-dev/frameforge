@@ -1,5 +1,5 @@
 import type {CSSProperties, ReactNode} from 'react';
-import {AbsoluteFill, Audio, Easing, MotionProbe, MotionSound, Sequence, googleFont, interpolate, spring, useCurrentFrame} from 'frameforge';
+import {AbsoluteFill, Audio, Easing, MotionProbe, MotionSound, Sequence, breathe, drift, googleFont, interpolate, spring, useCurrentFrame} from 'frameforge';
 import {Card, Cup, type Asset} from './assets';
 
 // Copy this folder to examples/samples/<slug>/, rename TemplateSpot, replace every TODO string, keep the sizes.
@@ -16,8 +16,11 @@ const accent = '#2F5BFF';
 const ease = Easing.bezier(0.16, 1, 0.3, 1);
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} satisfies {extrapolateLeft: 'clamp'; extrapolateRight: 'clamp'};
 const center: CSSProperties = {display: 'flex', alignItems: 'center', justifyContent: 'center'};
-// Absolute scene starts; the last 60 frames are the still hold.
+// Absolute scene starts; the name settles by 570 and the last 30 frames (1 s) are the hold, with the camera drift still on.
 const AT = {hook: 0, beat1: 90, beat2: 210, promise: 330, name: 450, end: 600};
+// Secondary motion between the beats (frame-check fails any 1 s with nothing moving). It floats content layers, not the scene
+// backgrounds (a drifting background shows its edge) and not text set on the safe margin (the audit flags it outside).
+const float = (frame: number, phase = 0) => drift(frame + phase, {x: 10, y: 6, scale: 0.012, period: 240});
 
 function span(frame: number, from: number, dur: number): number {
   return interpolate(frame, [from, from + dur], [0, 1], {...clamp, easing: ease});
@@ -33,10 +36,13 @@ function push(frame: number, at: number, dur: number, amount: number): number {
   return 1 + amount * Math.sin(t * Math.PI);
 }
 
-function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 2}: {text: string; frame: number; at: number; size?: number; color?: string; stagger?: number}) {
+/** Words rise out of glyph masks; the glyphs of one word share a rise so no frame shows letters at different heights. */
+function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 1}: {text: string; frame: number; at: number; size?: number; color?: string; stagger?: number}) {
+  let word = 0;
   return <span style={{display: 'flex', color, fontFamily: display, fontSize: size, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em'}}>
-    {Array.from(text).map((glyph, index) => {
-      const rise = span(frame, at + index * stagger, 12);
+    {Array.from(text).map((glyph, index, glyphs) => {
+      if (index > 0 && glyphs[index - 1] === ' ' && glyph !== ' ') word++;
+      const rise = span(frame, at + word * stagger, 8);
       // Gothic A1 ink rises 0.87em above the baseline but the 1em line box only holds 0.8em, so the mask grows upward without moving the glyph.
       return <span key={index} style={{display: 'inline-block', overflow: 'hidden', height: '1.15em', paddingTop: '0.1em', marginTop: '-0.1em', paddingInline: '0.06em', marginInline: '-0.06em'}}>
         <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * 120}%)`, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? '\u00A0' : glyph}</span>
@@ -87,8 +93,8 @@ function Hook({frame}: {frame: number}) {
   const hero = pop(frame, AT.hook, 18) * SIZES.hero;
   return <AbsoluteFill style={{background: ink}}>
     <MotionProbe id="hero" value={hero} family="shape" axis="scale" />
-    <div style={{position: 'absolute', right: SIZES.marginX + S * 0.05, top: (H - SIZES.hero) / 2, width: SIZES.hero, height: SIZES.hero, ...center}}>
-      <div style={{width: hero, height: hero, borderRadius: '50%', background: accent}} />
+    <div data-subject="hero" style={{position: 'absolute', right: SIZES.marginX + S * 0.05, top: (H - SIZES.hero) / 2, width: SIZES.hero, height: SIZES.hero, ...center, transform: float(frame)}}>
+      <div style={{width: hero * breathe(frame, 60, 0.03), height: hero * breathe(frame, 60, 0.03), borderRadius: '50%', background: accent}} />
     </div>
     <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.34, display: 'flex', flexDirection: 'column', gap: S * 0.02}}>
       <Glyphs text="TODO 질문 한 줄" frame={frame} at={AT.hook + 10} color={paper} />
@@ -100,7 +106,7 @@ function Hook({frame}: {frame: number}) {
 function Beat({frame, at, title, items}: {frame: number; at: number; title: string; items: [Asset, string][]}) {
   return <AbsoluteFill style={{background: paper}}>
     <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + S * 0.04}}><Glyphs text={title} frame={frame} at={at + 2} /></div>
-    <div style={{position: 'absolute', left: SIZES.marginX, right: SIZES.marginX, top: H * 0.4, display: 'flex', justifyContent: 'space-between'}}>
+    <div style={{position: 'absolute', left: SIZES.marginX, right: SIZES.marginX, top: H * 0.4, display: 'flex', justifyContent: 'space-between', transform: float(frame, 60)}}>
       {items.map(([shape, word], i) => <div key={word} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S * 0.03, width: (W - SIZES.marginX * 2) / items.length}}>
         <Icon asset={shape} frame={frame} at={at + 4 + i * 8} size={SIZES.icon * 3} />
         <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.6, color: ink, opacity: span(frame, at + 14 + i * 8, 10)}}>{word}</div>
@@ -125,7 +131,7 @@ function PromiseScene({frame}: {frame: number}) {
   const wipe = span(frame, AT.promise, 14);
   return <AbsoluteFill style={{background: paper}}>
     <AbsoluteFill style={{background: accent, clipPath: `inset(0 ${(1 - wipe) * 100}% 0 0)`}} />
-    <div style={{position: 'absolute', inset: 0, ...center, flexDirection: 'column', gap: S * 0.04}}>
+    <div style={{position: 'absolute', inset: 0, ...center, flexDirection: 'column', gap: S * 0.04, transform: float(frame, 120)}}>
       <Glyphs text="TODO 약속 한 줄" frame={frame} at={AT.promise + 4} color={paper} />
       <Icon asset={Cup} frame={frame} at={AT.promise + 20} size={SIZES.icon * 3} color={paper} />
     </div>
@@ -134,10 +140,12 @@ function PromiseScene({frame}: {frame: number}) {
 
 function Name({frame}: {frame: number}) {
   const bar = span(frame, AT.name + 6, 16);
-  return <AbsoluteFill style={{background: ink, ...center, flexDirection: 'column', gap: S * 0.04}}>
+  return <AbsoluteFill style={{background: ink}}>
+    <AbsoluteFill style={{...center, flexDirection: 'column', gap: S * 0.04, transform: float(frame, 180)}}>
     <Glyphs text="TODO 이름" frame={frame} at={AT.name} size={SIZES.headline * 1.6} color={paper} />
     <div style={{width: W * 0.4, height: S * 0.02, background: accent, transform: `scaleX(${bar})`}} />
     <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.4, color: paper, opacity: span(frame, AT.name + 30, 12)}}>TODO 한 줄 설명 · 가상 브랜드</div>
+    </AbsoluteFill>
   </AbsoluteFill>;
 }
 

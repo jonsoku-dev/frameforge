@@ -74,13 +74,13 @@ ffprobe -v error -show_entries stream=codec_name,width,height,nb_frames -of csv=
 npm run frame-check -- renders/samples/first.mp4
 ```
 
-`frame-check`는 완성된 영상 한 편을 재는 도구입니다. 마지막 2초(30fps에서 60프레임)를 정지 구간으로 보고 빼고 잽니다. 시간 기준은 영상의 fps를 읽어 초 단위로 맞춥니다. 3초짜리 구간 렌더는 도입부 빈 화면 때문에 `FAIL: thin share ...`가 나오는 것이 정상입니다. 이 단계의 성공 조건은 도구가 실행되어 `coverage`, `empty`, `static`, `huddled share`, `thin` 줄을 출력하는 것입니다.
+`frame-check`는 완성된 영상 한 편을 재는 도구입니다. 마지막 1초(30fps에서 30프레임, `--hold`로 바꿈)를 끝 정지로 보고 빼고 잽니다. 시간 기준은 영상의 fps를 읽어 초 단위로 맞춥니다. 3초짜리 구간 렌더는 도입부 빈 화면 때문에 `FAIL: thin share ...`가 나오는 것이 정상입니다. 이 단계의 성공 조건은 도구가 실행되어 `coverage`, `empty`, `static`, `motion share`, `huddled share`, `thin` 줄을 출력하는 것입니다.
 
-통과하는 전체 작품으로 확인하려면 `kit-launch`를 끝까지 렌더합니다(약 54초 걸렸습니다).
+전체 작품으로 확인하려면 `kit-launch`를 끝까지 렌더합니다(약 46초 걸렸습니다). kit-launch는 얼어붙은 구간 기준(1초)이 생기기 전에 만들어서 지금은 `FAIL: frozen ...`이 나옵니다. 옛 기준의 정지 지표만 보면 통과합니다(`docs/research/benchmark-loop.md`).
 
 ```sh
 npm run render -- examples/samples/kit-launch/entry.tsx KitLaunch renders/samples/kit-launch-check.mp4
-npm run frame-check -- renders/samples/kit-launch-check.mp4     # 성공: 마지막 줄 PASS
+npm run frame-check -- renders/samples/kit-launch-check.mp4     # 성공: frozen 외의 실패 없음
 ```
 
 ### 6. 스튜디오
