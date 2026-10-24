@@ -1,0 +1,126 @@
+{
+  "slug": "launch-film",
+  "shots": [
+    {
+      "name": "hero",
+      "frames": 180,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "seed": 11,
+      "engine": "eevee",
+      "samples": 48,
+      "transparent": true,
+      "camera": {
+        "preset": "orbit",
+        "radius": 9.6,
+        "height": 1.6,
+        "fov": 40,
+        "from": -32,
+        "to": 8
+      },
+      "subject": {
+        "kind": "script",
+        "script": "shots/tumbler.py",
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "base": "#D94F2B",
+        "metallic": 0.0,
+        "roughness": 0.5
+      },
+      "light": {
+        "preset": "studio",
+        "strength": 0.72,
+        "environment": "#D8CFC1"
+      },
+      "background": "transparent",
+      "shadowCatcher": 0.95
+    },
+    {
+      "name": "section",
+      "frames": 120,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "seed": 11,
+      "engine": "eevee",
+      "samples": 48,
+      "transparent": true,
+      "camera": {
+        "preset": "dolly",
+        "radius": 9.0,
+        "height": 1.8,
+        "fov": 40,
+        "from": 9.0,
+        "to": 7.8
+      },
+      "subject": {
+        "kind": "script",
+        "script": "shots/tumbler.py",
+        "rotation": [
+          0,
+          0,
+          -18
+        ],
+        "section": true
+      },
+      "material": {
+        "base": "#D94F2B",
+        "metallic": 0.0,
+        "roughness": 0.5
+      },
+      "light": {
+        "preset": "studio",
+        "strength": 0.8,
+        "environment": "#D8CFC1"
+      },
+      "background": "transparent",
+      "shadowCatcher": 0.95
+    },
+    {
+      "name": "name",
+      "frames": 120,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "seed": 11,
+      "engine": "eevee",
+      "samples": 48,
+      "transparent": true,
+      "camera": {
+        "preset": "orbit",
+        "radius": 10.2,
+        "height": 1.2,
+        "fov": 40,
+        "from": 18,
+        "to": 0
+      },
+      "subject": {
+        "kind": "script",
+        "script": "shots/tumbler.py",
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "base": "#D94F2B",
+        "metallic": 0.0,
+        "roughness": 0.5
+      },
+      "light": {
+        "preset": "studio",
+        "strength": 0.72,
+        "environment": "#D8CFC1"
+      },
+      "background": "transparent",
+      "shadowCatcher": 0.95
+    }
+  ]
+}
