@@ -27,8 +27,8 @@ for (const [name, block] of BLOCKS) test(`${name}: same frame, same markup; it m
 
 test('WordBeat: one word and one flat field per beat, the text colour reads on the field, punctuation only on the last word', () => {
   const at = (f: number) => render(f, BLOCKS[0]![1](f));
-  assert.match(at(3), />EVERY</); assert.match(at(18), />ON</); assert.match(at(33), /BEAT<span[^>]*>\.<\/span>/);
-  assert.doesNotMatch(at(18), /EVERY/);
+  assert.match(at(3), />STACK</); assert.match(at(18), />SHIFT</); assert.match(at(33), /SHIP<span[^>]*>\.<\/span>/);
+  assert.doesNotMatch(at(18), /STACK/);
   assert.equal(kinetic.readableOn('#d6f23a', [palette.ink, palette.paper]), palette.ink);
   assert.equal(kinetic.readableOn('#16141c', [palette.ink, palette.paper]), palette.paper);
 });
