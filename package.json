@@ -35,9 +35,12 @@
     "narration-check": "node scripts/narration-check.mjs",
     "brief-check": "node scripts/brief-check.mjs",
     "geo": "python3 scripts/assets/geo.py",
-    "transcribe": "node scripts/transcribe.mjs"
+    "transcribe": "node scripts/transcribe.mjs",
+    "mcp": "node bin/frameforge.mjs mcp",
+    "pack:mcpb": "node scripts/pack-mcpb.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@radix-ui/react-scroll-area": "^1.4.0",
     "@radix-ui/react-separator": "^1.2.0",
     "@radix-ui/react-slider": "^1.6.1",
@@ -47,7 +50,8 @@
     "lucide-react": "^1.59.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@react-three/fiber": "9.8.2",

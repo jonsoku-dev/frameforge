@@ -22,7 +22,9 @@ const USAGE = `frameforge <command>
   brief-check <slug>               brief.md의 요청 원문, 의도 장부, 엔진 번역, 빈틈을 검사한다
   lint <slug|entry.tsx>            결정성 린트
   check <video.mp4> [--fps N] [--film <slug|folder>] [--prompt prompt.md] [--json]
-                                   frame-check, flash-check, seam-check(<video>.motion.json이 있을 때), narration-check(narration.timing.json이 있을 때), brief(brief.md가 있을 때)를 한 표로`;
+                                   frame-check, flash-check, seam-check(<video>.motion.json이 있을 때), narration-check(narration.timing.json이 있을 때), brief(brief.md가 있을 때)를 한 표로
+  mcp [--project <dir>] [--http --port 4319] [--allow-host <host>]
+                                   MCP 서버(기본 stdio, --http는 127.0.0.1의 Streamable HTTP /mcp). 위 명령을 도구로 낸다`;
 
 /** The nearest folder at or above `start` holding frameforge.json, with its films folder; null inside the engine checkout. */
 export function findProject(start) {
@@ -225,6 +227,8 @@ export function main(argv) {
       console.log(flags.includes('--json') ? JSON.stringify(rows, null, 1) : checkTable(rows));
       return rows.some(row => row.status === 'FAIL') ? 1 : 0;
     }
+    // async: the server keeps the process alive, so no exit code is returned
+    case 'mcp': return void import('../mcp/server.mjs').then(server => server.serve(flags)).catch(error => { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; });
     case 'help': case '--help': case '-h': return console.log(USAGE), 0;
     default: throw new Error(`모르는 명령: ${command}\n${USAGE}`);
   }
