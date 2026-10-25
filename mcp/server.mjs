@@ -94,6 +94,8 @@ function cli(project, args, {timeout = 10 * MINUTE, extra, env = {}} = {}) {
   });
 }
 
+/** Stops a detached child and everything it started. */
+const killGroup = child => { try { process.kill(-child.pid, 'SIGTERM'); } catch { child.kill('SIGTERM'); } };
 const text = (body, isError = false) => ({content: [{type: 'text', text: typeof body === 'string' ? body : JSON.stringify(body, null, 1)}], isError});
 const tail = (s, n = 4000) => s.length > n ? `...${s.slice(-n)}` : s;
 /** A CLI result as tool output: the output on success, the output and stderr as an error otherwise. */
@@ -248,7 +250,8 @@ export function buildServer(state) {
   }, writes, async ({port, project}) => {
     if (state.studio) return text({url: state.studio.url, running: true});
     const p = pick(project);
-    const child = spawn(process.execPath, [CLI, 'studio', '--port', String(port)], {cwd: p.root, stdio: ['ignore', 'pipe', 'pipe'], env: process.env});
+    // detached: its own process group, so stopping it also stops the Vite server the CLI spawns
+    const child = spawn(process.execPath, [CLI, 'studio', '--port', String(port)], {cwd: p.root, stdio: ['ignore', 'pipe', 'pipe'], env: process.env, detached: true});
     let log = '';
     child.stdout.on('data', chunk => { log = tail(log + chunk, 4000); });
     child.stderr.on('data', chunk => { log = tail(log + chunk, 4000); });
@@ -262,12 +265,12 @@ export function buildServer(state) {
       }
       await new Promise(next => setTimeout(next, 500));
     }
-    child.kill();
+    killGroup(child);
     return text(`studio did not answer at ${url} within 60 s\n${log}`, true);
   });
   tool('studio_stop', 'Stop the studio this server started.', {}, {readOnlyHint: false, destructiveHint: false, idempotentHint: true}, async () => {
     if (!state.studio) return text('no studio running');
-    state.studio.child.kill('SIGTERM');
+    killGroup(state.studio.child);
     state.studio = null;
     return text('stopped');
   });
@@ -292,8 +295,9 @@ export function buildServer(state) {
 export async function serve(flags = []) {
   const value = name => { const at = flags.indexOf(name); return at < 0 ? undefined : flags[at + 1]; };
   if (flags.includes('--help')) return console.log(USAGE);
+  if (value('--project') && !findProject(resolve(value('--project')))) throw new Error(`--project ${value('--project')} has no frameforge.json; run frameforge init there first.`);
   const state = {project: projectAt(resolve(value('--project') || process.env.FRAMEFORGE_PROJECT_DIR || process.cwd())), studio: null};
-  const stopStudio = () => state.studio?.child.kill('SIGTERM');
+  const stopStudio = () => state.studio && killGroup(state.studio.child);
   process.on('exit', stopStudio);
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { stopStudio(); process.exit(0); });
   if (!flags.includes('--http')) {
