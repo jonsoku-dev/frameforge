@@ -16,6 +16,11 @@ Frameforge는 저장소 자체가 포터블 에이전트 플러그인이다. 기
 | `frameforge-blocks` | 블록 카탈로그(글자, 로어서드, 카드, 차트, 코드, 다이어그램)의 공통 계약과 고르는 법 |
 | `frameforge-voice` | 나레이션 먼저: narration.json → voice.py → 측정된 시간으로 장면 → 자막 오버레이 → narration-check |
 | `frameforge-3d` | 3d.json → 헤드리스 Blender PNG 시퀀스 → ImageSequence, Poly Haven CC0 모델, ThreeCanvas의 Model |
+| `frameforge-3d-modeling` | 피사체 고르기(스캔 흉상, builtin, Poly Haven, 스크립트), 순서 있는 subject.ops, 잘리지 않는 자동 프레이밍 |
+| `frameforge-3d-materials` | 룩, 맑은·색 유리(IOR, 흡수, 액체), 실측 PBR 값, 스캔 노멀 맵 유지, view 색 관리 |
+| `frameforge-3d-lighting` | three-point·product·rim 리그, 피사체별 key:fill:rim 비율, 소프트박스 스튜디오 |
+| `frameforge-3d-animation` | 카메라 이동, subject.keys, 실제 움직임의 모션 블러, scatter, 렌즈와 이동 규칙 |
+| `frameforge-3d-review` | 숫자 먼저(--inspect) 그림 다음(--review 여섯 방향 시트), 한 번에 변수 하나 |
 | `frameforge-generative` | 알고리즘 선언문 → 생성 배경 시스템 → 변수 노출, 색 보정·LUT·라이트 리크·그레인, 손그림 주석 |
 
 약한 모델(haiku, gpt-*-luna, grok build-fast)은 키트와 템플릿 안에서만 움직이고, 강한 모델이 `assets.tsx`와 교차 리뷰를 맡는다. 호스트에 이미지·벡터 생성 도구가 있으면 `FRAMEFORGE_IMAGE_COMMAND`로 에셋 해결기에 연결한다.

@@ -28,6 +28,7 @@
 | 14 | 의존성 라이선스 | 확인 | 직접 의존성 22개: MIT 18, Apache-2.0 2(class-variance-authority, typescript), ISC 1(lucide-react). 모두 MIT 저장소와 호환. `license-checker`의 UNLICENSED 1건은 이 저장소 자체(`private: true`, license 필드 없음) |
 | 15 | `package.json` | 조치 | `"private": true`, `license` 필드 없음. 조치: `"license": "MIT"`, `"repository"`, `"bugs"`, `"homepage"` 추가. npm 공개 시 이름을 정하고 `private` 해제 |
 | 16 | 시험·검증 기록 `verification.json`, `docs/samples/*`(모델 비교) | 확인 | 내부 작업 기록이다. 모델 이름·평가가 들어 있으나 문제될 내용 없음. 공개판에서 남길지 선택 |
+| 17 | Blender 에이전트 스킬 저장소 네 곳(MIT) 참고, `scripts/assets/blender_studio.py`·`skills/frameforge-3d-*` | 확인 | 2026-10-25. 작업 순서·품질 기준·조명 비율 같은 방법만 참고했고 코드와 문장은 옮기지 않았다(모두 새로 작성). 옮긴 것이 없으므로 MIT 고지 의무 없음. 조사 기록은 `docs/research/blender-skills.md`. 스캔 흉상은 Poly Haven CC0(`scripts/assets/scans/models.lock.json`)이고 파일은 커밋하지 않는다 |
 
 2026-10-21 갱신. 3행의 `community-compatibility.json`, 6·7행의 `examples/community/`, 13행의 `docs/references/opus-5-5/`, 16행의 `docs/samples/` 모델 비교 기록은 저장소에서 지웠다. 그래서 `THIRD_PARTY_NOTICES.md`에도 커뮤니티 예제 절이 없다.
 

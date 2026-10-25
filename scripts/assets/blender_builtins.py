@@ -83,13 +83,18 @@ def head_field(p):
     ear = ellipsoid(m, (0.72, 0.14, -0.1), (0.07, 0.17, 0.27))
     ear = smax(ear, -ellipsoid(m, (0.78, 0.12, -0.12), (0.045, 0.11, 0.17)), 0.025)
     d = smin(d, ear, 0.05)                                                        # ears
-    # Short sculpted hair: a cap over the cranium cut at the hairline, with flowing grooves like chiselled locks.
-    hair = ellipsoid(p, (0, 0.1, 0.4), (0.8, 0.93, 0.8))
-    hair = smax(hair, half_space(p, 2, 0.25 - 0.4 * p[..., 1], True), 0.2)     # hairline: high on the brow, low at the nape
-    angle = np.arctan2(p[..., 0], -p[..., 1])
-    crown = np.clip(np.hypot(p[..., 0], p[..., 1] - 0.1) / 0.35, 0.0, 1.0)  # grooves fade into the whorl at the crown
-    hair = hair + 0.016 * crown * np.sin(angle * 22 + 5.0 * p[..., 2] + 2.0 * np.sin(angle * 5))
-    d = smin(d, hair, 0.04)
+    # Short classical curls grown out of the skin, not a cap laid on it: over the cranium the surface swells by up to
+    # 0.08 plus tufts of comma-shaped locks, and the swelling fades to nothing across the hairline (high on the brow, a
+    # widow's dip in the middle, low at the nape), so there is no rim anywhere.
+    y, z = p[..., 1], p[..., 2]
+    angle = np.arctan2(p[..., 0], -y)
+    line = 0.2 - 0.42 * y - 0.06 * np.exp(-(p[..., 0] / 0.12) ** 2) * (y < -0.4)
+    grow = np.clip((z - line) / 0.22, 0.0, 1.0)
+    grow = grow * grow * (3 - 2 * grow)
+    locks = np.sin(9 * angle + 2.5 * np.sin(11 * z)) * np.sin(13 * z + 2.0 * np.sin(7 * angle))
+    crown = np.clip((z - 0.55) / 0.5, 0.0, 1.0)  # more volume on top, as hair stands off the crown
+    hair = ellipsoid(p, (0, 0.06, 0.3), (0.72, 0.84, 0.75)) + 0.03 - grow * (0.085 + 0.05 * crown + 0.028 * locks)
+    d = smin(d, hair, 0.03)
     neck = p * np.array([0.9, 1.0, 1.0])
     d = smin(d, capsule(neck, (0, 0.12, -0.45), (0, 0.16, -1.75), 0.4, 0.44), 0.25)  # neck
     d = smin(d, capsule(m, (0.48, 0.22, -0.4), (0.07, -0.16, -1.5), 0.08, 0.07), 0.14)  # neck muscles, ear to collarbone
@@ -179,8 +184,28 @@ def build_plush(detail):
     return parts
 
 
+def offset_profile(profile, wall):
+    """The (radius, z) profile moved `wall` inwards, perpendicular to each segment (corners use the mean of their two)."""
+    out = []
+    for i, (r, z) in enumerate(profile):
+        normals = []
+        for a, b in ((profile[max(i - 1, 0)], profile[i]), (profile[i], profile[min(i + 1, len(profile) - 1)])):
+            dr, dz = b[0] - a[0], b[1] - a[1]
+            length = math.hypot(dr, dz)
+            if length > 1e-9:
+                normals.append((-dz / length, dr / length))  # left of travel: towards the axis when climbing the outside
+        nr, nz = (sum(n[0] for n in normals) / len(normals), sum(n[1] for n in normals) / len(normals))
+        length = math.hypot(nr, nz) or 1.0
+        out.append((r + wall * nr / length, z + wall * nz / length))
+    return out
+
+
 def lathe(name, profile, segments=128):
     """Spins a (radius, z) profile about the z axis into a closed smooth solid."""
+    # Wide flat ends get rings of their own before the fan to the axis: long thin fan triangles bend the smooth normals
+    # across the whole cap, which glass and liquid refract as a sawtooth.
+    rings_in = lambda r, z: [(r * f, z) for f in (0.08, 0.35, 0.65, 0.88)] if r > 0.15 else []
+    profile = rings_in(*profile[0]) + list(profile) + rings_in(*profile[-1])[::-1]
     mesh = bpy.data.meshes.new(name)
     bm = bmesh.new()
     rings = []
@@ -206,13 +231,41 @@ def lathe(name, profile, segments=128):
     return obj
 
 
-def build_bottle(detail):
-    # A squat serum bottle: rounded shoulders, a short neck, a tall faceted cap. Profile points are doubled at the
-    # corners so subdivision keeps them crisp but softened, like a moulded edge.
-    body = [(0.62, -1.1), (0.7, -1.08), (0.72, -1.0), (0.72, 0.25), (0.7, 0.4), (0.6, 0.52), (0.3, 0.6),
-            (0.22, 0.62), (0.22, 0.75)]
-    cap = [(0.27, 0.72), (0.29, 0.74), (0.29, 1.3), (0.27, 1.33)]
-    return [(lathe('bottle', body), 'body'), (lathe('cap', cap, 12), 'trim')]
+BOTTLE = [(0.62, -1.1), (0.7, -1.08), (0.72, -1.0), (0.72, 0.25), (0.7, 0.4), (0.6, 0.52), (0.3, 0.6), (0.22, 0.62), (0.22, 0.75)]
+WALL = 0.035  # glass wall; the base is three walls thick, as moulded bottles are
+
+
+def build_bottle(detail, options=None):
+    """A squat serum bottle with a tall faceted cap, blown as a hollow shell: up the outside, over the lip, down the
+    inside to a thick base, so glass refracts two walls and whatever is inside, not a solid lump. `liquid` {fill (0..1 of
+    the body's height), colour} adds a liquid volume a hair inside the wall. Profile points are doubled at the corners so
+    subdivision keeps them crisp but softened, like a moulded edge."""
+    options = options or {}
+    inner = offset_profile(BOTTLE, WALL)
+    floor = BOTTLE[0][1] + 3 * WALL
+    inside = [(r, max(z, floor)) for r, z in inner if z > floor - WALL][::-1]
+    shell = BOTTLE + [(BOTTLE[-1][0] - WALL, BOTTLE[-1][1])] + inside[1:]
+    body = lathe('bottle', shell)
+    body['shell'] = WALL
+    parts = [(body, 'body'), (lathe('cap', [(0.27, 0.72), (0.29, 0.74), (0.29, 1.3), (0.27, 1.33)], 12), 'trim')]
+    liquid = options.get('liquid')
+    if liquid:
+        # The liquid's surface sits at `fill` of the way from the inner floor to the shoulder; its side a hair inside the glass.
+        top = floor + (0.4 - floor) * min(max(float(liquid.get('fill', 0.6)), 0.05), 1.0)
+        gap = 0.012  # liquid a little inside the glass: touching walls would z-fight
+        side = [(r, z) for r, z in offset_profile(BOTTLE, WALL + gap) if r > 0.3]  # the body's wall, below the neck
+
+        def radius_at(z):
+            for (r0, z0), (r1, z1) in zip(side, side[1:]):
+                if z0 <= z <= z1 and z1 > z0:
+                    return r0 + (r1 - r0) * (z - z0) / (z1 - z0)
+            return side[-1][0] if z > side[-1][1] else side[0][0]
+        bottom = floor + gap
+        # Corners doubled (a step in, a step up) so subdivision keeps a flat floor, straight sides and a flat surface.
+        profile = [(radius_at(bottom) - 0.03, bottom), (radius_at(bottom + 0.02), bottom + 0.02)] + \
+                  [(r, z) for r, z in side if bottom + 0.02 < z < top - 0.02] + [(radius_at(top - 0.02), top - 0.02), (radius_at(top) - 0.03, top)]
+        parts.append((lathe('liquid', profile), 'liquid'))
+    return parts
 
 
 def build_gem(detail):
@@ -276,9 +329,11 @@ def build_knot(detail):
     return [(obj, 'body')]
 
 
-def build(name, detail=256):
-    """The builtin subject `name` at the origin, about 2 units across like a primitive, as [(object, role)]."""
-    parts = {'head': build_head, 'bottle': build_bottle, 'gem': build_gem, 'knot': build_knot, 'plush': build_plush}[name](detail)
+def build(name, detail=256, options=None):
+    """The builtin subject `name` at the origin, about 2 units across like a primitive, as [(object, role)]; `options` is
+    the shot's subject (the bottle reads `liquid`)."""
+    builders = {'head': build_head, 'bottle': build_bottle, 'gem': build_gem, 'knot': build_knot, 'plush': build_plush}
+    parts = builders[name](detail, options) if name == 'bottle' else builders[name](detail)
     depsgraph = bpy.context.evaluated_depsgraph_get()
     for obj, _ in parts:  # bake the relax and subdivision once, so frame changes do not re-evaluate a million-face stack
         mesh = bpy.data.meshes.new_from_object(obj.evaluated_get(depsgraph))

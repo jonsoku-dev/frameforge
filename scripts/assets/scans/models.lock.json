@@ -1,0 +1,43 @@
+{
+ "head": {
+  "id": "marble_bust_01",
+  "kind": "model",
+  "query": "marble bust",
+  "resolution": "2k",
+  "title": "Marble Bust 01",
+  "authors": [
+   "Rico Cilliers"
+  ],
+  "license": "CC0",
+  "license_url": "https://polyhaven.com/license",
+  "page": "https://polyhaven.com/a/marble_bust_01",
+  "file": "/assets/generated/frameforge-scans/models/head/head.gltf",
+  "files": [
+   {
+    "path": "head/head.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/marble_bust_01/marble_bust_01_2k.gltf",
+    "md5": "a25d7fdc8f9d464d40f5025c4993cda3"
+   },
+   {
+    "path": "head/marble_bust_01.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/marble_bust_01/marble_bust_01.bin",
+    "md5": "1c62c1189a0e8985618c1662e1bd25a3"
+   },
+   {
+    "path": "head/textures/marble_bust_01_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/marble_bust_01/marble_bust_01_diff_2k.jpg",
+    "md5": "2aa08c108bd20d958c8ef5abc62cc42d"
+   },
+   {
+    "path": "head/textures/marble_bust_01_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/marble_bust_01/marble_bust_01_nor_gl_2k.jpg",
+    "md5": "f04a441103615ba1139f4a1b5fca379a"
+   },
+   {
+    "path": "head/textures/marble_bust_01_rough_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/marble_bust_01/marble_bust_01_rough_2k.jpg",
+    "md5": "d749fc0de68bbd7b399bb190f9161159"
+   }
+  ]
+ }
+}

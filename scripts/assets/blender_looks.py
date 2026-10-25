@@ -107,12 +107,64 @@ def look_glossy(tree, c):
                                'Specular IOR Level': 0.6}).outputs[0]
 
 
-def look_glass(tree, c):
-    # A clear coat doubles the edge reflections and a thin film adds a faint rainbow, standing in for the dispersion
-    # EEVEE does not render; without them glass on a dark background reads as grey plastic.
-    return principled(tree, **{'Base Color': mix_colour((1, 1, 1), c['base'], 0.3), 'Roughness': 0.0, 'IOR': c['ior'],
-                               'Transmission Weight': 1.0, 'Coat Weight': 1.0, 'Coat Roughness': 0.0,
-                               'Thin Film Thickness': 320.0, 'Thin Film IOR': 1.6}).outputs[0]
+def look_glass(tree, c, context):
+    """Clear transmission: white, so the glass shows what is behind it (the soft-box room) bent by `ior`. A tint is
+    `absorption` (#rrggbb): in Cycles a Volume Absorption inside (thick parts darker, see body_material), in EEVEE, whose
+    refraction sees one layer, the transmission colour itself. `frost` roughens it."""
+    tint = c.get('absorption')
+    colour = mix_colour((1, 1, 1), tint, 0.65) if tint and context.get('engine') != 'cycles' else (1.0, 1.0, 1.0, 1.0)
+    if context.get('thin') and context.get('engine') != 'cycles':
+        # A hollow wall in EEVEE: refraction would see one layer (a milky slab hiding the liquid), so the wall is see-through
+        # with Fresnel reflections of the soft boxes on top; what is inside then refracts on its own.
+        fresnel = add(tree, 'ShaderNodeFresnel', IOR=c['ior'])
+        shine = add(tree, 'ShaderNodeBsdfGlossy', Roughness=c['frost'])
+        return mix_shader(tree, fresnel.outputs[0], add(tree, 'ShaderNodeBsdfTransparent', Color=colour).outputs[0], shine.outputs[0])
+    return principled(tree, **{'Base Color': colour, 'Roughness': c['frost'], 'IOR': c['ior'], 'Transmission Weight': 1.0,
+                               'Specular IOR Level': 0.5}).outputs[0]
+
+
+def liquid_material(colours, context):
+    """The liquid in a bottle: water-like transmission (IOR 1.33) coloured like look_glass's tint, denser."""
+    material = bpy.data.materials.new('liquid')
+    tree = material.node_tree
+    tree.nodes.remove(tree.nodes['Principled BSDF'])
+    cycles = context.get('engine') == 'cycles'
+    shader = principled(tree, **{'Base Color': (1.0, 1.0, 1.0, 1.0) if cycles else colours['liquid'], 'Roughness': 0.0, 'IOR': 1.33,
+                                 'Transmission Weight': 1.0})
+    out = tree.nodes['Material Output']
+    link(tree, shader.outputs[0], out.inputs['Surface'])
+    if cycles:
+        link(tree, add(tree, 'ShaderNodeVolumeAbsorption', Color=colours['liquid'], Density=colours['density']).outputs[0], out.inputs['Volume'])
+    material.use_raytrace_refraction = True
+    material.surface_render_method = 'DITHERED'
+    return material
+
+
+def normal_image(obj):
+    """The image an imported material feeds its Normal Map node (a scan's carved detail), or None."""
+    for slot in obj.material_slots:
+        tree = slot.material.node_tree if slot.material else None
+        for made in (tree.nodes if tree else []):
+            if made.type == 'NORMAL_MAP' and made.inputs['Color'].is_linked and made.inputs['Color'].links[0].from_node.type == 'TEX_IMAGE':
+                return made.inputs['Color'].links[0].from_node.image
+    return None
+
+
+def attach_normal(tree, image):
+    """Feeds `image` through a Normal Map node into every unlinked Normal input of the look (BSDFs, coat, layer weight,
+    bump), so a look keeps the scan's detail instead of dropping it with the imported material."""
+    texture = tree.nodes.new('ShaderNodeTexImage')
+    texture.image = image
+    image.colorspace_settings.name = 'Non-Color'
+    mapped = tree.nodes.new('ShaderNodeNormalMap')
+    link(tree, texture.outputs['Color'], mapped.inputs['Color'])
+    for made in list(tree.nodes):
+        if made in (texture, mapped):
+            continue
+        for name in ('Normal', 'Coat Normal'):
+            socket = made.inputs.get(name)
+            if socket is not None and not socket.is_linked:
+                link(tree, mapped.outputs['Normal'], socket)
 
 
 def look_chrome(tree, c):
@@ -198,8 +250,8 @@ def look_holographic(tree, c):
 
 
 def shader(tree, look, colours, context):
-    if look == 'scanline':
-        return look_scanline(tree, colours, context)
+    if look in ('scanline', 'glass'):
+        return globals()[f'look_{look}'](tree, colours, context)
     return globals()[f'look_{look}'](tree, colours)
 
 
@@ -225,6 +277,8 @@ def body_material(name, look, colours, context, sweep=None):
     if looks & {'glass'}:
         material.use_raytrace_refraction = True
         material.surface_render_method = 'DITHERED'
+        if colours.get('absorption') and context.get('engine') == 'cycles':
+            link(tree, add(tree, 'ShaderNodeVolumeAbsorption', Color=colours['absorption'], Density=colours['density']).outputs[0], out.inputs['Volume'])
     return material
 
 
@@ -279,10 +333,14 @@ def wire_cage(obj, colours, size, context, side=None):
 
 def apply(objects, look, colours, size, sweep=None, context=None):
     """Gives every mesh its material by its `role` property (builtins set it; anything else is `body`): `body` the look
-    and the sweep, `trim` polished gold, `eye` glossy black."""
+    and the sweep (keeping an imported normal map), `trim` polished gold, `eye` glossy black, `liquid` liquid_material."""
     for obj in objects:
         role = obj.get('role', 'body')
+        normal = normal_image(obj)
         obj.data.materials.clear()
+        if role == 'liquid':
+            obj.data.materials.append(liquid_material(colours, context))
+            continue
         if role == 'trim':
             obj.data.materials.append(plain_material('trim', **{'Base Color': colours['trim'], 'Metallic': 1.0, 'Roughness': 0.12}))
             continue
@@ -292,7 +350,16 @@ def apply(objects, look, colours, size, sweep=None, context=None):
         if role == 'eye':
             obj.data.materials.append(plain_material('eye', **{'Base Color': INK, 'Roughness': 0.05, 'Coat Weight': 1.0}))
             continue
-        obj.data.materials.append(body_material('body', look, colours, context, sweep))
+        context['thin'] = bool(obj.get('shell'))
+        material = body_material('body', look, colours, context, sweep)
+        if normal is not None:
+            attach_normal(material.node_tree, normal)
+        if obj.get('shell'):  # a hollow wall (the bottle): refracted as a thin slab of that thickness where EEVEE refracts it
+            material.thickness_mode = 'SLAB'
+            material.node_tree.nodes['Material Output'].inputs['Thickness'].default_value = float(obj['shell'])
+            if context.get('engine') != 'cycles' and look == 'glass':
+                material.surface_render_method = 'BLENDED'  # sorted transparency: no dither grain on the see-through wall
+        obj.data.materials.append(material)
         if 'toon' in (look, sweep and sweep['to']):
             toon_outline(obj, colours, size)
         if 'wireframe' in (look, sweep and sweep['to']):

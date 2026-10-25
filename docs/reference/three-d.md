@@ -48,7 +48,7 @@ Blender 4.2 이상이 필요하다(`blender`가 PATH에 있거나 `BLENDER_PATH`
 
 ### 피사체
 
-- `builtin`: 오프라인으로 바로 만드는 히어로 메시. `head`(눈꺼풀·조각한 홍채·입술·결이 있는 머리칼, 돌림판 받침 위의 흉상), `bottle`(금색 캡의 세럼 병), `gem`(라운드 브릴리언트 컷), `knot`(둥근 삼각 단면이 세 번 비틀리는 (2, 3) 토러스 매듭), `plush`(귀와 검은 광택 눈이 있는 말랑한 마스코트). head와 plush는 numpy로 적은 부호 거리장(smooth min으로 덩어리를 섞는다)을 복셀 격자에 샘플해 OpenVDB로 쓰고 Blender의 Volume to Mesh로 메시화한 뒤 다듬고 서브디비전한다. `subject.detail`(64–512, 기본 256)이 긴 변의 복셀 수다. 난수가 없어 같은 사양은 같은 메시다. 부품마다 역할이 있어 `body`는 룩을, `trim`(캡)은 `material.trim` 금속을, `eye`는 검은 광택을, `plinth`(받침)은 검은 석재를 받는다. 룩이 없으면 `glossy`다.
+- `builtin`: 히어로 메시. `head`는 기본이 CC0 스캔 고전 흉상이다. `blender.py`가 처음 쓸 때 `scripts/assets/scans/models.json`으로 한 번 받아 `public/assets/generated/frameforge-scans/`에 두고 모든 작품이 함께 쓴다(`scans/models.lock.json`이 id와 md5를 고정한다). 어떤 룩을 입혀도 스캔의 노멀 맵을 유지한다. 오프라인이거나 `subject.scan: false`면 조각한 흉상(눈꺼풀·조각한 홍채·입술, 피부에서 자라나는 짧은 곱슬머리, 돌림판 받침)이 대신 나오고 `manifest.json`의 `subject`가 `scan`인지 `builtin`인지 적는다. 나머지는 `bottle`(금색 캡의 세럼 병. 바깥 벽을 올라가 입구를 넘어 안쪽으로 내려오는 속이 빈 유리 껍질이고 바닥은 벽 세 배 두께다. `subject.liquid: {"fill": 0..1, "colour": "#rrggbb"}`가 안에 액체를 채운다), `gem`(라운드 브릴리언트 컷), `knot`(둥근 삼각 단면이 세 번 비틀리는 (2, 3) 토러스 매듭), `plush`(귀와 검은 광택 눈이 있는 말랑한 마스코트). head와 plush는 numpy로 적은 부호 거리장(smooth min으로 덩어리를 섞는다)을 복셀 격자에 샘플해 OpenVDB로 쓰고 Blender의 Volume to Mesh로 메시화한 뒤 다듬고 서브디비전한다. `subject.detail`(64–512, 기본 256)이 긴 변의 복셀 수다. 난수가 없어 같은 사양은 같은 메시다. 부품마다 역할이 있어 `body`는 룩을, `trim`(캡)은 `material.trim` 금속을, `eye`는 검은 광택을, `plinth`(받침)은 검은 석재를 받는다. 룩이 없으면 `glossy`다.
 - `primitive`: `cube` `sphere` `torus` `monkey` `cylinder`. cube 말고는 부드럽게 셰이딩하고, monkey에는 서브디비전 2단, cylinder는 30° 기준 각도 스무딩이라 테두리가 산다.
 - `glb`: `bpy.ops.import_scene.gltf`로 읽는다(.gltf+사이드카, .glb 모두). 가장 긴 변이 2 × `scale`이 되게 맞추고 중심을 원점에 둔다.
 - `script`: 3d.json 옆의 파이썬 파일. Blender 안에서 실행되며 `build(scene, shot)`을 호출한다. `shot`은 기본값이 채워진 샷 사양이다. 피사체 오브젝트(하나 또는 리스트)를 돌려주면 그림자 판과 카메라 기준이 그 경계 상자를 따른다. `None`을 돌려주면 장면의 모든 메시를 피사체로 본다.
@@ -68,7 +68,7 @@ def build(scene, shot):
 | `look` | 모습 | `material`에서 읽는 값 |
 | --- | --- | --- |
 | `glossy` | 클리어코트 래커, 부드러운 스튜디오 반사 | `base` |
-| `glass` | 투과 + 레이트레이스 굴절(EEVEE에는 분산이 없다) | `base`(색조), `ior`(1.45, 보석 2.4) |
+| `glass` | 소프트박스 스튜디오를 굴절하는 맑은 투과. 색은 `absorption`(Cycles는 두께에 따라 짙어지는 Volume Absorption, EEVEE는 투과색). EEVEE에서 병 벽은 비쳐 보이는 벽 + 프레넬 반사로 그려 안의 액체가 보인다. 유리·보석 히어로는 Cycles 권장 | `ior`(1.45, 물 1.33, 보석 2.4), `absorption`, `density`(2), `frost`(0) |
 | `chrome` | 스튜디오를 비추는 거울 금속 | `base`(색조) |
 | `plush` | 시언 잔털, 무광 바탕, 고운 노이즈 범프 | `base` |
 | `toon` | 빛 세 단계, 딱딱한 하이라이트, 잉크 외곽선(반전 헐). EEVEE 전용 | `base` |
@@ -79,9 +79,27 @@ def build(scene, shot):
 - `sweep: {"to": <look>, "from": <프레임>, "until": <프레임>}`: 샷의 `look`이 아래에서 위로 `to`로 닦여 바뀌고, 경계에 `accent` 색의 밝은 이음매가 지나간다. 높이는 프레임 번호의 순수 함수(`sweep_level`, 인-아웃 이징)다. 대표 조합은 `scanline` → `glossy`.
 - `bloom`: 룩이 있으면 기본 0.5, 없으면 0. 컴포지터 Glare(Bloom, 문턱 1.0)라 흰색보다 밝은 픽셀만 번지고 배경은 밝은 픽셀에서 떨어진 곳에서 헥스 그대로다(1080p 프레임 모서리는 정확히 같고, 96x54 테스트 썸네일에서는 번짐이 모서리에 1단계까지 닿는다). 투명 필름은 피사체 밖의 번짐을 잃으니 불투명 배경에 쓴다.
 - `dof`: f-stop(예: 4). 초점 거리는 매 프레임 카메라에서 바라보는 점까지다.
-- 모션 블러는 제공하지 않는다. 카메라를 키프레임 없이 프레임마다 놓기 때문에 EEVEE 셔터가 움직임을 보지 못한다. 필요하면 작품에서 `<CameraMotionBlur>`를 쓴다.
-- 룩이 있고 HDRI가 없으면 히어로 조명(큰 소프트 키, 뒤쪽 스트립 림 둘, 위 조명)과 Blender에 들어 있는 CC0 스튜디오 HDRI가 반사를 준다. `light.hdri`에는 파일 대신 번들 이름 `studio` `city` `courtyard` `forest` `interior` `night` `sunrise` `sunset`을 적을 수 있고 `light.rotate`(도)로 돌린다.
+- `motionBlur`: 셔터(프레임 단위, 0 초과 2 이하). 카메라와 `subject.keys`를 매 프레임 키프레임으로 넣으므로 블러가 실제 움직임을 본다.
+- 룩이 있거나 조명 리그(`three-point` `product` `rim`)를 쓰고 HDRI가 없으면 절차적 소프트박스 스튜디오(어두운 방에 앞왼쪽 키 박스, 위 박스, 뒤쪽 세로 스트립 둘, 오른쪽 필, 피사체 뒤의 낮은 빛)가 반사와 굴절을 준다. `light.rotate`가 방을 돌리고 `light.environment`(#rrggbb)가 물들인다. 카메라는 여전히 `background`를 본다. `light.hdri`에는 파일 대신 번들 이름 `studio` `city` `courtyard` `forest` `interior` `night` `sunrise` `sunset`을 적을 수 있고 `light.rotate`(도)로 돌린다.
 - 룩이 있으면 EEVEE 레이트레이싱을 켠다. 단 `toon`이나 `scanline`이 들어간 샷은 끈다. 레이트레이싱을 켜면 EEVEE의 Shader to RGB가 빛을 읽지 못해 띠와 줄 밝기가 평평해진다.
+
+### 스튜디오 필드
+
+| 필드 | 값 | 뜻 |
+| --- | --- | --- |
+| `view` | `standard` / `agx` / `neutral` | 색 관리 뷰 변환. standard(기본)만 헥스가 정확하다. agx는 밝은 하이라이트를 부드럽게 눕히고, neutral(Khronos PBR Neutral)은 제품색을 헥스에 가깝게 둔다 |
+| `light.preset` | `three-point` / `product` / `rim` | 리그. three-point: 앞왼쪽 소프트 키, 넓은 필, 뒤 림. product: 위 박스, 양옆 뒤 세로 스트립, 낮은 앞 필. rim: 강한 뒤 스트립, 약한 키 |
+| `light.ratio` | `[key, fill, rim]` | 리그 에너지 배율. 없으면 피사체 종류별 값: organic 1:0.3:0.6, hard 1:0.45:0.9, metal 0.7:0.7:1, glass 0.5:0.6:0.45(강한 림이 유리·액체의 색을 씻어 내므로 림은 약하게, 필은 넉넉히) |
+| `subject.ops` | `[{"op": ..., ...}]` | 몸체에 순서대로 적용하고 한 번 굽는다. `bevel`(width, segments), `subdivide`(levels), `remesh`(voxel), `smooth`(factor, iterations), `inflate`(amount, 법선 방향), `displace`(strength, scale, 구름 노이즈). 크기는 장면 단위 |
+| `subject.keys` | `[{"frame", "location"?, "rotation"?, "scale"?}]` | 피사체 자체 회전·크기 위에 더하는 변환. 키 사이는 `subject.ease`(기본 inout), 첫 키 전과 마지막 키 뒤는 멈춘다 |
+| `scatter` | `{count, shape: sphere/cube/gem, size, radius, flatten, seed, spin, material: trim/body}` | 피사체 둘레에 메시 하나를 공유하는 인스턴스를 `random.Random(seed)`로 놓고 `spin`(도/프레임)으로 돌린다 |
+| `denoise` | 불리언 | Cycles OpenImageDenoise(CPU). 같은 기계에서 같은 바이트(확인함) |
+| `camera.fill` | 0.1–1 | `radius`를 빼면 피사체 경계 상자가 이동 중 가장 넓은 순간에 화면의 이 비율(기본 0.9)을 차지하게 반지름을 푼다. `elevation`(도, 기본 10)이 높이를, 상자 중심이 `target`을 정한다. dolly는 반지름을 직접 적는다 |
+
+### 검사 명령
+
+- `npm run blender -- <3d.json> --inspect [--shot 이름]`: 장면을 만들고 렌더하지 않은 채 `<shot>/inspect.json`을 쓰고 출력한다. 피사체 출처(`scan` 등), 종류와 비율, 경계 상자, 오브젝트(면 수, 재질, 노멀 맵 여부), 조명 에너지와 위치, 월드, 카메라, `framing`(이동 17프레임에서 상자 모서리가 닿는 최대 `extent`, `cropped`, `small`), `warnings`.
+- `--review`: 위 숫자에 더해 앞, 3/4, 옆, 뒤, 반대 옆, 위 여섯 방향에서 각각 맞춰 찍은 `<shot>/review.png`(3열)를 만든다. 타일은 ffmpeg xstack.
 
 ### 카메라 이동
 
@@ -106,12 +124,12 @@ Apple M 시리즈 Mac, EEVEE, 32 샘플, 1080p 기준: 스윕·피사계 심도�
 같은 사양은 같은 바이트의 PNG를 낸다(이 Mac의 EEVEE·Cycles 모두에서 두 번 렌더해 확인했다. 다른 GPU·드라이버·Blender 판에서 같은 바이트가 나온다고는 주장하지 않는다). `blender_scene.py`가 고정하는 것:
 
 - 샷마다 Blender 프로세스 하나, `--factory-startup`, `read_factory_settings(use_empty=True)`. 사용자 설정이 섞이지 않는다.
-- 카메라는 키프레임이 아니라 `camera_pose(camera, index, frames)`라는 프레임 번호의 순수 함수로 매 프레임 놓는다. 스윕 높이(`sweep_level`)와 스캔라인 흐름, 피사계 심도 초점도 같은 방식으로 매 프레임 값 노드에 넣는다. 블룸은 결정적인 컴포지터 노드다. `--frames 5`만 렌더한 5번 프레임은 전체 렌더의 5번 프레임과 같은 바이트다(테스트가 확인한다).
-- EEVEE: `taa_render_samples = samples`, 모션 블러 없음. Cycles: `samples`, `seed`, `use_animated_seed = False`, `use_adaptive_sampling = False`, `use_denoising = False`, `device = 'CPU'`.
-- 색 관리: 디스플레이 sRGB, 뷰 변환 Standard, 룩 None, 노출 0, 감마 1. `background`와 `material.base`의 헥스가 적은 대로 나온다(테스트가 배경 픽셀을 확인한다).
-- PNG 8비트, 압축 15, `use_stamp_*` 전부 끔. 스탬프 메타데이터(렌더 시간)가 유일하게 달라지던 바이트였다.
+- 카메라와 피사체는 `camera_pose`·`subject_pose`라는 프레임 번호의 순수 함수에서 계산해 모든 프레임에 키프레임으로 넣는다(사이는 선형). 스윕 높이(`sweep_level`)와 스캔라인 흐름, 피사계 심도 초점은 매 프레임 넣는다. scatter는 고정 시드다. 블룸은 결정적인 컴포지터 노드다. `--frames 5`만 렌더한 5번 프레임은 전체 렌더의 5번 프레임과 같은 바이트다(테스트가 확인한다).
+- EEVEE: `taa_render_samples = samples`, 모션 블러는 `motionBlur`가 있을 때만. Cycles: `samples`, `seed`, `use_animated_seed = False`, `use_adaptive_sampling = False`, 디노이즈는 `denoise`일 때만, `device = 'CPU'`.
+- 색 관리: 디스플레이 sRGB, 뷰 변환은 `view`(기본 Standard), 룩 None, 노출 0, 감마 1. `background`와 `material.base`의 헥스가 적은 대로 나온다(테스트가 배경 픽셀을 확인한다).
+- PNG 8비트, 압축 15, `use_stamp_*` 전부 끔, 쓴 뒤 tEXt 청크를 지운다. 스탬프와 Cycles가 적는 렌더·동기화 시간이 같은 그림에서 달라지던 바이트였다.
 
-`manifest.json`의 `specHash`는 샷 JSON + 스크립트·모델·HDRI 파일 바이트 + `blender_scene.py`·`blender_builtins.py`·`blender_looks.py` 바이트 + `GENERATION`의 해시다. 같은 해시이고 요청한 PNG가 다 있으면 건너뛴다. 빌더를 고치면 저절로 다시 렌더된다. 번들 HDRI 이름은 해시에 파일 바이트를 넣지 않는다(Blender 판에 따라 그림이 달라질 수 있다).
+`manifest.json`의 `specHash`는 샷 JSON + 스크립트·모델·HDRI 파일 바이트 + `blender_scene.py`·`blender_builtins.py`·`blender_looks.py`·`blender_studio.py` 바이트, 스캔 흉상을 쓰면 그 파일 바이트 + `GENERATION`의 해시다. 같은 해시이고 요청한 PNG가 다 있으면 건너뛴다. 빌더를 고치면 저절로 다시 렌더된다. 번들 HDRI 이름은 해시에 파일 바이트를 넣지 않는다(Blender 판에 따라 그림이 달라질 수 있다).
 
 ## models.json
 

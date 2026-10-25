@@ -90,6 +90,7 @@ test('blender.py renders the fixture deterministically with the colours as writt
     assert.deepEqual(readdirSync(hero).sort(), ['0000.png', '0001.png', 'manifest.json']);
     assert.deepEqual(readdirSync(join(folder, 'scripted')).sort(), ['0000.png', 'manifest.json']);
     assert.deepEqual(readdirSync(join(folder, 'builtin')).sort(), ['0000.png', '0001.png', '0002.png', 'manifest.json']);
+    assert.deepEqual(readdirSync(join(folder, 'studio')).sort(), ['0000.png', '0001.png', 'manifest.json'], 'keys, motion blur, scatter, ops, a rig and agx render');
     // Bloom adds light only round bright pixels; in this 96x54 thumbnail its halo reaches the corner by at most one level.
     firstPixel(join(folder, 'builtin', '0000.png')).forEach((value, i) => assert.ok(Math.abs(value - [0x0b, 0x0d, 0x14][i]) <= 1, `bloom keeps the background hex: ${value}`));
     const manifest = JSON.parse(readFileSync(join(hero, 'manifest.json'), 'utf8'));
@@ -102,7 +103,7 @@ test('blender.py renders the fixture deterministically with the colours as writt
     assert.ok(manifest.seconds > 0);
     assert.deepEqual(firstPixel(join(hero, '0000.png')), [0x2f, 0x5b, 0xff], 'the background hex must come out as written (Standard view transform)');
     assert.equal(firstPixel(join(folder, 'scripted', '0000.png')).length, 4, 'a transparent background renders RGBA');
-    const names = ['hero/0000.png', 'hero/0001.png', 'scripted/0000.png', 'builtin/0000.png', 'builtin/0001.png', 'builtin/0002.png'];
+    const names = ['hero/0000.png', 'hero/0001.png', 'scripted/0000.png', 'builtin/0000.png', 'builtin/0001.png', 'builtin/0002.png', 'studio/0000.png', 'studio/0001.png'];
     const before = names.map(name => readFileSync(join(folder, name)));
     assert.notDeepEqual(before[3], before[5], 'the builtin shot sweeps from scan lines to gloss while the camera moves');
     assert.notDeepEqual(before[0], before[1], 'the turntable moves between frames');
