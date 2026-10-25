@@ -14,7 +14,7 @@ OUT = os.path.join(ROOT, 'public', 'audio', 'generated')
 FFMPEG = os.environ.get('FFMPEG_PATH') or os.environ.get('FFMPEG', 'ffmpeg')
 NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 rng = np.random.default_rng(0)  # reseeded per file so no output depends on generation order
-GENERATION = 'v3'  # part of the output digest; raising it regenerates every composition.
+GENERATION = 'v4'  # part of the output digest; raising it regenerates every composition.
 
 
 def ts(dur):
@@ -525,7 +525,7 @@ HIT_STYLES = ('slam', 'lift', 'soft')
 def hit_plan(spec):
     """The spec's hits as sorted dicts {at, weight 0..1, style}. A bare number gets a derived weight: 0.4, plus 0.9 x the
     energy rise across the hit (one beat either side), plus 0.15 when it ends a build, scaled down when the previous
-    hit is under four bars away. An object's own weight and style win."""
+    hit is under four bars away (never under 0.4). An object's own weight and style win."""
     secs, beat = spec['sections'], 60 / spec['bpm']
     roles = section_roles(secs)
     energy_at = lambda t: next(s['energy'] for s in secs if t < s['to'] or s is secs[-1])
@@ -535,8 +535,8 @@ def hit_plan(spec):
         t = h['at']
         k = next(i for i, s in enumerate(secs) if t - 1e-3 < s['to'] or s is secs[-1])
         w = 0.4 + 0.9 * max(0, energy_at(t + beat) - energy_at(t - beat)) + (0.15 if roles[k] == 'build' and abs(secs[k]['to'] - t) < beat else 0)
-        if out:
-            w *= 0.5 + 0.5 * min(1, (t - out[-1]['at']) / (16 * beat))
+        if out:  # dense hits are lighter, but never under 0.4: a reel that cuts on every bar still needs every cut to land
+            w = max(min(w, 0.4), w * (0.5 + 0.5 * min(1, (t - out[-1]['at']) / (16 * beat))))
         out.append({'at': t, 'weight': round(float(h.get('weight', min(1, w))), 3), 'style': h.get('style', 'slam')})
     return out
 
@@ -546,6 +546,7 @@ BUSES = {'kick': (0.6, 0.02, 0), 'sub': (0.6, 0, 0), 'snare': (0.42, 0.25, 0), '
          'bass': (0.4, 0, 0), 'pad': (0.3, 0.45, 0.1), 'arp': (0.4, 0.3, 0.6), 'lead': (0.4, 0.25, 0.3), 'fx': (0.32, 0.6, 0),
          'hit': (0.6, 0.15, 0)}  # the hits' own kick, sub, crash and transient: not ducked, not compressed
 ACCENT_DB = 1.5  # a hit's loudest 20 ms beats every 20 ms of the second before it (riser and roll included) by this much in the final mix
+TRANSIENT_DB = 4.0  # and every 20 ms of the 200 ms just before it by this much: the cut is heard as a hit
 HIT_DUCK = (0.09, 0.3)  # the bed dips over the 90 ms before a hit and comes back over the 300 ms after it
 LEVEL_DB = 4  # level span between energy 0 and energy 1 sections
 
@@ -845,7 +846,8 @@ def master(mix, m, curve, pad_gain, sc_role, dip, bed, dur, secs, beat):
         dly_in += x.sum(axis=0) * ds * m['dly']
     wet = (reverb(rev_in, m['size'], m['pre']) + ping_pong(dly_in, m['dly_beats'] * beat)) * bed
     # The hit layers join after the bus compressor, so it cannot pull them back to the level of the track.
-    x = widen(compress(tilt(dry + wet, *m['tilt'])) + tilt(hits, *m['tilt']), m['width'])
+    bed_x, hit_x = widen(compress(tilt(dry + wet, *m['tilt'])), m['width']), widen(tilt(hits, *m['tilt']), m['width'])
+    x = bed_x + hit_x
     # Section ride: each section lands LEVEL_DB * (1 - energy) under full energy, measured after the limiter, whatever
     # its arrangement. Iterated because part of a section (the boundary crossfade, a held hit) follows its neighbour's
     # gain and the limiter is nonlinear.
@@ -854,7 +856,11 @@ def master(mix, m, curve, pad_gain, sc_role, dip, bed, dur, secs, beat):
     for _ in range(16):
         pre = x * 10 ** (curve(ride) / 20)
         loud = np.percentile([np.sqrt(np.mean(pre[:, i:i + SR // 20] ** 2)) for i in range(0, n - SR // 20, SR // 20)], 95)
-        out = limit(pre, loud * 10 ** (CREST_DB / 20))
+        # The bed is limited HIT_HEADROOM_DB under the final ceiling, so a hit's peak clears every bed peak around it (a single
+        # limiter flattens both to the same ceiling and the hit measures 0 dB over its surroundings).
+        g = 10 ** (curve(ride) / 20)
+        ceiling = loud * 10 ** (CREST_DB / 20)
+        out = limit(limit(bed_x * g, ceiling) + hit_x * g, ceiling * 10 ** (HIT_HEADROOM_DB / 20))
         got = np.array([rms_db(out[:, int(s['from'] * SR):int(s['to'] * SR)]) for s in secs])
         err = target - (got - got.max())
         if np.abs(err - err.max()).max() < 0.05:
@@ -867,7 +873,8 @@ def master(mix, m, curve, pad_gain, sc_role, dip, bed, dur, secs, beat):
     return pre * fade, out * fade
 
 
-CREST_DB = 9.5  # limiter ceiling above the loud-section RMS
+CREST_DB = 9.5  # bed limiter ceiling above the loud-section RMS
+HIT_HEADROOM_DB = 4.0  # the hit layers may peak this far above the bed ceiling
 
 
 # ---------------------------------------------------------------- output
@@ -909,14 +916,17 @@ def rms_db(x):
     return 20 * np.log10(np.sqrt(np.mean(x ** 2)) + 1e-12)
 
 
-def accents(final, plan):
-    """Per hit: dB by which its loudest 20 ms window (from 10 ms before to 100 ms after) beats the loudest 20 ms of the 0.9 s before it."""
+def accents(final, plan, before_s=1.0):
+    """Per hit: dB by which its loudest 20 ms window (from 10 ms before to 100 ms after) beats the loudest 20 ms of the window
+    before it: from `before_s` before the hit to 100 ms before it (1.0: the 0.9 s before), or, for a window under 0.3 s, the
+    whole window up to 20 ms before the hit (0.2: the 200 ms before, the transient check)."""
     w = SR // 50
     level = lambda i: rms_db(final[:, i:i + w])
     out = []
     for x in plan:
         h = int(x['at'] * SR)
-        before = [level(i) for i in range(max(0, h - SR), h - SR // 10, w // 4)]
+        stop = h - (w if before_s < 0.3 else SR // 10)
+        before = [level(i) for i in range(max(0, h - int(before_s * SR)), stop, w // 4)]
         out.append(max(level(i) for i in range(max(0, h - w // 2), h + SR // 10, w // 4)) - max(before) if before else float('inf'))
     return out
 
@@ -931,6 +941,8 @@ def check(pre, final, spec):
         assert peak[a:b].max() > rest, f"hit {h}: something else around it is louder"
     for x, accent in zip(spec['hits'], accents(final, spec['hits'])):
         assert accent >= ACCENT_DB, f"hit {x['at']}: only {accent:.1f} dB over the second before it, under {ACCENT_DB} dB"
+    for x, accent in zip(spec['hits'], accents(final, spec['hits'], 0.2)):
+        assert accent >= TRANSIENT_DB, f"hit {x['at']}: only {accent:.1f} dB over the 200 ms before it, under {TRANSIENT_DB} dB"
     win = max(rms_db(final[:, i:i + SR]) for i in range(0, final.shape[1] - SR, SR // 10))
     assert win - rms_db(final[:, -SR:]) >= 20, 'last second must sit 20 dB under the loudest second'
 
@@ -1039,19 +1051,31 @@ def generate(path, force):
 
 
 def self_check():
-    """Scores two specs in memory (no files): 90 bpm at 18.666 s and 18.667 s, where the last bar starts 0.4 ms before the end and its
-    pad rings 3.3 s past it, with light slams whose accent the duck and transient must carry."""
+    """Scores three specs in memory (no files): 90 bpm at 18.666 s and 18.667 s, where the last bar starts 0.4 ms before the end and its
+    pad rings 3.3 s past it, with light slams whose accent the duck and transient must carry; and a 120 bpm reel with a bare hit on
+    every bar, whose hits must stay heavy enough and peak over the bed (a single limiter used to flatten them to 0 dB)."""
     global rng
-    for dur in (18.666, 18.667):
-        spec = {'slug': 'self-check', 'durationSeconds': dur, 'bpm': 90, 'key': 'A minor', 'mood': 'dramatic', 'seed': 7, 'loudness': {'I': -24, 'TP': -2},
-                'sections': [{'from': 0, 'to': 2.667, 'energy': 0.3}, {'from': 2.667, 'to': 13.333, 'energy': 0.85}, {'from': 13.333, 'to': 17.333, 'energy': 0.5}, {'from': 17.333, 'to': dur, 'energy': 0.1}],
-                'hits': [2.667, {'at': 8.0, 'style': 'lift'}, {'at': 10.667, 'weight': 0.3}, {'at': 13.333, 'style': 'soft'}]}
+    reel = {'slug': 'self-check', 'durationSeconds': 15, 'bpm': 120, 'key': 'A minor', 'mood': 'tech', 'seed': 3, 'loudness': {'I': -16, 'TP': -1},
+            'sections': [{'from': 0, 'to': 2, 'energy': 0.7}, {'from': 2, 'to': 12, 'energy': 0.9}, {'from': 12, 'to': 15, 'energy': 0.3}],
+            'hits': [2, 4, 6, 8, 10, 12]}
+    specs = [{'slug': 'self-check', 'durationSeconds': dur, 'bpm': 90, 'key': 'A minor', 'mood': 'dramatic', 'seed': 7, 'loudness': {'I': -24, 'TP': -2},
+              'sections': [{'from': 0, 'to': 2.667, 'energy': 0.3}, {'from': 2.667, 'to': 13.333, 'energy': 0.85}, {'from': 13.333, 'to': 17.333, 'energy': 0.5}, {'from': 17.333, 'to': dur, 'energy': 0.1}],
+              'hits': [2.667, {'at': 8.0, 'style': 'lift'}, {'at': 10.667, 'weight': 0.3}, {'at': 13.333, 'style': 'soft'}]} for dur in (18.666, 18.667)] + [reel]
+    for spec in specs:
+        dur = spec['durationSeconds']
         validate(spec, 'self-check.audio.json')
         rng = np.random.default_rng(spec['seed'])
         pre, mix = score(spec)
         assert mix.shape[1] == int(round(dur * SR)), f'{dur} s: {mix.shape[1]} samples'
         check(pre, mix, spec)
-        print(f'{dur} s at 90 bpm: hits accent ' + ', '.join(f'{a:.1f}' for a in accents(mix, spec['hits'])) + ' dB')
+        if spec is reel:
+            assert min(x['weight'] for x in spec['hits']) >= 0.4, f"dense hits fell under weight 0.4: {[x['weight'] for x in spec['hits']]}"
+            peak = lambda a, b: np.abs(mix[:, max(0, int(a * SR)):int(b * SR)]).max(initial=1e-9)
+            over = [20 * np.log10(peak(x['at'] - 0.02, x['at'] + 0.15) / peak(x['at'] - 0.5, x['at'] - 0.02)) for x in spec['hits']]
+            assert min(over) >= 2, f'reel hits peak only {min(over):.1f} dB over the half second before them'
+            print(f'{dur} s at 120 bpm, a hit every bar: peak over the 0.5 s before ' + ', '.join(f'{a:.1f}' for a in over) + ' dB')
+        print(f'{dur} s at {spec["bpm"]} bpm: hits accent ' + ', '.join(f'{a:.1f}' for a in accents(mix, spec['hits'])) + ' dB, transient over 200 ms '
+              + ', '.join(f'{a:.1f}' for a in accents(mix, spec['hits'], 0.2)) + ' dB')
     print('score self-check ok')
 
 

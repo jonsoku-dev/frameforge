@@ -17,7 +17,8 @@ const accent = '#2F5BFF';
 const ease = Easing.bezier(0.16, 1, 0.3, 1);
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} satisfies {extrapolateLeft: 'clamp'; extrapolateRight: 'clamp'};
 const center: CSSProperties = {display: 'flex', alignItems: 'center', justifyContent: 'center'};
-// Absolute scene starts; the name settles by 570 and the last 30 frames (1 s) are the hold, with the camera drift still on.
+// Absolute scene starts; every scene's first reveal starts a few frames before its cut, so the cut frame already shows the
+// incoming picture (frame-check fails three flat or blurred frames in a row). The name settles by 570 and the last 30 frames (1 s) are the hold, with the camera drift still on.
 const AT = {hook: 0, beat1: 90, beat2: 210, promise: 330, name: 450, end: 600};
 // Secondary motion between the beats (frame-check fails any 1 s with nothing moving). It floats content layers, not the scene
 // backgrounds (a drifting background shows its edge) and not text set on the safe margin (the audit flags it outside).
@@ -107,10 +108,10 @@ function Hook({frame}: {frame: number}) {
 
 function Beat({frame, at, title, items}: {frame: number; at: number; title: string; items: [Asset, string][]}) {
   return <AbsoluteFill style={{background: paper}}>
-    <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + S * 0.04}}><Glyphs text={title} frame={frame} at={at + 2} /></div>
+    <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + S * 0.04}}><Glyphs text={title} frame={frame} at={at - 4} /></div>
     <div style={{position: 'absolute', left: SIZES.marginX, right: SIZES.marginX, top: H * 0.4, display: 'flex', justifyContent: 'space-between', transform: float(frame, 60)}}>
       {items.map(([shape, word], i) => <div key={word} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S * 0.03, width: (W - SIZES.marginX * 2) / items.length}}>
-        <Icon asset={shape} frame={frame} at={at + 4 + i * 8} size={SIZES.icon * 3} />
+        <Icon asset={shape} frame={frame} at={at - 3 + i * 8} size={SIZES.icon * 3} />
         <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.6, color: ink, opacity: span(frame, at + 14 + i * 8, 10)}}>{word}</div>
       </div>)}
     </div>
@@ -122,7 +123,7 @@ function ScreenBeat({frame}: {frame: number}) {
   return <AbsoluteFill style={{background: accent}}>
     {/* The screen and its callout float together, so the shot never freezes while the callout reads; no scale, so the label stays at the minimum size. */}
     <AbsoluteFill style={{transform: drift(frame + 30, {x: 10, y: 6, scale: 0, period: 240})}}>
-    <Screen frame={frame} at={at}>
+    <Screen frame={frame} at={at - 8}>
       {/* Swap for <Img src={staticFile('/screens/<slug>/<name>.png')} style={{width: '100%', height: '100%'}} /> when a capture exists. */}
       <div style={{position: 'absolute', left: '6%', top: '10%', width: '50%', height: '12%', background: ink}} />
       <div style={{position: 'absolute', left: '6%', top: '34%', width: '88%', height: '50%', background: accent, opacity: 0.25}} />
@@ -133,7 +134,7 @@ function ScreenBeat({frame}: {frame: number}) {
 }
 
 function PromiseScene({frame}: {frame: number}) {
-  const wipe = span(frame, AT.promise, 14);
+  const wipe = span(frame, AT.promise - 5, 14);
   return <AbsoluteFill style={{background: paper}}>
     <AbsoluteFill style={{background: accent, clipPath: `inset(0 ${(1 - wipe) * 100}% 0 0)`}} />
     <div style={{position: 'absolute', inset: 0, ...center, flexDirection: 'column', gap: S * 0.04, transform: float(frame, 120)}}>
@@ -147,7 +148,7 @@ function Name({frame}: {frame: number}) {
   const bar = span(frame, AT.name + 6, 16);
   return <AbsoluteFill style={{background: ink}}>
     <AbsoluteFill style={{...center, flexDirection: 'column', gap: S * 0.04, transform: float(frame, 180)}}>
-    <Glyphs text="TODO 이름" frame={frame} at={AT.name} size={SIZES.headline * 1.6} color={paper} />
+    <Glyphs text="TODO 이름" frame={frame} at={AT.name - 4} size={SIZES.headline * 1.6} color={paper} />
     <div style={{width: W * 0.4, height: S * 0.02, background: accent, transform: `scaleX(${bar})`}} />
     <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.4, color: paper, opacity: span(frame, AT.name + 30, 12)}}>TODO 한 줄 설명 · 가상 브랜드</div>
     </AbsoluteFill>

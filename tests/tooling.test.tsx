@@ -80,13 +80,14 @@ test('a narration file forms its own stem: music ducks under the voice and under
   }
 });
 
-test('frame-check fails a picture frozen over 1 s outside the final hold, counts a slow drift as motion, and takes --hold', () => {
+test('frame-check fails a picture frozen over 1 s outside the final hold, a still end, a blank transition frame run, counts a slow drift as motion, and takes --hold', () => {
   const folder = join('renders', 'tests', 'frame-check');
   mkdirSync(folder, {recursive: true});
-  const clip = (name: string, x: string) => {
+  const clip = (name: string, x: string, flat = '') => {
     const file = join(folder, `${name}.mp4`);
-    // drawbox evaluates x once; overlay evaluates it every frame.
-    const graph = `color=c=0xF4F4F1:s=1920x1080:r=30:d=4[bg];color=c=0x2F5BFF:s=300x900:r=30:d=4[a];color=c=0x111111:s=300x900:r=30:d=4[b];[bg][a]overlay=x='${x}':y=90[c];[c][b]overlay=x='${x}+700':y=90`;
+    // drawbox evaluates x once; overlay evaluates it every frame. `flat` covers the frame with one orange field while it holds.
+    const cover = flat ? `;color=c=0xE5481F:s=1920x1080:r=30:d=4[f];[d][f]overlay=enable='${flat}'` : '';
+    const graph = `color=c=0xF4F4F1:s=1920x1080:r=30:d=4[bg];color=c=0x2F5BFF:s=300x900:r=30:d=4[a];color=c=0x111111:s=300x900:r=30:d=4[b];[bg][a]overlay=x='${x}':y=90[c];[c][b]overlay=x='${x}+700':y=90${flat ? '[d]' : ''}${cover}`;
     const made = spawnSync('ffmpeg', ['-v', 'error', '-y', '-filter_complex', graph, '-pix_fmt', 'yuv420p', file], {encoding: 'utf8'});
     assert.equal(made.status, 0, made.stderr);
     return file;
@@ -102,8 +103,12 @@ test('frame-check fails a picture frozen over 1 s outside the final hold, counts
     assert.equal(strict.report.hold, 30, 'the default hold is the last second');
     assert.equal(strict.status, 1);
     assert.ok(strict.report.fails.some(fail => /^frozen 30-89 /.test(fail)), `frozen from the frame it stopped: ${strict.report.fails.join('; ')}`);
+    assert.ok(strict.report.fails.some(fail => /^end hold: motion share 0 /.test(fail)), `the still last 2 s fail: ${strict.report.fails.join('; ')}`);
     const held = check(stops, '--hold', '90');
-    assert.equal(held.status, 0, `a hold over the still part passes: ${held.report.fails.join('; ')}`);
+    assert.equal(held.status, 0, `a declared hold over the still part passes, end hold included: ${held.report.fails.join('; ')}`);
+    // Moving all through, but a flat orange frame for 6 frames (2.0-2.2 s) as a cut: a blank transition.
+    const blank = check(clip('blank', '200+t*200', 'between(t,2,2.19)'));
+    assert.deepEqual(blank.report.fails, ['featureless 60-65 (6f flat or blurred >= 3f)']);
     // 4 px/s: under the per-step threshold on almost every frame, but over half a second the edges move.
     const drifts = check(clip('drifts', '200+t*4'));
     assert.ok(drifts.report.stillShare > 0.8, `per step the drift reads as still (${drifts.report.stillShare})`);

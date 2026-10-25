@@ -217,6 +217,27 @@ OS 중립 토스트. 키트 에셋 컴포넌트를 아이콘 자리에 받아(`i
 <LogoOutro frame={frame} at={804} align="center" size={S * 0.21} palette={palette} fonts={fonts} color={palette.paper} brand="온결" tagline="하루를 잇다 · 가상 브랜드" />
 ```
 
+## 키네틱 타이포 (`kinetic.tsx`)
+
+움직임이 말의 뜻을 연기하는 블록입니다. 모두 `frame`의 순수 함수이고 씨앗이 필요한 부분은 `random(seed)`를 씁니다. WordBeat, TextField, WhipPan, BauhausMosaic은 부모를 가득 채우므로 `AbsoluteFill` 안에 둡니다. 쓰는 법과 고르는 기준은 `skills/frameforge-best-practices/references/kinetic-type.md`입니다.
+
+| 블록 | 고유 props | 하는 일 |
+| --- | --- | --- |
+| `WordBeat` | `words[]`, `size`, `beat=15`, `fields[]`, `punctuation`, `weight=900` | 박마다 화면 전체가 다음 평면 색으로 바뀌고 다음 단어가 스프링으로 1.35배에서 1배로 박힙니다. 글자색은 그 색 위에서 가장 잘 읽히는 팔레트 색(`readableOn`)입니다. 마지막 단어에 `punctuation`이 대비색으로 붙습니다. |
+| `Thread` | `points[[x,y]]`, `loops[]`, `curl=42`, `draw=45`, `words[{text,x,y,size,at?}]`, `stroke=6`, `color` | 선이 단어 밑과 사이를 지나며 `draw` 프레임 동안 그려지고, `loops`의 점에서 한 바퀴 고리를 돕니다. 머리의 점이 단어 왼쪽 아래에 가장 가까워질 때 그 단어가 마스크에서 올라옵니다. 다 그린 뒤에는 반짝임이 선을 따라 계속 흐릅니다. |
+| `TextField` | `rows=24`, `corpus[]`, `font`, `speed=1`, `background`, `color`, `seed`, `beat=0`, `children` | 작은 글자 줄들이 줄마다 다른 속도와 방향으로 흐르는 배경입니다. 줄은 DOM 글자가 아니라 SVG 그림이라 레이아웃 감사가 세지 않습니다. 주인공 줄은 `children`으로 위에 놓습니다. `corpus`는 작품의 언어로 씁니다. |
+| `WhipPan` | `from`, `to`, `dur=8`, `direction`, `smear=0.2` | 두 장면이 함께 한 축으로 휙 지나가고, 움직이는 동안 그 축으로만 번지는 SVG 가우스 블러가 속도를 따라갑니다. 블러는 화면의 4%로 묶여 가운데 프레임에도 두 장면의 경계와 글자가 보입니다. 프로브는 `camera` 가족이라 seam-check가 읽습니다. |
+| `BauhausMosaic` | `colours[]`, `cols=16`, `beat=15`, `wave=1.2`, `flip=6`, `seed` | 사분원, 원, 고리, 삼각형, 반원, 점 타일이 화면을 채웁니다. 박마다 씨앗 위치에서 물결이 퍼지고 닿은 칸이 다음 타일로 뒤집힙니다. 바탕색은 반쯤 돌 때 바뀌어 틈이 열리지 않습니다. |
+| `Toggle` | `on`, `size`, `x`, `y`, `align='center'`, `offColour` | 광택 있는 스위치입니다. `on` 프레임에 손잡이가 스프링으로 건너가며 빠를 때 살짝 눌리고, 강조색이 트랙을 채우고, 켜진 뒤에는 빛이 숨 쉽니다. `size`는 트랙 높이(px)입니다. |
+
+```tsx
+import {WordBeat, Thread, WhipPan} from '@/blocks';
+
+<AbsoluteFill><WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={300} words={['EVERY', 'ON', 'BEAT']} punctuation="." fields={['#3045e8', '#d6f23a', '#16141c']} /></AbsoluteFill>
+```
+
+검사는 `npx tsx --test tests/blocks-kinetic.test.tsx`입니다. 같은 프레임 같은 마크업, 프레임마다 움직임, 박마다 단어 하나, 고리의 모양, 텍스트 필드에 DOM 글자가 주인공뿐인지, 휩 팬 가운데 프레임에 두 장면과 한 축 블러가 있는지, 모자이크 물결이 일부 칸만 뒤집는지, 토글 손잡이의 이동을 봅니다.
+
 ## 카탈로그
 
-`TEXT_BLOCKS`, `LOWER_THIRD_BLOCKS`, `CARD_BLOCKS`(`BlockEntry[]`)가 각 파일에서 나가고 `CATALOG`가 모읍니다. 항목은 `{id, title, family, props, when}`이며 스튜디오와 스킬이 같은 목록을 읽습니다. 검사는 `npx tsx --test tests/blocks-text.test.tsx`입니다. 등장 전 숨김, 같은 프레임 두 번 같은 마크업, 정착 뒤 정지, `out` 없이 영구 유지, 카탈로그 id 유일성과 모든 블록의 등재를 봅니다.
+`TEXT_BLOCKS`, `LOWER_THIRD_BLOCKS`, `CARD_BLOCKS`, `KINETIC_BLOCKS`(`BlockEntry[]`)가 각 파일에서 나가고 `CATALOG`가 모읍니다. 항목은 `{id, title, family, props, when}`이며 스튜디오와 스킬이 같은 목록을 읽습니다. 검사는 `npx tsx --test tests/blocks-text.test.tsx`입니다. 등장 전 숨김, 같은 프레임 두 번 같은 마크업, 정착 뒤 정지, `out` 없이 영구 유지, 카탈로그 id 유일성과 모든 블록의 등재를 봅니다.

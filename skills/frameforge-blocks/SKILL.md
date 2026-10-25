@@ -1,6 +1,6 @@
 ---
 name: frameforge-blocks
-description: Pick and place ready motion-graphics blocks (titles, lower thirds, counters, cards, tickers, checklists, charts, code, diagrams) from the Frameforge catalogue in src/blocks instead of hand-writing them. Use when a film needs a title, a name card, a number, a toast, a chat, a ticker, a chart or a diagram, or when a film looks amateur and its text and cards should be replaced by catalogue blocks.
+description: Pick and place ready motion-graphics blocks (titles, lower thirds, counters, cards, tickers, checklists, kinetic type, charts, code, diagrams) from the Frameforge catalogue in src/blocks instead of hand-writing them. Use when a film needs a title, a name card, a number, a toast, a chat, a ticker, a chart or a diagram, or when a film looks amateur and its text and cards should be replaced by catalogue blocks.
 ---
 
 # Frameforge blocks
@@ -39,7 +39,7 @@ Every motion is `interpolate`, `spring` or `Easing` of `frame`. Each block repor
 
 Helpers exported from `@/blocks` for your own scene code: `blockRise(frame, from, dur, easing?)`, `blockSettle(frame, at, dur, fps, settle)`, `blockPhase(props, enter, exit)`, `blockPlace(props, hidden)`, `blockMask`.
 
-## Catalogue: text, lower thirds, cards
+## Catalogue: text, lower thirds, cards, kinetic type
 
 | id | block | family | own props | use when |
 | --- | --- | --- | --- | --- |
@@ -56,8 +56,16 @@ Helpers exported from `@/blocks` for your own scene code: `blockRise(frame, from
 | `ticker` | `Ticker` | card | `items[]`, `speed=4`, `cell`, `height` | many short items scrolling without end, separated by drawn dots |
 | `checklist` | `Checklist` | card | `items[]`, `stagger=14`, `draw=12` | three to five steps ticked off with a drawn check path |
 | `logo-outro` | `LogoOutro` | card | `brand`, `tagline`, `color` | the last scene: name, accent rule, tagline, still hold |
+| `word-beat` | `WordBeat` | kinetic | `words[]`, `size`, `beat=15`, `fields[]`, `punctuation` | a sentence one word per beat; each beat cuts the whole frame to the next flat colour field and punches the word in |
+| `thread` | `Thread` | kinetic | `points[[x,y]]`, `loops[]`, `curl`, `draw=45`, `words[{text,x,y,size}]`, `stroke`, `color` | thinking, connecting, following through: a line draws under and through the words, curls into loops, words rise as its head arrives |
+| `text-field` | `TextField` | kinetic | `rows=24`, `corpus[]`, `speed`, `background`, `beat`, `children` | reading, knowledge, volume: dense small text scrolls behind a hero line (rows are images, the audit ignores them) |
+| `whip-pan` | `WhipPan` | kinetic | `from`, `to`, `dur=8`, `direction`, `smear=0.2` | a cut between colour fields or scenes as a camera whip with one-axis motion blur, never a flat or fully blurred frame |
+| `bauhaus-mosaic` | `BauhausMosaic` | kinetic | `colours[]`, `cols=16`, `beat=15`, `wave`, `flip`, `seed` | a geometric beat: a frame-filling Bauhaus tile grid that flips in waves on every beat |
+| `toggle` | `Toggle` | kinetic | `on`, `size`, `x`, `y`, `align`, `offColour` | switching something on as a premium object: glossy track, springing knob, accent fill |
 
-The same list is `TEXT_BLOCKS`, `LOWER_THIRD_BLOCKS` and `CARD_BLOCKS` (`BlockEntry[]` with `id`, `title`, `family`, `props`, `when`) merged into `CATALOG` from `@/blocks`, so an agent or the studio can read it at runtime.
+Kinetic blocks act out the words; when to use which: `../frameforge-best-practices/references/kinetic-type.md`. The full-frame ones (`WordBeat`, `TextField`, `WhipPan`, `BauhausMosaic`) fill their parent and take `frame`, `at`, `palette` but no `size`/`align`.
+
+The same list is `TEXT_BLOCKS`, `LOWER_THIRD_BLOCKS`, `CARD_BLOCKS` and `KINETIC_BLOCKS` (`BlockEntry[]` with `id`, `title`, `family`, `props`, `when`) merged into `CATALOG` from `@/blocks`, so an agent or the studio can read it at runtime.
 
 ## Placing a block in a scene
 

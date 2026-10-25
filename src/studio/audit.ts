@@ -1,6 +1,6 @@
 export type Rgba = [number, number, number, number];
 export type Rect = {x: number; y: number; width: number; height: number};
-export type LayoutFault = {code: 'text_outside_safe' | 'text_overlap' | 'contrast_low' | 'text_too_small' | 'element_cropped' | 'subject_overlaps_text'; message: string; fix: string; rect: Rect; text: string};
+export type LayoutFault = {code: 'text_outside_safe' | 'text_overlap' | 'contrast_low' | 'text_too_small' | 'element_cropped' | 'subject_overlaps_text' | 'corner_hud'; message: string; fix: string; rect: Rect; text: string};
 
 const round = (value: number) => Math.round(value * 10) / 10;
 const rectOf = (r: {left: number; top: number; width: number; height: number}): Rect => ({x: round(r.left), y: round(r.top), width: round(r.width), height: round(r.height)});
@@ -115,7 +115,14 @@ export function insideSafeArea(rect: Rect, viewport: {width: number; height: num
   return rect.x >= mx && rect.y >= my && rect.x + rect.width <= viewport.width - mx && rect.y + rect.height <= viewport.height - my;
 }
 
-const SAFE = 0.05, OVERLAP = 0.2, LABEL = 0.035, BIG_TEXT = 38, CROPPED = 0.02, COVERED = 0.2;
+const SAFE = 0.05, OVERLAP = 0.2, LABEL = 0.035, BIG_TEXT = 38, CROPPED = 0.02, COVERED = 0.2, CORNER = 0.08, HUD_TEXT = 0.06;
+
+/** The frame corner a text box reaches into: within CORNER of a vertical and a horizontal edge. */
+export function cornerOf(rect: Rect, viewport: {width: number; height: number}): string | null {
+  const v = rect.y < viewport.height * CORNER ? 'top' : rect.y + rect.height > viewport.height * (1 - CORNER) ? 'bottom' : null;
+  const h = rect.x < viewport.width * CORNER ? 'left' : rect.x + rect.width > viewport.width * (1 - CORNER) ? 'right' : null;
+  return v && h ? `${v}-${h}` : null;
+}
 
 /** <CameraMotionBlur> stacks frozen copies with plus-lighter; every layer but the top one is a copy. */
 const blurCopy = (node: Element) => getComputedStyle(node).mixBlendMode === 'plus-lighter' && node.nextElementSibling !== null && getComputedStyle(node.nextElementSibling).mixBlendMode === 'plus-lighter';
@@ -164,6 +171,9 @@ export function findLayoutFaults(root: Element, {width, height, rootColor = pars
   for (const {element, text, rect, fontSize} of boxes) {
     if (!insideSafeArea(rect, {width, height}, SAFE) && !element.closest('[data-clip="allow"]')) faults.push({code: 'text_outside_safe', text, rect, message: `"${text}" leaves the ${SAFE * 100}% safe area`, fix: 'Move the text inside the safe area, or mark a band that overflows on purpose with data-clip="allow".'});
     if (fontSize < minLabel && !element.closest('[data-size="allow"]')) faults.push({code: 'text_too_small', text, rect, message: `"${text}" is ${round(fontSize)}px, under ${Math.ceil(minLabel)}px (3.5% of the short side)`, fix: 'Raise the font size to the label minimum, or allow a small legal line with data-size="allow".'});
+    // Small text in a corner (timecode, frame counter, REC) is reported per corner; the renderer keeps it only when it stays for over half the film.
+    const corner = fontSize < Math.min(width, height) * HUD_TEXT && !element.closest('[data-hud="allow"]') ? cornerOf(rect, {width, height}) : null;
+    if (corner) faults.push({code: 'corner_hud', text: corner, rect, message: `small text "${text}" sits in the ${corner} corner`, fix: 'Remove the corner readout (timecode, frame counter, scene number, BPM, REC reads as a template), or opt in with data-hud="allow" and write the reason in prompt.md.'});
     const color = parseCssColor(getComputedStyle(element).color);
     const background = color && paintedBackground(element, rect, rootColor, root);
     if (color && background) {

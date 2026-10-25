@@ -107,7 +107,7 @@ test('Shader uniforms: numbers, vec arrays and hex colours get their GLSL types,
   assert.match(source, /uniform vec4 u_glow;/);
   assert.equal(source.split('\n')[offset], 'uniform float u_beat;', 'offset counts the prelude lines');
   assert.deepEqual(shaderSource('#version 300 es\nvoid main() {}', {u_x: 1}), {source: '#version 300 es\nvoid main() {}', offset: 0});
-  assert.deepEqual(Object.keys(shaders), ['iris', 'tunnel', 'liquid', 'grainField', 'gradientMesh', 'streaks', 'cubeField']);
+  assert.deepEqual(Object.keys(shaders), ['iris', 'tunnel', 'liquid', 'grainField', 'gradientMesh', 'streaks', 'cubeField', 'planet', 'sun', 'sliced', 'orbits']);
 });
 
 test('real renders: every Shader preset compiles in headless Chrome, two renders of 30 frames (presets, then the DOM post effects) are byte-identical, and a compile error fails the frame by name', {timeout: 240000}, () => {

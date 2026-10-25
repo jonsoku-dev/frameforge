@@ -8,6 +8,6 @@ README에서 옮긴 검사 도구 레퍼런스입니다. 결정성 린트(`npm r
 
 ## 품질 검사 도구
 
-- `npm run frame-check -- <video.mp4>`: 인코딩된 영상에서 빈 화면 구간, 얼어붙은 구간(0.5초 전 프레임과 비교해 바뀐 픽셀 0.2% 미만이 1초 넘게 이어짐, 마지막 1초 끝 정지는 제외, `--hold`로 바꿈), 움직이는 프레임 비율(`motion share`), 중앙에 몰린 구성, 큰 요소가 없는 "얇은" 프레임 비율을 재고 통과·실패를 낸다(`scripts/frame-check.mjs`, 기준은 `docs/samples/rules.md`의 구성 최소치).
+- `npm run frame-check -- <video.mp4>`: 인코딩된 영상에서 빈 화면 구간, 얼어붙은 구간(0.5초 전 프레임과 비교해 바뀐 픽셀 0.2% 미만이 1초 넘게 이어짐, 마지막 1초 끝 정지는 제외, `--hold`로 바꿈), 움직이는 프레임 비율(`motion share`), 중앙에 몰린 구성, 큰 요소가 없는 "얇은" 프레임 비율, 경계가 하나도 없는 프레임(한 가지 평평한 색이나 완전히 흐린 화면, `featureless`, 3프레임 연속이면 실패), 끝 정지(4초 이상 영상에서 마지막 2초의 motion share 0.5 미만이면 `end hold` 실패, `--hold`를 직접 주면 건너뜀)를 재고 통과·실패를 낸다(`scripts/frame-check.mjs`, 기준은 `docs/samples/rules.md`의 구성 최소치).
 - `node scripts/flash-check.mjs <video.mp4>`: 방송 플래시 지침 근사. 연속된 같은 방향 변화는 한 전환으로 센다.
 - `python3 scripts/assets/score-report.py <music.wav>`: 통합 음량, LRA, 트루 피크, 크레스트 팩터, 4대역 스펙트럼 균형, 스테레오 상관.

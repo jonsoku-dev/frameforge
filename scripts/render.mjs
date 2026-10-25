@@ -400,7 +400,8 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
     }
     // A finding seen for under a quarter second of a video is motion (a word sliding in, a crossfade), not a layout fault; a sheet reports every frame.
     const persist = frames ? 1 : Math.min(wanted.length, Math.ceil(selected.fps / 4));
-    const findings = [...audit.values()].filter(item => item.frames >= persist);
+    // A corner readout is a finding only when it stays for more than half of the rendered frames (a credit that passes a corner is not).
+    const findings = [...audit.values()].filter(item => item.code === 'corner_hud' ? item.frames > wanted.length / 2 : item.frames >= persist);
     if (findings.length) console.log(JSON.stringify({audit: findings}));
     if (findings.length && strictAudit) throw new Error(`Layout audit: ${findings.length} finding(s); first: ${findings[0].message ?? findings[0].text}`);
     await mkdir(outDir, {recursive: true});
@@ -455,7 +456,7 @@ Requires local Chrome and FFmpeg. calculateMetadata runs before encoding. <Audio
 Output format by extension: .mp4 h264 + aac (default), .webm vp9 (libvpx-vp9, -b:v 0 -crf 32) + opus, .mov prores_ks 4444 + pcm_s16le, .gif (palettegen/paletteuse, --gif-fps caps the rate, no sound), .m3u8 HLS (h264 + aac in 4 s .ts segments named <name>_%03d.ts beside the playlist, one chunk, no --transparent), a PNG sequence when the output ends with / or holds %05d (numbered by frame, nothing encoded). --codec overrides the codec, --audio-codec the sound codec (--muted skips the mix), --crf the quality.
 --transparent renders over a clear page and keeps alpha (webm yuva420p, mov yuva444p10le, gif palette, png rgba; an error for h264). --scale S multiplies the output size (device scale factor; width and height must stay integers, even for h264 and vp9).
 --frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s; gif, m3u8 and PNG sequences render in one chunk); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent fails with frame_not_idempotent when the first, middle or last frame renders differently twice.
-Every render prints {"audit": [...]} once with the layout findings (text outside the 5% safe area, overlapping text, low contrast, small labels, a data-subject element cropped by the frame or covering text) seen for a quarter second or more; --strict-audit turns them into a failure. A video render also writes <output>.motion.json for seam-check. FRAMEFORGE_PORT changes the Vite port (default 4318).`);
+Every render prints {"audit": [...]} once with the layout findings (text outside the 5% safe area, overlapping text, low contrast, small labels, a data-subject element cropped by the frame or covering text) seen for a quarter second or more, and corner_hud for small text in a frame corner over more than half the frames (opt in with data-hud="allow"); --strict-audit turns them into a failure. A video render also writes <output>.motion.json for seam-check. FRAMEFORGE_PORT changes the Vite port (default 4318).`);
     return;
   }
   const inputProps = JSON.parse(propsJson);

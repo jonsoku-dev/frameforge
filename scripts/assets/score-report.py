@@ -98,7 +98,10 @@ def hit_numbers(x, sr, hits, beat):
     pre_gap_ms: time from the last drum onset to the hit. An onset is a spectral-flux peak above 1 kHz that is 3x its
       recent median and 10 % of the piece's loud flux, so a quiet snare roll can go unseen and a riser does not count.
     peak_db: sample peak from 20 ms before the hit to 150 ms after. over_rest_db: that peak minus the peak elsewhere in
-      the half second either side.
+      the half second either side (the hit's own tail is in the half second after, so a hit can read near 0 here).
+    over_before_db: that peak minus the peak of the half second before it, the hit's own tail left out.
+    transient_db: the loudest 20 ms RMS from 10 ms before to 100 ms after the hit minus the loudest 20 ms of the 200 ms before it
+      (score.py fails generation under 4 dB).
     dip_db: 120 Hz-2 kHz level over the beat before the hit minus the same beat one bar earlier (a rising or falling
       section in between moves it too)."""
     mono = x.mean(axis=0)
@@ -120,6 +123,9 @@ def hit_numbers(x, sr, hits, beat):
         rest = max(peak(h - 0.5, h - 0.02), peak(h + 0.15, h + 0.5))
         out.append({'at': h, 'pre_gap_ms': round(1000 * (h - before[-1])) if len(before) else None,
                     'peak_db': db(peak(h - 0.02, h + 0.15)), 'over_rest_db': round(db(peak(h - 0.02, h + 0.15)) - db(rest), 2),
+                    'over_before_db': round(db(peak(h - 0.02, h + 0.15)) - db(peak(h - 0.5, h - 0.02)), 2),
+                    'transient_db': round(max(db(rms(seg(x, a, a + 0.02))) for a in np.arange(h - 0.01, h + 0.1, 0.005))
+                                          - max(db(rms(seg(x, a, a + 0.02))) for a in np.arange(h - 0.2, h - 0.04, 0.005)), 2),
                     'dip_db': round(db(rms(seg(mid, h - beat, h - 0.05))) - db(rms(seg(mid, h - 5 * beat, h - 4 * beat))), 2)})
     return out
 

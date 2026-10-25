@@ -19,6 +19,8 @@ export function Translucent() {
         {[[-60, '뒤 카드'], [0, '앞 카드']].map(([z, word]) => <div key={word} style={{position: 'absolute', inset: 0, padding: 6, background: '#FFFFFF', transform: `translateZ(${z}px)`}}><span style={{...font, fontSize: 20}}>{word}</span></div>)}
       </div>
     </div>
+    <div style={{...font, position: 'absolute', right: 6, top: 4, fontSize: 14}}>{`TC 00:${String(frame).padStart(2, '0')}`}</div>
+    <div data-hud="allow" data-clip="allow" data-size="allow" style={{...font, position: 'absolute', left: 6, bottom: 4, fontSize: 14}}>REC</div>
     <div data-subject="잘린 잔" style={{position: 'absolute', left: 520, top: 280, width: 100, height: 120, background: '#2F5BFF'}} />
     <div data-subject="병" style={{position: 'absolute', left: 60, top: 30, width: 120, height: 80, background: '#0F172A'}} />
     <div data-subject="라벨 붙은 병" style={{position: 'absolute', left: 200, top: 180, width: 120, height: 80, background: '#FFFFFF'}}><span style={{...font, fontSize: 24}}>2 oz</span></div>

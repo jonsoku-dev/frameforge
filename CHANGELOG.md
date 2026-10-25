@@ -10,6 +10,10 @@
 
 ### 추가
 
+- **주인공 셰이더 프리셋** `shaders.planet`, `sun`, `sliced`(SDF 흉상·토러스 매듭·덩어리, 광택·주사선·와이어프레임, `u_orbit`, `u_mix`), `orbits`. 에셋 없이 빛을 받는 3D 주인공.
+- **키네틱 글자 블록** `WordBeat`, `Thread`, `TextField`, `WhipPan`, `BauhausMosaic`, `Toggle`(`src/blocks/kinetic.tsx`)과 참고 `references/kinetic-type.md`.
+- **검사** 감사 코드 `corner_hud`(영상 절반 넘게 모서리에 남는 작은 글자, `data-hud="allow"`로 허락). frame-check의 `featureless`(평평하거나 흐린 프레임 3연속)와 `end hold`(마지막 2초 motion share 0.5 미만).
+- **컨셉 먼저** 만들기 규칙: Structure 앞에 `Concept:` 문단. `references/showreel.md`를 정해진 장면 목록에서 계열별 메뉴, 이름 붙인 팔레트 여덟, 계열 둘 이하 규칙으로 바꿨다.
 - **셰이더** `<Shader frag width height uniforms palette seed>`(`src/packages/shader.tsx`)와 프리셋 `shaders.iris`, `tunnel`, `liquid`, `grainField`, `gradientMesh`, `streaks`, `cubeField`. WebGL2, 정수 해시, 컴파일 오류는 그 프레임의 오류.
 - **후처리 이펙트** `<Glow>`, `<ChromaticShift>`, `<Scanlines>`, `<VhsGlitch>`, `<Extrude>`(`src/packages/post.tsx`).
 - **키트 소품** `Bottle`(라벨, `tilt`, `bottleNeck`)과 `Glass`(`fill`, `liquid`, `ice`, `glassLevel`).
@@ -17,6 +21,8 @@
 
 ### 고침
 
+- 타격이 들리지 않음: 곡과 타격이 리미터 하나를 함께 지나 둘 다 같은 천장에 눌렸다(첨두 기준 0 dB). 곡은 천장에서, 타격 층은 그 위 4 dB까지 제한한다. 촘촘한 타격의 무게는 0.4 아래로 내려가지 않는다. 생성 때 타격이 앞 200ms보다 4 dB 이상 커야 한다. `GENERATION` v4.
+- 템플릿의 장면 첫 등장이 컷보다 몇 프레임 먼저 시작해 컷 프레임이 비지 않는다.
 - `blockMask`가 아래 0.4em, 좌우 0.3em 여유를 둔다(Bodoni Moda 이탤릭 j가 왼쪽으로 잘림). `Clipped text` 오류가 블록 이름과 고칠 방법을 말한다.
 - score.py가 90 bpm, 18.667초에서 패드 꼬리가 자동화 곡선보다 길어 numpy 모양 오류로 멈추던 것.
 - 렌더 감사가 3D에서 불투명 카드 뒤에 가려진 글자를 `text_overlap`으로 세던 것.

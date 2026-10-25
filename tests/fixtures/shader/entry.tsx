@@ -3,10 +3,10 @@ import {AbsoluteFill, ChromaticShift, Composition, Extrude, Glow, Scanlines, Sha
 const palette = {ink: '#14121c', paper: '#fff6ea', accent: '#ff5a36', soft: '#ffc9a8'};
 const presets = Object.keys(shaders) as ShaderPreset[];
 
-/** Every preset in turn, four frames each, so 30 frames compile and draw all of them. */
+/** Every preset in turn over the 30 frames, so one render compiles and draws all of them; u_orbit turns the raymarched hero. */
 function Presets() {
-  const preset = presets[Math.floor(useCurrentFrame() / 4) % presets.length]!;
-  return <AbsoluteFill><Shader frag={shaders[preset]} width={320} height={180} palette={palette} seed="fixture" uniforms={{u_beat: 0.5}} /></AbsoluteFill>;
+  const frame = useCurrentFrame(), preset = presets[Math.floor(frame * presets.length / 30) % presets.length]!;
+  return <AbsoluteFill><Shader frag={shaders[preset]} width={320} height={180} palette={palette} seed="fixture" uniforms={{u_beat: 0.5, u_orbit: frame * 0.05}} /></AbsoluteFill>;
 }
 function Broken() {
   return <AbsoluteFill><Shader frag="void main() { fragColor = vec4(undefinedThing, 1.0); }" width={320} height={180} /></AbsoluteFill>;

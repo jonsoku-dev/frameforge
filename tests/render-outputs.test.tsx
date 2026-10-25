@@ -167,9 +167,9 @@ test('real renders: a transparent webm of the translucent fixture carries alpha 
     assert.match(probe, /codec_name=vp9/); assert.match(probe, /width=640/); assert.match(probe, /TAG:alpha_mode=1/);
     assert.ok(existsSync(`${webm}.motion.json`));
     const audit = JSON.parse(alpha.stdout.split('\n').find(line => line.startsWith('{"audit"'))!).audit as {code: string; text: string}[];
-    assert.deepEqual(audit.map(item => `${item.code}:${item.text}`).sort(), ['contrast_low:흐린 글자', 'element_cropped:잘린 잔', 'subject_overlaps_text:병 / 반투명 레이어', 'text_outside_safe:가장자리', 'text_overlap:겹침 / 겹침 둘', 'text_too_small:예시 데이터']);
+    assert.deepEqual(audit.map(item => `${item.code}:${item.text}`).sort(), ['contrast_low:흐린 글자', 'corner_hud:top-right', 'element_cropped:잘린 잔', 'subject_overlaps_text:병 / 반투명 레이어', 'text_outside_safe:가장자리', 'text_overlap:겹침 / 겹침 둘', 'text_too_small:예시 데이터']);
     const strict = spawnSync(process.execPath, [join(ENGINE, 'scripts/render.mjs'), 'tests/fixtures/tooling/entry.tsx', 'Translucent', join(out, 'strict.mov'), '--frame-range', '0-1', '--transparent', '--strict-audit'], {cwd: ENGINE, encoding: 'utf8', env});
-    assert.equal(strict.status, 1); assert.match(strict.stderr, /Layout audit: 6 finding/);
+    assert.equal(strict.status, 1); assert.match(strict.stderr, /Layout audit: 7 finding/);
 
     const mp4 = join(out, 'kit.mp4');
     const render = spawnSync(process.execPath, [join(ENGINE, 'scripts/render.mjs'), 'examples/samples/kit-launch/entry.tsx', 'KitLaunch', mp4, '--frame-range', '0-29'], {cwd: ENGINE, encoding: 'utf8', env});

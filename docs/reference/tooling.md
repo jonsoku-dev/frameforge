@@ -40,7 +40,7 @@ export function Spot() {
 
 ## 레이아웃 감사 (`findLayoutFaults`)
 
-`src/studio/audit.ts`. 렌더는 프레임마다 `window.__FRAMEFORGE__.audit()`를 불러 글자 잘림(`Clipped text`, 그 프레임은 바로 실패)과 아래 여섯 가지를 모으고, 렌더 끝에 한 줄 `{"audit": [...]}`로 찍습니다(`code`+`text`로 중복 제거, 첫 프레임 `frame`과 본 프레임 수 `frames`). 영상 렌더에서는 1/4초(30 fps에서 8프레임) 미만으로 보인 지적은 움직임(글자가 들어오는 중, 디졸브)으로 보고 버립니다. 컨택트 시트는 모든 프레임을 보고합니다. `--strict-audit`을 주면 지적이 하나라도 있으면 렌더가 실패합니다. `<CameraMotionBlur>`가 `plus-lighter`로 겹쳐 놓은 정지 복사본은 맨 위 한 장만 봅니다(나머지를 세면 모든 글자가 자기 자신과 겹친다고 나옵니다).
+`src/studio/audit.ts`. 렌더는 프레임마다 `window.__FRAMEFORGE__.audit()`를 불러 글자 잘림(`Clipped text`, 그 프레임은 바로 실패)과 아래 일곱 가지를 모으고, 렌더 끝에 한 줄 `{"audit": [...]}`로 찍습니다(`code`+`text`로 중복 제거, 첫 프레임 `frame`과 본 프레임 수 `frames`). 영상 렌더에서는 1/4초(30 fps에서 8프레임) 미만으로 보인 지적은 움직임(글자가 들어오는 중, 디졸브)으로 보고 버립니다. 컨택트 시트는 모든 프레임을 보고합니다. `--strict-audit`을 주면 지적이 하나라도 있으면 렌더가 실패합니다. `<CameraMotionBlur>`가 `plus-lighter`로 겹쳐 놓은 정지 복사본은 맨 위 한 장만 봅니다(나머지를 세면 모든 글자가 자기 자신과 겹친다고 나옵니다).
 
 | code | 조건 | 고치는 법 |
 | --- | --- | --- |
@@ -50,8 +50,9 @@ export function Spot() {
 | `text_too_small` | 화면에서의 글자 크기가 짧은 변의 3.5% 미만(1080 기준 38px). CSS 크기에 조상 transform의 배율을 곱해 재므로, 카메라가 1.3배로 확대한 30px 글자는 39px로 통과 | 키우거나, 법적 고지 같은 줄에 `data-size="allow"` |
 | `element_cropped` | `data-subject` 요소(주인공, 과정이 일어나는 물체)가 보이는 동안 자기 상자의 2% 넘게 프레임 밖에 있음. 완전히 밖에 있으면 보이지 않으므로 건너뜀 | 구도를 다시 잡거나 줄인다. 일부러 프레임 밖에서 들어오면 `data-clip="allow"` |
 | `subject_overlaps_text` | `data-subject` 요소의 상자가 글자 상자 넓이의 20% 넘게 덮음. 그 요소 안의 글자(물체에 붙은 눈금, 라벨)는 세지 않음 | 글자나 물체를 옮긴다. 물체의 라벨은 그 요소 안에 둔다 |
+| `corner_hud` | 작은 글자(짧은 변의 6% 미만)가 프레임의 두 변에서 8% 안(모서리)에 있음. 글자가 아니라 모서리(`top-right` 등)로 묶어 세므로 매 프레임 바뀌는 타임코드도 한 지적이 되고, 렌더한 프레임의 절반을 넘게 보일 때만 보고함 | 모서리 수치(타임코드, 프레임 카운터, 장면 번호, BPM, REC)를 지운다. 컨셉이 정말 카메라나 방송이면 조상에 `data-hud="allow"`를 달고 `prompt.md`에 이유를 쓴다 |
 
-글자 상자는 텍스트 노드의 `Range` 사각형(요소마다 합집합)이라 변환(transform)이 적용된 자리입니다. 투명 렌더(`--transparent`)에서는 페이지 배경을 알 수 없어 배경 없는 글자의 대비는 검사하지 않습니다. 순수 함수 `contrastRatio`, `parseCssColor`(`#hex`, `rgb()`/`rgba()`, `transparent`만), `effectiveBackground`(조상만 보는 판), `paintedBackground`, `rectsOverlap`, `insideSafeArea`, `outsideShare`, `coveredShare`, `over`를 내보내고 `tests/render-outputs.test.tsx`가 검사합니다. `tests/fixtures/tooling/`의 Translucent 컴포지션은 여섯 가지를 하나씩 일부러 갖고 있어(물체 안 라벨은 가림으로 세지 않는지도 본다) 렌더 한 번으로 감사가 도는지 봅니다.
+글자 상자는 텍스트 노드의 `Range` 사각형(요소마다 합집합)이라 변환(transform)이 적용된 자리입니다. 투명 렌더(`--transparent`)에서는 페이지 배경을 알 수 없어 배경 없는 글자의 대비는 검사하지 않습니다. 순수 함수 `contrastRatio`, `parseCssColor`(`#hex`, `rgb()`/`rgba()`, `transparent`만), `effectiveBackground`(조상만 보는 판), `paintedBackground`, `rectsOverlap`, `insideSafeArea`, `outsideShare`, `coveredShare`, `over`를 내보내고 `tests/render-outputs.test.tsx`가 검사합니다. `tests/fixtures/tooling/`의 Translucent 컴포지션은 일곱 가지를 하나씩 일부러 갖고 있어(`data-hud="allow"`로 허락한 모서리 글자는 세지 않는지도 본다)(물체 안 라벨은 가림으로 세지 않는지도 본다) 렌더 한 번으로 감사가 도는지 봅니다.
 
 ## 무음 검출 (`scripts/silence-detect.mjs`)
 
