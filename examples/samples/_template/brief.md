@@ -10,7 +10,7 @@ Engine brief: written first, before `prompt.md`. It turns the user's request int
 
 <!-- One row per clause of the request; together the quoted clauses cover every word of it (brief-check fails on a sentence left over).
 kind: must (stated requirement), forbid (stated ban), taste (stated preference; honoured unless it conflicts with a must), implied (what the genre expects but nobody said, e.g. "showreel" -> variety and a name card, "launch video" -> a product reveal; never overrides a stated clause).
-means: the concrete engine means (a <Shader> preset, a block, a seam, an audio.json field, a size/fps/duration value).
+means: the concrete engine means (the rendering technique you will write, a seam, an audio.json field, a size/fps/duration value).
 verify: where it shows (scene row and frame range) or the check that proves it (frame-check, audit corner_hud, brief duration, ...).
 A must clause that states seconds, WxH or fps is compared with entry.tsx. -->
 
@@ -19,7 +19,7 @@ A must clause that states seconds, WxH or fps is compared with entry.tsx. -->
 
 ## Engine translation
 
-<!-- The optimized brief, in engine vocabulary: concept (one idea), world, hero subject, palette (showreel.md named palette or derived), families (at most two from showreel.md), 3-5 signature moves with the component for each, duration / size / fps, audio direction (bpm, sections, hits). It may add specificity; it never contradicts, weakens or drops a must or forbid row. When the request is open ("you pick"), commit to bold choices and label them "Decision:" so they never read as the user's intent. prompt.md's Concept paragraph and Structure table follow this. -->
+<!-- The optimized brief, in engine vocabulary: concept (one idea), world, hero subject, palette derived from the concept (four colours by role, never a default), the rendering layers and techniques you will write (shader, canvas, three.js, DOM type) or, for a calm explainer, the utilities, duration / size / fps, audio direction (bpm, sections, hits). It may add specificity; it never contradicts, weakens or drops a must or forbid row. When the request is open ("you pick"), commit to bold choices and label them "Decision:" so they never read as the user's intent. prompt.md's Concept paragraph and Structure table follow this. -->
 
 ## Gaps
 

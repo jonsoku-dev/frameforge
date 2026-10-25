@@ -112,6 +112,25 @@ export function sfxFault(starts, fps) {
   return null;
 }
 /** Contiguous chunks of the inclusive range [from, to], at most `concurrency`, none shorter than 2 s; sizes differ by at most one frame. */
+/** Adds one frame's layout finding to `audit` (a Map keyed by code and text): the first frame, the count and every frame it was seen. */
+export function noteFinding(audit, finding, frame) {
+  const key = `${finding.code ?? 'clipped_text'}:${finding.text}`;
+  const seen = audit.get(key);
+  if (seen) { seen.frames++; seen.at.push(frame); } else audit.set(key, {frame, frames: 1, at: [frame], ...finding});
+}
+
+/** The longest run of consecutive frames in `at` (any order; parallel chunks note frames out of order). */
+const longestRun = at => { let best = 0, run = 0, last = NaN; for (const f of [...at].sort((a, b) => a - b)) { run = f === last + 1 ? run + 1 : 1; best = Math.max(best, run); last = f; } return best; };
+
+/** The findings that are layout faults rather than motion. A sheet reports every frame. In a video a finding seen for under 0.3 s is
+ * motion (a word sliding in, a crossfade); text outside the safe area counts only for 0.3 s in one run, so letters slamming across the
+ * margin and passing it again later are not a fault; a corner readout counts only when it stays for more than half of the frames. */
+export function persistentFindings(audit, {fps, total, sheet}) {
+  const persist = sheet ? 1 : Math.min(total, Math.ceil(fps * 0.3));
+  return [...audit.values()].filter(item => item.code === 'corner_hud' ? item.frames > total / 2 : item.code === 'text_outside_safe' && !sheet ? longestRun(item.at) >= persist : item.frames >= persist)
+    .map(({at, ...item}) => item);
+}
+
 export function splitFrames(from, to, concurrency, fps) {
   const count = to - from + 1;
   const n = Math.max(1, Math.min(concurrency, Math.floor(count / (2 * fps))));
@@ -216,7 +235,7 @@ async function renderFrame(page, id, frame, inputProps) {
 const capture = async (page, hints) => Buffer.from((await page.send('Page.captureScreenshot', {format: 'png', ...(hints.clip ? {clip: {...hints.clip, scale: 1}} : {})})).data, 'base64');
 
 /** Renders `list` in order into `sink(index, png, sameAsPrevious)`; with `collect`, also gathers audio segments and writes artifacts.
- * Layout findings go into `audit` (a Map keyed by code and text) with the first frame and the number of frames they were seen. */
+ * Layout findings go into `audit` through noteFinding. */
 async function renderList(page, {id, selected, inputProps, list, collect, outDir, scratch, sink, onFrame, audit, size, transparent}) {
   // A clip that unmounts and remounts under the same key becomes a new segment.
   const segments = [], openSegments = new Map();
@@ -224,11 +243,7 @@ async function renderList(page, {id, selected, inputProps, list, collect, outDir
   let blank = null, frameSize = null, previous = null, identical = 0;
   for (const [index, frame] of list.entries()) {
     const hints = await renderFrame(page, id, frame, inputProps);
-    for (const finding of await page.evaluate('window.__FRAMEFORGE__.audit()') ?? []) {
-      const key = `${finding.code ?? 'clipped_text'}:${finding.text}`;
-      const seen = audit.get(key);
-      seen ? seen.frames++ : audit.set(key, {frame, frames: 1, ...finding});
-    }
+    for (const finding of await page.evaluate('window.__FRAMEFORGE__.audit()') ?? []) noteFinding(audit, finding, frame);
     if (collect) for (const clip of await page.evaluate('window.__FRAMEFORGE__.audio()')) {
       const open = openSegments.get(clip.key);
       if (open && open.last === frame - 1) open.last = frame;
@@ -398,10 +413,7 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
       await writeFile(sequencePattern ? join(outDir, 'motion.json') : `${resolve(outputLocation)}.motion.json`, JSON.stringify({composition: id, fps: selected.fps, from, to, samples: await lead.evaluate('window.__FRAMEFORGE__.motion()') ?? [], sounds: derived}));
       if (derived.length) console.log(JSON.stringify({motionSounds: derived.map(clip => ({frame: clip.startFrame, role: clip.role, intensity: Math.round(clip.intensity * 100) / 100, pan: clip.pan, file: clip.src.split('/').pop()}))}));
     }
-    // A finding seen for under a quarter second of a video is motion (a word sliding in, a crossfade), not a layout fault; a sheet reports every frame.
-    const persist = frames ? 1 : Math.min(wanted.length, Math.ceil(selected.fps / 4));
-    // A corner readout is a finding only when it stays for more than half of the rendered frames (a credit that passes a corner is not).
-    const findings = [...audit.values()].filter(item => item.code === 'corner_hud' ? item.frames > wanted.length / 2 : item.frames >= persist);
+    const findings = persistentFindings(audit, {fps: selected.fps, total: wanted.length, sheet: !!frames});
     if (findings.length) console.log(JSON.stringify({audit: findings}));
     if (findings.length && strictAudit) throw new Error(`Layout audit: ${findings.length} finding(s); first: ${findings[0].message ?? findings[0].text}`);
     await mkdir(outDir, {recursive: true});
@@ -456,7 +468,7 @@ Requires local Chrome and FFmpeg. calculateMetadata runs before encoding. <Audio
 Output format by extension: .mp4 h264 + aac (default), .webm vp9 (libvpx-vp9, -b:v 0 -crf 32) + opus, .mov prores_ks 4444 + pcm_s16le, .gif (palettegen/paletteuse, --gif-fps caps the rate, no sound), .m3u8 HLS (h264 + aac in 4 s .ts segments named <name>_%03d.ts beside the playlist, one chunk, no --transparent), a PNG sequence when the output ends with / or holds %05d (numbered by frame, nothing encoded). --codec overrides the codec, --audio-codec the sound codec (--muted skips the mix), --crf the quality.
 --transparent renders over a clear page and keeps alpha (webm yuva420p, mov yuva444p10le, gif palette, png rgba; an error for h264). --scale S multiplies the output size (device scale factor; width and height must stay integers, even for h264 and vp9).
 --frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s; gif, m3u8 and PNG sequences render in one chunk); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent fails with frame_not_idempotent when the first, middle or last frame renders differently twice.
-Every render prints {"audit": [...]} once with the layout findings (text outside the 5% safe area, overlapping text, low contrast, small labels, a data-subject element cropped by the frame or covering text) seen for a quarter second or more, and corner_hud for small text in a frame corner over more than half the frames (opt in with data-hud="allow"); --strict-audit turns them into a failure. A video render also writes <output>.motion.json for seam-check. FRAMEFORGE_PORT changes the Vite port (default 4318).`);
+Every render prints {"audit": [...]} once with the layout findings (text outside the 5% safe area, overlapping text, low contrast, small labels, a data-subject element cropped by the frame or covering text) seen for 0.3 s or more (text outside the safe area for 0.3 s in one run), and corner_hud for small text in a frame corner over more than half the frames (opt in with data-hud="allow"); --strict-audit turns them into a failure. A video render also writes <output>.motion.json for seam-check. FRAMEFORGE_PORT changes the Vite port (default 4318).`);
     return;
   }
   const inputProps = JSON.parse(propsJson);

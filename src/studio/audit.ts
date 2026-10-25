@@ -146,8 +146,9 @@ function textBoxes(root: Element, viewport: {width: number; height: number}): Te
       const style = getComputedStyle(up);
       opacity *= Number(style.opacity);
       hidden ||= style.visibility === 'hidden';
-      // <CameraMotionBlur> stacks frozen copies with plus-lighter; only the top copy is the text a viewer reads.
-      copy ||= blurCopy(up);
+      // <CameraMotionBlur> stacks frozen copies with plus-lighter; only the top copy is the text a viewer reads. A chromatic-split or
+      // echo copy of a word (aria-hidden, or data-fx="ghost") is an effect layer, not a second text.
+      copy ||= blurCopy(up) || up.getAttribute('aria-hidden') === 'true' || up.getAttribute('data-fx') === 'ghost';
     }
     if (hidden || copy || opacity <= 0.05) continue;
     const box = boxes.get(parent);
@@ -198,7 +199,8 @@ export function findLayoutFaults(root: Element, {width, height, rootColor = pars
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
     const a = boxes[i]!, b = boxes[j]!;
     const shared = rectsOverlap(a.rect, b.rect), smaller = Math.min(a.rect.width * a.rect.height, b.rect.width * b.rect.height);
-    if (!(smaller > 0 && shared / smaller > OVERLAP)) continue;
+    // The same words twice, offset, are one word split into colour copies, not two texts colliding.
+    if (!(smaller > 0 && shared / smaller > OVERLAP) || a.element.textContent === b.element.textContent) continue;
     const x = (Math.max(a.rect.x, b.rect.x) + Math.min(a.rect.x + a.rect.width, b.rect.x + b.rect.width)) / 2, y = (Math.max(a.rect.y, b.rect.y) + Math.min(a.rect.y + a.rect.height, b.rect.y + b.rect.height)) / 2;
     if (coveredAt(a.element, x, y, root) || coveredAt(b.element, x, y, root)) continue;  // one text is behind an opaque layer the other sits on
     faults.push({code: 'text_overlap', text: `${a.text} / ${b.text}`, rect: a.rect, message: `"${a.text}" and "${b.text}" overlap by ${Math.round(shared / smaller * 100)}% of the smaller`, fix: 'Separate the two texts in time or space; stacked words read as a mistake.'});

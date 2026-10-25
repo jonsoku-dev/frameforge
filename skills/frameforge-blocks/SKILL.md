@@ -17,7 +17,7 @@ Full props and snippets in Korean: `docs/reference/blocks-text.md`. Every block 
 
 1. Name the job in one phrase (a headline, who is speaking, one number, a product moment, a list, a strip of many items). Find it in the table's "use when" column.
 2. Check the scene has a frame-filling object besides the block. Lower thirds, toasts and counters are overlays; alone on a background the frame fails the thin and huddled checks.
-3. If no block fits, use the motif kit (`@/assets`) or the template's own patterns (`Glyphs`, `Screen`, `Callout`) from `examples/samples/_template/Spot.tsx`, never an icon library and never a one-off animation that fades in.
+3. If no block fits, use the motif kit (`@/assets`) or the explainer patterns (`Glyphs`, `Screen`, `Callout`) in `examples/samples/explainer-patterns/Spot.tsx`, never an icon library and never a one-off animation that fades in.
 
 ## The prop contract
 
@@ -63,7 +63,7 @@ Helpers exported from `@/blocks` for your own scene code: `blockRise(frame, from
 | `bauhaus-mosaic` | `BauhausMosaic` | kinetic | `colours[]`, `cols=16`, `beat=15`, `wave`, `flip`, `seed` | a geometric beat: a frame-filling Bauhaus tile grid that flips in waves on every beat |
 | `toggle` | `Toggle` | kinetic | `on`, `size`, `x`, `y`, `align`, `offColour` | switching something on as a premium object: glossy track, springing knob, accent fill |
 
-Kinetic blocks act out the words; when to use which: `../frameforge-best-practices/references/kinetic-type.md`. The full-frame ones (`WordBeat`, `TextField`, `WhipPan`, `BauhausMosaic`) fill their parent and take `frame`, `at`, `palette` but no `size`/`align`.
+Kinetic blocks act out the words in calm or data films (`../frameforge-best-practices/references/utilities.md`); a motion-graphics film writes its own type animation (`../frameforge-best-practices/references/kinetic-type.md`). The full-frame ones (`WordBeat`, `TextField`, `WhipPan`, `BauhausMosaic`) fill their parent and take `frame`, `at`, `palette` but no `size`/`align`.
 
 The same list is `TEXT_BLOCKS`, `LOWER_THIRD_BLOCKS`, `CARD_BLOCKS` and `KINETIC_BLOCKS` (`BlockEntry[]` with `id`, `title`, `family`, `props`, `when`) merged into `CATALOG` from `@/blocks`, so an agent or the studio can read it at runtime.
 

@@ -35,7 +35,7 @@ Continuity: the wave is one object across every cut (hero, mark, assembled state
 
 Audio: /audio/generated/generative-ident/music.wav at 0.9, 120 BPM (a bar is 2 s), D minor, mood cinematic (the generator warns that 120 is above its usual 60–110 for cinematic; the bar grid needs 2 s sections). Sections 0–4 open 0.3, 4–8 flow 0.65, 8–14 statement 0.8, 14–16 name 0.5, 16–18 hold 0.1. Hits at 4 s (flow start) and 13 s (name card). Effects come from motion: `MotionSound` move = whoosh (wipe, card), land = impact (shape, card), appear = stroke (text: highlight and circle progress probes). `quiet={[120, 390]}`.
 
-References: examples/samples/_template/Spot.tsx (SIZES, span/pop/push, Glyphs), examples/samples/shape-noise/Spot.tsx (noise field, one object across cuts), docs/reference/generative.md and docs/reference/effects.md (the systems and the effects used here).
+References: examples/samples/explainer-patterns/Spot.tsx (SIZES, span/pop/push, Glyphs), examples/samples/shape-noise/Spot.tsx (noise field, one object across cuts), docs/reference/generative.md and docs/reference/effects.md (the systems and the effects used here).
 
 Prohibitions: no glow, no dust particles, no second gradient, no frame border, no bezel, no real brand, no number on screen, no icon library, no text under the label size, no full-frame flash.
 

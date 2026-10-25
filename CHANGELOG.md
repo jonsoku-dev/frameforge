@@ -10,6 +10,7 @@
 
 ### 추가
 
+- **직접 만들기가 먼저** 모션 그래픽 작품(쇼릴, 아이덴트, 런칭, 프로모)은 자기 렌더링 코드를 쓴다. 런타임 `<Canvas2D draw>`(글꼴을 기다린 뒤 그림), `<ThreeCanvas>` 안의 `<Bloom>`, `rng(seed)` 난수열, 참고 `references/bespoke.md`. 블록, 키트, 프리셋은 부록 `references/utilities.md`. `references/showreel.md`는 기준과 자기 점검만 남겼다. 템플릿은 셰이더·캔버스·DOM 세 층의 시작점이고, 예전 설명 영상 패턴은 `examples/samples/explainer-patterns/`. 감사는 `aria-hidden`·`data-fx="ghost"` 복제 글자와 똑같은 글자 겹침을 세지 않고, 지적 기준이 0.3초(여백 밖 글자는 한 번에 이어서 0.3초)다.
 - **주인공 셰이더 프리셋** `shaders.planet`, `sun`, `sliced`(SDF 흉상·토러스 매듭·덩어리, 광택·주사선·와이어프레임, `u_orbit`, `u_mix`), `orbits`. 에셋 없이 빛을 받는 3D 주인공.
 - **키네틱 글자 블록** `WordBeat`, `Thread`, `TextField`, `WhipPan`, `BauhausMosaic`, `Toggle`(`src/blocks/kinetic.tsx`)과 참고 `references/kinetic-type.md`.
 - **검사** 감사 코드 `corner_hud`(영상 절반 넘게 모서리에 남는 작은 글자, `data-hud="allow"`로 허락). frame-check의 `featureless`(평평하거나 흐린 프레임 3연속)와 `end hold`(마지막 2초 motion share 0.5 미만).

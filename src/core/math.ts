@@ -159,6 +159,12 @@ export function random(seed: string | number | null): number {
   if (typeof seed === 'number') return mulberry32(seed * 10000000000);
   throw new Error('random() argument must be a number or a string');
 }
+/** A seeded stream for particle systems and scatter: every call returns the next value in [0, 1); the same seed gives the same
+ * sequence on every render. Make it once per seed (module level or useMemo) and draw from it in a fixed order. */
+export function rng(seed: string | number): () => number {
+  let state = Math.floor(random(seed) * 4294967296);
+  return () => { const value = mulberry32(state); state = (state + 0x6D2B79F5) >>> 0; return value; };
+}
 /** Throws unless `easing` is undefined, one function, or an array with one function per segment (`inputRangeLength - 1` entries). */
 export function assertValidInterpolateEasingOption(easing: EasingFunction | readonly EasingFunction[] | undefined, inputRangeLength: number): void {
   if (easing === undefined || typeof easing === 'function') return;

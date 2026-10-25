@@ -2,56 +2,51 @@
   "slug": "template",
   "fps": 30,
   "durationSeconds": 20.0,
-  "bpm": 110,
+  "bpm": 120,
   "key": "C major",
   "mood": "upbeat",
   "sections": [
     {
       "from": 0,
-      "to": 3,
-      "energy": 0.3,
-      "label": "hook"
-    },
-    {
-      "from": 3,
-      "to": 11,
-      "energy": 0.75,
-      "label": "beats"
-    },
-    {
-      "from": 11,
-      "to": 15,
+      "to": 4,
       "energy": 0.6,
-      "label": "promise"
+      "label": "open"
     },
     {
-      "from": 15,
-      "to": 18,
-      "energy": 0.4,
-      "label": "name"
+      "from": 4,
+      "to": 12,
+      "energy": 0.85,
+      "label": "build"
     },
     {
-      "from": 18,
+      "from": 12,
+      "to": 16,
+      "energy": 0.95,
+      "label": "peak"
+    },
+    {
+      "from": 16,
       "to": 20,
-      "energy": 0.1,
-      "label": "hold"
+      "energy": 0.6,
+      "label": "lockup"
     }
   ],
   "hits": [
-    3.0,
-    15.0
+    4.0,
+    12.0,
+    16.0
   ],
   "sfx": [
     {
       "name": "whoosh",
       "preset": "whoosh",
-      "intent": "soft airy whoosh for a panel sliding in",
+      "intent": "TODO what a camera move in this film sounds like",
       "length": 0.8
     },
     {
       "name": "impact",
       "preset": "impact",
-      "intent": "deep soft impact, a name landing",
+      "intent": "TODO what a word landing in this film sounds like",
       "length": 0.9
     }
   ],

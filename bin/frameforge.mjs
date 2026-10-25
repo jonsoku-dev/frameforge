@@ -44,7 +44,7 @@ export function filmId(slug) {
 
 /** The renames the template's prompt.md lists: component and composition id, audio folder, audio spec slug, title. */
 export function renameTemplate(text, slug, id) {
-  return text.replaceAll('TemplateSpot', id).replaceAll('/audio/generated/template/', `/audio/generated/${slug}/`)
+  return text.replaceAll('TemplateSpot', id).replaceAll('/audio/generated/template/', `/audio/generated/${slug}/`).replaceAll('./template.audio.json', './audio.json')
     .replace(/"slug":\s*"template"/, `"slug": "${slug}"`).replace(/^# TODO-slug$/m, `# ${slug}`);
 }
 
@@ -130,7 +130,7 @@ const README = `# Frameforge 프로젝트
 이 폴더는 Frameforge 엔진 밖에서 영상을 만드는 프로젝트다. 엔진 위치는 \`frameforge.json\`의 \`engine\`에 적혀 있다.
 
 - \`films/index.tsx\` 스튜디오와 렌더가 읽는 진입 파일. \`frameforge new <slug>\`가 import 한 줄과 \`<Composition>\` 한 줄을 더한다.
-- \`films/<slug>/\` 영상 하나: \`Spot.tsx\`(프레임 함수), \`entry.tsx\`(이 영상만 등록), \`audio.json\`(음악과 효과음 명세), \`brief.md\`(요청 원문과 의도 장부), \`prompt.md\`(기획), \`assets.tsx\`.
+- \`films/<slug>/\` 영상 하나: \`Spot.tsx\`(프레임 함수), \`entry.tsx\`(이 영상만 등록), \`audio.json\`(음악과 효과음 명세), \`brief.md\`(요청 원문과 의도 장부), \`prompt.md\`(기획).
 - \`films/_template/\` \`frameforge new\`가 복사하는 원본. 고치면 이후 새 영상에 반영된다.
 - \`renders/\` 스튜디오에서 요청한 렌더 결과.
 

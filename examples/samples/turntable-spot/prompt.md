@@ -20,7 +20,7 @@ Sizes (`SIZES`, short side 1080): headline 108 px (name 173 px), label 38 px (us
 | 660-719 | hold (Freeze at 659) | nothing moves | same |
 
 Audio: /audio/generated/turntable-spot/music.wav at 0.9, upbeat 120 bpm (bar = 2 s, every scene starts on a bar line), hits at 4 s (mug lands), 10 s (beats), 14 s (dolly), 18 s (name). Effects come from the motion probes: whoosh on card/wipe/camera moves, impact on card/shape landings, quiet around the hits.
-References: examples/samples/_template/Spot.tsx (Glyphs, probes, MotionSound), examples/samples/three-spin/Spot.tsx (ThreeCanvas camera and lights), docs/reference/three-d.md (spec fields).
+References: examples/samples/explainer-patterns/Spot.tsx (Glyphs, probes, MotionSound), examples/samples/three-spin/Spot.tsx (ThreeCanvas camera and lights), docs/reference/three-d.md (spec fields).
 Prohibitions: no glow, particles, bezel, real brand, text under 38 px, no 3D colour outside the palette, no flat kit icon next to a glossy render. The transparent hero must sit on the paper, never on a black card.
 
 Check frames (contact sheet): 40, 130, 180, 280, 330, 400, 440, 520, 560, 640, 700 (the ImageSequence scenes are 130–280 and 440–520; the Model scene 560–700).

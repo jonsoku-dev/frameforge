@@ -1,30 +1,25 @@
 # Kinetic type: motion that enacts the words
 
-A type-led film wins when the motion does what the sentence says. "Follow the signal" is a line that wanders, loops and arrives under "signal". "All of it, indexed" sits on a field of text being scanned. "Stack / shift / ship" is one word per beat, the whole frame changing colour on each. Type laid over an effect background, or a word on a slide-like card, says nothing the words do not already say.
+Type wins when the motion does what the sentence says. Type laid over an effect, or a word on a slide-like card, says nothing the words do not already say. This page is a method, not a set of lines: write the film's own copy and give each line its own behaviour.
 
 ## The method
 
-1. Write the line, then underline its verb or its idea: think, read, build, switch on, every beat, straight, fast.
-2. Give that word a physical behaviour: think → a thread that loops; read → dense text; build → extruded, stacked type (`<Extrude>`); straight → a ruler-straight cut through the word; switch on → a toggle flipping; fast → a whip pan; every beat → a field swap per word.
+1. Write the line, then underline its verb or its idea.
+2. Give that word a physical behaviour that does what it means, built in your own code (per-glyph transforms in DOM, glyph paths or `fillText` on a canvas, type as a texture or a signed-distance field in a shader, extruded or lit type in three.js).
 3. One behaviour per line, and every line gets its own. A film where every line enters the same way is a slideshow.
-4. Colour fields come from the concept's palette and change on the beat, flat and saturated, never a gradient wash. The text colour is whichever palette colour reads on the field (`readableOn`).
-5. Words stay whole at every frame (`blockMask` rises, a scale punch); never a scramble or a half-revealed word.
+4. Colour and field changes land on the beat (`beatsFromSpec`: `pulse`, `bars`, the spec's `hits`); the text colour is whichever palette colour reads on the field behind it at that frame.
+5. Words stay whole and legible at every frame they are meant to be read: no scramble, no half-erased swap, no long per-glyph fade. Fast glyph motion (a slam, a scatter, a shatter) is fine on the way in and out; the read itself is whole.
 
-## The blocks (`import {...} from '@/blocks'`)
+## Contracts
 
-| The words mean | Block | Usage |
-| --- | --- | --- |
-| a sentence said one word per beat | `WordBeat` | `<WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={H * 0.28} words={['STACK', 'SHIFT', 'SHIP']} punctuation="." fields={['#e8572a', '#f4efe4', '#1d3b2f']} beat={15} />` |
-| thinking, connecting, following through | `Thread` | `<Thread frame={frame} at={30} palette={palette} fonts={fonts} draw={60} points={[[300, 480], [1000, 470], [1380, 330], [1470, 520], [900, 860], [1720, 850]]} loops={[2]} words={[{text: 'Follow', x: 300, y: 300, size: 140}, {text: 'the signal', x: 980, y: 690, size: 140}]} />`: route the points under and between the words, put a loop where the thought turns |
-| reading, knowledge, volume, research | `TextField` | `<TextField frame={frame} at={0} palette={palette} corpus={lines} beat={10}><GlyphRise ... text="All of it, indexed" /></TextField>`: write `corpus` in the film's language; the rows are images, so the audit does not count them as text |
-| speed, a change of subject | `WhipPan` | `<WhipPan frame={frame} at={120} dur={8} direction="left" from={<SceneA />} to={<SceneB />} />`: both scenes stay visible at the middle frame, blurred along one axis only |
-| design, system, pattern, rhythm | `BauhausMosaic` | `<BauhausMosaic frame={frame} at={0} palette={palette} colours={['#e2553a', '#3045e8', '#16141c', '#f4efe4', '#d6f23a']} beat={15} />`: a frame-filling grid that flips in waves on every beat; good as the beat under a word, or as a full-frame hit |
-| switching on, a feature, a yes | `Toggle` | `<Toggle frame={frame} at={0} on={20} palette={palette} size={H * 0.18} x={1000} y={445} />` next to the word "ON" |
+- DOM type is what the render audit measures. A chromatic split or echo marks its copies `aria-hidden="true"` or `data-fx="ghost"`, so the audit reads the word once.
+- Canvas and shader type is not audited: check size (headline at least 10 % of the short side), the 5 % margin and contrast on the contact sheet.
+- Fonts come from `googleFont` at module level, for DOM and canvas alike; never a system face.
+- A glyph mask that clips ink fails the render with `Clipped text`; give masks room (`blockMask` from `@/blocks` is one ready mask) or mark an intentional overflow `data-clip="allow"`.
 
-Combine at most two of these per line, and use the beat grid (`beatsFromSpec`) for `beat` and `at`, so field swaps, flips and the toggle land on the music's hits.
+## Self-check
 
-## Checks
+- Contact sheet, one cell per line: every line moves differently, and each motion could only belong to that line.
+- No line could be swapped into another film without its motion becoming wrong.
 
-- Contact sheet one cell per beat: every cell shows a different behaviour and the words are whole.
-- frame-check: the field swaps and the mosaic keep `motion share` near 1; a WhipPan never leaves a flat or fully blurred frame.
-- The render audit stays clean: TextField rows are images; WhipPan's moving scenes carry `data-clip="allow"` while they cross the frame edge.
+Ready-made kinetic blocks exist for calm or data films; they are listed in `utilities.md`, not the path for a motion-graphics film.

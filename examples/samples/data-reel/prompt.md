@@ -21,7 +21,7 @@
 - Headline: Gothic A1 800 (`googleFont('Gothic A1', {weights: [800]})`), headlines and every number in the blocks.
 - UI: IBM Plex Sans KR 500, labels and the tagline.
 - Code: JetBrains Mono 400, passed to `CodeBlock` as `fonts.mono`.
-- Text mask: the `Glyphs` pattern from `examples/samples/_template/Spot.tsx`.
+- Text mask: the `Glyphs` pattern from `examples/samples/explainer-patterns/Spot.tsx`.
 
 ## Blocks
 
@@ -56,7 +56,7 @@ One dominant motion direction, up: the paper field and the ink end card wipe upw
 
 ## References and why
 
-- `examples/samples/_template/Spot.tsx`: the `Glyphs` mask, `span`, `MotionProbe` and `MotionSound` wiring.
+- `examples/samples/explainer-patterns/Spot.tsx`: the `Glyphs` mask, `span`, `MotionProbe` and `MotionSound` wiring.
 - `examples/samples/kit-launch/Spot.tsx`: the hard-cut scene switch and the hook-to-stage continuity.
 - `docs/reference/blocks-data.md`: the block contract and props used here.
 

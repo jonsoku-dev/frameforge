@@ -1,7 +1,7 @@
 # Motion
 
-- Default doctrine: spectacle and continuity. Every second shows at least one active effect or transformation, the camera never fully stops, scenes morph into each other, the frame is layered (foreground type, an effect, a textured background), a new technique on every beat. A calm film is the exception the request names. Techniques and components: `showreel.md`.
-- Frame function: `const frame = useCurrentFrame()` once at the root; helpers `span(frame, from, dur)` (eased 0..1), `pop(frame, at, dur)` (spring), `push(frame, at, dur, amount)` (camera scale). Copy them from `examples/samples/_template/Spot.tsx`.
+- Default doctrine: spectacle and continuity. Every second shows at least one active effect or transformation, the camera never fully stops, scenes morph into each other, the frame is layered (foreground type, an effect, a textured background), a new technique on every beat. A calm film is the exception the request names. The bar: `showreel.md`; the rendering helpers: `bespoke.md`.
+- Frame function: `const frame = useCurrentFrame()` once at the root; write your own timing helpers as pure functions of the frame (an eased 0..1 span from `interpolate` with `Easing`, a `spring`, a decaying kick from `beats.pulse`).
 - Grammar: continuous morph (one hero, never cut; size, radius and colour change, content swaps with a short blur; the camera zooms so each state fills the frame) or joined scenes (every cut a seam). One object carries continuity either way.
 - Retargeted values: `springTrack({frame, fps, from, keys: [{at, to}], config})` sums one spring per change, so a value that moves on every beat stays a pure function of the frame. Stretchy indicators: leading and trailing edges on different springs.
 - 60 fps films: `<CameraMotionBlur shutterAngle={180} samples={4}>` around the picture; `MotionProbe`, `Audio` and `MotionSound` outside it (frozen copies report nothing).
