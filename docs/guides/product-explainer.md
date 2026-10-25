@@ -2,7 +2,7 @@
 
 실제 제품 화면을 캡처해 버튼을 하나씩 가리키는 설명 영상을 만드는 방법이다. 색, 글꼴, 모션 일반 규칙은 `docs/guides/motion-graphics.md`에, 오디오와 아이콘과 캡처 기본 절차는 `docs/guides/assets.md`에 있다. 이 문서는 그 두 문서가 다루지 않는 것만 적는다.
 
-캡처는 사용자가 준비한다. 저장소에는 실제 사이트 캡처도, 캡처 스크립트도 없다. 2절이 설명하는 Playwright나 CDP 스크립트로 직접 찍는다. 이 방법을 처음 정리한 기준 작품은 실제 사이트 화면을 써서 배포하지 않는다. 아래에서 "원래 작품"은 그 작품을 뜻한다. 저장소에서 바로 열어 볼 수 있는 코드는 `examples/samples/_template/Spot.tsx`의 `Screen`과 `Callout`이다.
+캡처는 사용자가 준비한다. 저장소에는 실제 사이트 캡처도, 캡처 스크립트도 없다. 2절이 설명하는 Playwright나 CDP 스크립트로 직접 찍는다. 이 방법을 처음 정리한 기준 작품은 실제 사이트 화면을 써서 배포하지 않는다. 아래에서 "원래 작품"은 그 작품을 뜻한다. 저장소에서 바로 열어 볼 수 있는 코드는 `examples/samples/explainer-patterns/Spot.tsx`의 `Screen`과 `Callout`이다.
 
 ## 1. 언제 이 형식을 쓰는가
 
@@ -60,7 +60,7 @@ const rects = async (selectors) => evalJs(`JSON.stringify(Object.fromEntries(${J
 
 ## 4. 콜아웃 설계
 
-콜아웃은 네 부분이다. 어둡게 덮는 막, 막에 뚫린 구멍, 구멍 둘레의 강조선, 라벨 카드다. 코드는 `examples/samples/_template/Spot.tsx`의 `Callout`이다. 아래 숫자는 그 파일에서 읽었다.
+콜아웃은 네 부분이다. 어둡게 덮는 막, 막에 뚫린 구멍, 구멍 둘레의 강조선, 라벨 카드다. 코드는 `examples/samples/explainer-patterns/Spot.tsx`의 `Callout`이다. 아래 숫자는 그 파일에서 읽었다.
 
 **구멍 뚫린 막.** 막은 SVG 경로 하나다. 화면 전체 사각형과 대상 사각형을 한 경로에 넣고 `fillRule="evenodd"`로 채우면 대상 자리만 비어 있다. 색은 ink, 불투명도 0.55다. 막은 콜아웃 구간 시작과 끝에서 8프레임씩 나타나고 사라진다(`span(frame, at, 8) * (1 - span(frame, end - 8, 8))`).
 

@@ -47,7 +47,7 @@
 
 ## lightLeakEffect({seed, progress, hueShift, intensity, colors})
 
-절차적 빛샘. `seed`로 2–4개의 따뜻한(색상 8–48도 + `hueShift`) 방사형 그라데이션을 정하고, `progress` 0..1 동안 가로질러 쓸고 지나가며 `sin(π·progress)` 포락선으로 나타났다 사라진다. `progress` 0과 1에서는 아무것도 그리지 않는다. 소스 위에 `screen`으로 섞으므로 투명 `Solid`에 얹으면 알파 있는 빛 덩어리만 남아 장면 이음새에 쓸 수 있다. `colors`에 `#rgb`/`#rrggbb` 색 목록을 주면 따뜻한 색상 대신 그 색을 덩어리마다 돌려 쓰므로 작품의 네 색 안에 머문다(`colors: [accent, soft]`). 다른 표기는 오류다. 빛샘은 짧게(한 장면 이음새 20프레임 안팎) 쓴다. 길면 금지된 글로우처럼 읽힌다. 기하는 `lightLeakBlobs(params) → {x, y, r, hue, alpha, color?}[]`(단위 좌표)로 따로 내보낸다.
+절차적 빛샘. `seed`로 2–4개의 따뜻한(색상 8–48도 + `hueShift`) 방사형 그라데이션을 정하고, `progress` 0..1 동안 가로질러 쓸고 지나가며 `sin(π·progress)` 포락선으로 나타났다 사라진다. `progress` 0과 1에서는 아무것도 그리지 않는다. 소스 위에 `screen`으로 섞으므로 투명 `Solid`에 얹으면 알파 있는 빛 덩어리만 남아 장면 이음새에 쓸 수 있다. `colors`에 `#rgb`/`#rrggbb` 색 목록을 주면 따뜻한 색상 대신 그 색을 덩어리마다 돌려 쓰므로 작품의 네 색 안에 머문다(`colors: [accent, soft]`). 다른 표기는 오류다. 빛샘은 짧게(한 장면 이음새 20프레임 안팎) 쓴다. 글자의 글로우는 `<Glow>`(`docs/reference/generative.md` 후처리 이펙트)가 맡는다. 기하는 `lightLeakBlobs(params) → {x, y, r, hue, alpha, color?}[]`(단위 좌표)로 따로 내보낸다.
 
 ## vignetteEffect({amount, softness, roundness})
 
@@ -55,7 +55,7 @@
 
 ## grainEffect({seed, frame, amount, size})
 
-단색 필름 그레인. `(seed, frame)`마다 `random`으로 256×256 타일을 새로 만들어 캔버스에 반복하므로 같은 `(seed, frame)`은 같은 그레인, 다른 프레임은 다른 그레인이다. `amount` 0..1(기본 0.2), `size` 1 이상 픽셀(기본 1). 정지 구간에서는 `frame: Math.min(frame, HOLD)`로 고정해 마지막 2초가 바뀌지 않게 한다. `grainTile(seed, frame)`, `applyGrain(pixels, params)`, `GRAIN_TILE`을 내보낸다.
+단색 필름 그레인. `(seed, frame)`마다 `random`으로 256×256 타일을 새로 만들어 캔버스에 반복하므로 같은 `(seed, frame)`은 같은 그레인, 다른 프레임은 다른 그레인이다. `amount` 0..1(기본 0.2), `size` 1 이상 픽셀(기본 1). 그레인은 프레임마다 바뀌므로 frame-check에서 움직임으로 잡힌다. 끝 록업도 그레인이 계속 움직여 살아 있게 두는 것이 기본이다. 루프 작품처럼 마지막 프레임을 고정해야 할 때만 `frame: Math.min(frame, HOLD)`로 묶는다. `grainTile(seed, frame)`, `applyGrain(pixels, params)`, `GRAIN_TILE`을 내보낸다.
 
 ## 순수 함수와 테스트
 

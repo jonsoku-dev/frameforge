@@ -1,0 +1,12 @@
+export type BriefFinding = {code: string; message: string; fix: string};
+export type BriefRow = {clause: string; kind: string; means: string; verify: string};
+export type Composition = {durationInFrames?: number; fps?: number; width?: number; height?: number};
+export const KINDS: string[];
+export function section(markdown: string, name: string): string | null;
+export function requestText(body: string): string;
+export function ledgerRows(body: string): BriefRow[];
+export function words(text: string): string[];
+export function sentences(text: string): string[];
+export function numberFindings(clause: string, composition: Composition): BriefFinding[];
+export function checkBrief(markdown: string, composition?: Composition): BriefFinding[];
+export function compositionOf(entry: string): Composition;

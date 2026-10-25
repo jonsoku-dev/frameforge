@@ -10,6 +10,16 @@
     {"name": "scripted", "frames": 1, "fps": 30, "width": 64, "height": 36, "engine": "eevee", "samples": 2,
      "camera": {"preset": "static", "radius": 5, "height": 2, "fov": 40, "from": 30},
      "subject": {"kind": "script", "script": "shot.py"},
-     "light": {"preset": "sunset"}, "background": "transparent"}
+     "light": {"preset": "sunset"}, "background": "transparent"},
+    {"name": "builtin", "frames": 3, "fps": 30, "width": 96, "height": 54, "engine": "eevee", "samples": 4,
+     "camera": {"preset": "orbit", "from": -20, "to": 20, "ease": "inout", "radius": 8, "radiusTo": 7, "height": 1.2, "heightTo": 0.6, "fov": 35},
+     "subject": {"kind": "builtin", "builtin": "plush", "detail": 64},
+     "look": "scanline", "sweep": {"to": "glossy", "from": 0, "until": 2},
+     "material": {"base": "#F4A9B8", "accent": "#7FE8FF", "scroll": 0.05}, "dof": 4, "background": "#0B0D14"},
+    {"name": "studio", "frames": 2, "fps": 30, "width": 96, "height": 54, "engine": "eevee", "samples": 4, "motionBlur": 0.5, "view": "agx",
+     "camera": {"preset": "orbit", "from": -20, "to": 20, "fov": 30},
+     "subject": {"kind": "builtin", "builtin": "bottle", "liquid": {"fill": 0.5}, "ops": [{"op": "bevel", "width": 0.01}],
+                 "keys": [{"frame": 0}, {"frame": 1, "rotation": [0, 0, 30]}]},
+     "look": "glass", "light": {"preset": "product"}, "scatter": {"count": 6, "seed": 2, "spin": 3}, "background": "#0B0D14"}
   ]
 }

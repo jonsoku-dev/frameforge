@@ -60,7 +60,7 @@ From `npm run score -- examples/samples/cafe-morning/audio.json` and `python3 sc
 ## References and why
 
 - `docs/guides/motion-graphics.md` sections 6 (mask and clip guard) and 8 (self-check loop). The check frames follow its keyframe rule.
-- `examples/samples/_template/Spot.tsx` for the `pop`, `push`, and `span` helpers, and the `SIZES` minimums.
+- `examples/samples/explainer-patterns/Spot.tsx` for the `pop`, `push`, and `span` helpers, and the `SIZES` minimums.
 - `examples/samples/cafe-morning/Spot.tsx` for the single-push discipline and the frame-driven scene switching.
 - `docs/samples/rules.md` (binding): text safe area, sizes, icons, SFX limits.
 

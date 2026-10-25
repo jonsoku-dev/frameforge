@@ -1,12 +1,13 @@
 import type {CSSProperties, ReactNode} from 'react';
 import {Easing, MotionProbe, evolvePath, getLength, getPointAtLength, interpolate, makePie, random, spring} from 'frameforge';
+import {sampleTag, type FilmLang} from './text';
 import type {BlockEntry} from './types';
 
 // Every chart is a pure function of `frame`: hidden before `at`, animating over `duration`, then held. Text stays in HTML
 // outside the <svg> so the renderer's text-clip guard never sees a clipping ancestor; only bars and paths live in the svg.
 type Palette = {ink: string; paper: string; accent: string; soft: string};
 type Fonts = {display: string; ui: string};
-type Block = {frame: number; at: number; out?: number; duration?: number; fps?: number; palette: Palette; fonts: Fonts; size?: number; stroke?: number; radius?: number; x?: number; y?: number; width?: number; height?: number; id?: string; example?: boolean};
+type Block = {frame: number; at: number; out?: number; duration?: number; fps?: number; palette: Palette; fonts: Fonts; size?: number; stroke?: number; radius?: number; x?: number; y?: number; width?: number; height?: number; id?: string; example?: boolean | string; lang?: FilmLang};
 type Datum = {label: string; value: number};
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 const ease = Easing.bezier(0.16, 1, 0.3, 1);
@@ -25,7 +26,10 @@ function Box({b, children}: {b: Block; children: ReactNode}) {
   return <div style={{position: 'absolute', left: b.x ?? 0, top: b.y ?? 0, width: W, height: H, opacity: fade}}>{children}</div>;
 }
 
-function Pill({b, text}: {b: Block; text: string}) {
+/** The sample-data tag at the top right; `copy` is the chart's own text, whose script picks the word when neither `example` nor `lang` does. */
+function Pill({b, copy}: {b: Block; copy: (string | undefined)[]}) {
+  const text = sampleTag(b.example ?? true, b.lang, ...copy);
+  if (!text) return null;
   const {size, radius} = dims(b);
   return <div style={{position: 'absolute', right: 0, top: 0, padding: `${size * 0.25}px ${size * 0.6}px`, borderRadius: radius, background: b.palette.soft, color: b.palette.ink, fontFamily: b.fonts.ui, fontSize: size, lineHeight: 1, whiteSpace: 'nowrap'}}>{text}</div>;
 }
@@ -46,7 +50,7 @@ export function BarChart(b: BarChartProps) {
   const targetPath = `M0 ${targetY} L${W} ${targetY}`;
   return <Box b={b}>
     <MotionProbe id={b.id ?? `bar-chart-${at}`} value={heights[0] ? heights[0].p * heights[0].h : 0} family="shape" axis="y" />
-    {example ? <Pill b={b} text="예시" /> : null}
+    <Pill b={b} copy={[unit, ...data.map(d => d.label)]} />
     <svg width={W} height={base + stroke} style={{position: 'absolute', left: 0, top: 0}}>
       {data.map((d, i) => <rect key={d.label} x={i * slot + (slot - barW) / 2} y={base - heights[i]!.h * heights[i]!.p} width={barW} height={heights[i]!.h * heights[i]!.p + radius} rx={radius} fill={accent} />)}
       <path d={`M0 ${base} L${W} ${base}`} stroke={ink} strokeWidth={stroke} strokeLinecap="round" fill="none" />
@@ -81,7 +85,7 @@ export function LineChart(b: LineChartProps) {
   const last = data[data.length - 1]!;
   return <Box b={b}>
     <MotionProbe id={b.id ?? `line-chart-${at}`} value={draw} family="shape" axis="progress" />
-    {example ? <Pill b={b} text="예시" /> : null}
+    <Pill b={b} copy={[unit, ...data.map(d => d.label)]} />
     <svg width={W} height={base + stroke} style={{position: 'absolute', left: 0, top: 0}}>
       {fill > 0 ? <path d={`${d} L${points[points.length - 1]![0]} ${base} L${left} ${base} Z`} fill={accent} opacity={fill} /> : null}
       <path d={axis} stroke={ink} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" fill="none" {...evolvePath(axisDraw, axis)} />
@@ -117,7 +121,7 @@ export function BarChartRace(b: BarChartRaceProps) {
   const lead = bars.reduce((m, r) => (r.v > m ? r.v : m), 0);
   return <Box b={b}>
     <MotionProbe id={b.id ?? `bar-chart-race-${at}`} value={(lead / peak) * plotW * open} family="shape" axis="x" />
-    {example ? <Pill b={b} text="예시" /> : null}
+    <Pill b={b} copy={[unit, ...names, ...snapshots.map(s => s.label)]} />
     <div style={{position: 'absolute', right: size * 0.6, bottom: size * 0.4, color: ink, fontFamily: fonts.display, fontSize: size * 2.2, opacity: 0.35, ...tabular}}>{f < 0.5 ? a.label : z.label}</div>
     {bars.filter(r => r.y < rows * rowH - 1).map(r => {
       const cross = crossing(r), h = barH * (1 - 0.6 * cross), end = labelW + (r.v / peak) * plotW * open;
@@ -136,12 +140,12 @@ export function Donut(b: DonutProps) {
   const {frame, at, value, max = 100, unit = '%', label, palette: {ink, accent, soft}, fonts, example = true} = b;
   const {size, W, H} = dims(b);
   const duration = b.duration ?? 45, thickness = b.thickness ?? size * 0.8;
-  // The ring keeps clear of the 예시 pill band at the top.
+  // The ring keeps clear of the sample-tag band at the top.
   const band = example ? size * 2 : 0, s = Math.min(W, H - band), r = s / 2 - thickness / 2, p = span(frame, at, duration);
   const ring = makePie({radius: r, progress: (value / max) * p, closePath: false});
   return <Box b={b}>
     <MotionProbe id={b.id ?? `donut-${at}`} value={p} family="shape" axis="progress" />
-    {example ? <Pill b={b} text="예시" /> : null}
+    <Pill b={b} copy={[unit, label]} />
     <svg width={W} height={H} style={{position: 'absolute', left: 0, top: 0}}>
       <g transform={`translate(${(W - s) / 2 + thickness / 2} ${band + (H - band - s) / 2 + thickness / 2})`}>
         <circle cx={r} cy={r} r={r} fill="none" stroke={soft} strokeWidth={thickness} />
@@ -169,7 +173,7 @@ export function Heatmap(b: HeatmapProps) {
   const start = (k: number) => at + (slot.indexOf(k) / cells.length) * duration * 0.75;
   return <Box b={b}>
     <MotionProbe id={b.id ?? `heatmap-${at}`} value={span(frame, at, duration * 0.75)} family="shape" axis="progress" />
-    {example ? <Pill b={b} text="예시" /> : null}
+    <Pill b={b} copy={[...rowLabels, ...colLabels]} />
     <svg width={W} height={H} style={{position: 'absolute', left: 0, top: 0}}>
       {cells.map(c => {
         const p = pop(frame, start(c.k), 12, fps), x = left + c.ci * (cw + gap) + (cw * (1 - p)) / 2, y = top + c.ri * (ch + gap) + (ch * (1 - p)) / 2;
@@ -203,7 +207,7 @@ export function Sparkline(b: SparklineProps) {
   </Box>;
 }
 
-const base = ['frame', 'at', 'out', 'duration', 'fps', 'palette', 'fonts', 'size', 'stroke', 'radius', 'x', 'y', 'width', 'height', 'id', 'example'];
+const base = ['frame', 'at', 'out', 'duration', 'fps', 'palette', 'fonts', 'size', 'stroke', 'radius', 'x', 'y', 'width', 'height', 'id', 'example=true|false|text', 'lang=en|ja|ko'];
 export const CHART_BLOCKS: BlockEntry[] = [
   {id: 'bar-chart', when: 'Compare a handful of categories or months; the counters make the values readable at speed.', title: 'Bar chart', family: 'chart', props: [...base, 'data', 'max', 'target', 'unit'], sample: 'data-reel'},
   {id: 'line-chart', when: 'Show a trend over time; the drawing line carries the eye to the last value.', title: 'Line chart', family: 'chart', props: [...base, 'data', 'max', 'min', 'area', 'unit'], sample: 'data-reel'},

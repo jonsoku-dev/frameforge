@@ -1,6 +1,6 @@
 export type Rgba = [number, number, number, number];
 export type Rect = {x: number; y: number; width: number; height: number};
-export type LayoutFault = {code: 'text_outside_safe' | 'text_overlap' | 'contrast_low' | 'text_too_small'; message: string; fix: string; rect: Rect; text: string};
+export type LayoutFault = {code: 'text_outside_safe' | 'text_overlap' | 'contrast_low' | 'text_too_small' | 'element_cropped' | 'subject_overlaps_text' | 'corner_hud'; message: string; fix: string; rect: Rect; text: string};
 
 const round = (value: number) => Math.round(value * 10) / 10;
 const rectOf = (r: {left: number; top: number; width: number; height: number}): Rect => ({x: round(r.left), y: round(r.top), width: round(r.width), height: round(r.height)});
@@ -78,14 +78,54 @@ function painted(node: Element, root: Element): boolean {
   return opacity > 0.05;
 }
 
+/** Whether an opaque layer that is not an ancestor of `element` paints over it at (x, y), such as a card flying in front of a card behind it
+ * in 3D. Only positive evidence counts: an element that hit-testing skips (pointer-events: none) is never called covered, and the frozen
+ * plus-lighter copies of a motion blur never cover anything. */
+function coveredAt(element: Element, x: number, y: number, root: Element): boolean {
+  const stack = document.elementsFromPoint(x, y);
+  const at = stack.indexOf(element);
+  if (at < 0) return false;
+  return stack.slice(0, at).some(node => {
+    if (node.contains(element) || !root.contains(node)) return false;
+    let opacity = 1;
+    for (let up: Element | null = node; up && up !== root.parentElement; up = up.parentElement) {
+      const style = getComputedStyle(up);
+      if (style.visibility === 'hidden' || blurCopy(up)) return false;
+      opacity *= Number(style.opacity);
+    }
+    if (opacity < 0.99) return false;
+    const style = getComputedStyle(node), color = parseCssColor(style.backgroundColor);
+    return style.backgroundImage === 'none' && color !== null && color[3] >= 1;
+  });
+}
+
 export const rectsOverlap = (a: Rect, b: Rect): number => Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+
+/** Share of `rect`'s own area that lies outside the viewport (0 when inside, 1 when fully off screen). */
+export function outsideShare(rect: Rect, viewport: {width: number; height: number}): number {
+  const area = rect.width * rect.height;
+  return area > 0 ? 1 - rectsOverlap(rect, {x: 0, y: 0, ...viewport}) / area : 0;
+}
+
+/** Share of `text`'s area that `cover` lies over. */
+export const coveredShare = (cover: Rect, text: Rect): number => text.width * text.height > 0 ? rectsOverlap(cover, text) / (text.width * text.height) : 0;
 
 export function insideSafeArea(rect: Rect, viewport: {width: number; height: number}, marginRatio: number): boolean {
   const mx = viewport.width * marginRatio, my = viewport.height * marginRatio;
   return rect.x >= mx && rect.y >= my && rect.x + rect.width <= viewport.width - mx && rect.y + rect.height <= viewport.height - my;
 }
 
-const SAFE = 0.05, OVERLAP = 0.2, LABEL = 0.035, BIG_TEXT = 38;
+const SAFE = 0.05, OVERLAP = 0.2, LABEL = 0.035, BIG_TEXT = 38, CROPPED = 0.02, COVERED = 0.2, CORNER = 0.08, HUD_TEXT = 0.06;
+
+/** The frame corner a text box reaches into: within CORNER of a vertical and a horizontal edge. */
+export function cornerOf(rect: Rect, viewport: {width: number; height: number}): string | null {
+  const v = rect.y < viewport.height * CORNER ? 'top' : rect.y + rect.height > viewport.height * (1 - CORNER) ? 'bottom' : null;
+  const h = rect.x < viewport.width * CORNER ? 'left' : rect.x + rect.width > viewport.width * (1 - CORNER) ? 'right' : null;
+  return v && h ? `${v}-${h}` : null;
+}
+
+/** <CameraMotionBlur> stacks frozen copies with plus-lighter; every layer but the top one is a copy. */
+const blurCopy = (node: Element) => getComputedStyle(node).mixBlendMode === 'plus-lighter' && node.nextElementSibling !== null && getComputedStyle(node.nextElementSibling).mixBlendMode === 'plus-lighter';
 
 type TextBox = {element: HTMLElement; text: string; rect: Rect; fontSize: number};
 
@@ -106,8 +146,9 @@ function textBoxes(root: Element, viewport: {width: number; height: number}): Te
       const style = getComputedStyle(up);
       opacity *= Number(style.opacity);
       hidden ||= style.visibility === 'hidden';
-      // <CameraMotionBlur> stacks frozen copies with plus-lighter; only the top copy is the text a viewer reads.
-      copy ||= style.mixBlendMode === 'plus-lighter' && up.nextElementSibling !== null && getComputedStyle(up.nextElementSibling).mixBlendMode === 'plus-lighter';
+      // <CameraMotionBlur> stacks frozen copies with plus-lighter; only the top copy is the text a viewer reads. A chromatic-split or
+      // echo copy of a word (aria-hidden, or data-fx="ghost") is an effect layer, not a second text.
+      copy ||= blurCopy(up) || up.getAttribute('aria-hidden') === 'true' || up.getAttribute('data-fx') === 'ghost';
     }
     if (hidden || copy || opacity <= 0.05) continue;
     const box = boxes.get(parent);
@@ -131,6 +172,9 @@ export function findLayoutFaults(root: Element, {width, height, rootColor = pars
   for (const {element, text, rect, fontSize} of boxes) {
     if (!insideSafeArea(rect, {width, height}, SAFE) && !element.closest('[data-clip="allow"]')) faults.push({code: 'text_outside_safe', text, rect, message: `"${text}" leaves the ${SAFE * 100}% safe area`, fix: 'Move the text inside the safe area, or mark a band that overflows on purpose with data-clip="allow".'});
     if (fontSize < minLabel && !element.closest('[data-size="allow"]')) faults.push({code: 'text_too_small', text, rect, message: `"${text}" is ${round(fontSize)}px, under ${Math.ceil(minLabel)}px (3.5% of the short side)`, fix: 'Raise the font size to the label minimum, or allow a small legal line with data-size="allow".'});
+    // Small text in a corner (timecode, frame counter, REC) is reported per corner; the renderer keeps it only when it stays for over half the film.
+    const corner = fontSize < Math.min(width, height) * HUD_TEXT && !element.closest('[data-hud="allow"]') ? cornerOf(rect, {width, height}) : null;
+    if (corner) faults.push({code: 'corner_hud', text: corner, rect, message: `small text "${text}" sits in the ${corner} corner`, fix: 'Remove the corner readout (timecode, frame counter, scene number, BPM, REC reads as a template), or opt in with data-hud="allow" and write the reason in prompt.md.'});
     const color = parseCssColor(getComputedStyle(element).color);
     const background = color && paintedBackground(element, rect, rootColor, root);
     if (color && background) {
@@ -138,10 +182,28 @@ export function findLayoutFaults(root: Element, {width, height, rootColor = pars
       if (ratio < needed) faults.push({code: 'contrast_low', text, rect, message: `"${text}" has contrast ${round(ratio)}:1, under ${needed}:1`, fix: 'Darken or lighten the text or its background so the ratio clears the threshold.'});
     }
   }
+  // Subjects (the hero, the object a process happens to) are marked data-subject; a subject entering from off frame on purpose takes data-clip="allow".
+  for (const subject of root.querySelectorAll('[data-subject]')) {
+    let shown = painted(subject, root);
+    for (let up: Element | null = subject; shown && up && up !== root.parentElement; up = up.parentElement) shown = !blurCopy(up);
+    if (!shown) continue;
+    const rect = rectOf(subject.getBoundingClientRect()), name = subject.getAttribute('data-subject') || subject.tagName.toLowerCase();
+    const out = outsideShare(rect, {width, height});
+    if (out > CROPPED && out < 1 && !subject.closest('[data-clip="allow"]')) faults.push({code: 'element_cropped', text: name, rect, message: `subject "${name}" has ${Math.round(out * 100)}% of its box outside the frame`, fix: 'Reframe or shrink the subject so it stays whole in frame, or mark an entry from off frame with data-clip="allow".'});
+    for (const box of boxes) {
+      if (subject.contains(box.element)) continue;  // a label on the object (an oz mark on the glass) belongs to it
+      const covered = coveredShare(rect, box.rect);
+      if (covered > COVERED) faults.push({code: 'subject_overlaps_text', text: `${name} / ${box.text}`, rect, message: `subject "${name}" covers ${Math.round(covered * 100)}% of "${box.text}"`, fix: 'Move the text or the subject apart; put a label that belongs to the object inside its data-subject element.'});
+    }
+  }
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
     const a = boxes[i]!, b = boxes[j]!;
     const shared = rectsOverlap(a.rect, b.rect), smaller = Math.min(a.rect.width * a.rect.height, b.rect.width * b.rect.height);
-    if (smaller > 0 && shared / smaller > OVERLAP) faults.push({code: 'text_overlap', text: `${a.text} / ${b.text}`, rect: a.rect, message: `"${a.text}" and "${b.text}" overlap by ${Math.round(shared / smaller * 100)}% of the smaller`, fix: 'Separate the two texts in time or space; stacked words read as a mistake.'});
+    // The same words twice, offset, are one word split into colour copies, not two texts colliding.
+    if (!(smaller > 0 && shared / smaller > OVERLAP) || a.element.textContent === b.element.textContent) continue;
+    const x = (Math.max(a.rect.x, b.rect.x) + Math.min(a.rect.x + a.rect.width, b.rect.x + b.rect.width)) / 2, y = (Math.max(a.rect.y, b.rect.y) + Math.min(a.rect.y + a.rect.height, b.rect.y + b.rect.height)) / 2;
+    if (coveredAt(a.element, x, y, root) || coveredAt(b.element, x, y, root)) continue;  // one text is behind an opaque layer the other sits on
+    faults.push({code: 'text_overlap', text: `${a.text} / ${b.text}`, rect: a.rect, message: `"${a.text}" and "${b.text}" overlap by ${Math.round(shared / smaller * 100)}% of the smaller`, fix: 'Separate the two texts in time or space; stacked words read as a mistake.'});
   }
   return faults;
 }

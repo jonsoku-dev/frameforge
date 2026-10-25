@@ -23,7 +23,7 @@ The current runs leftward. Each row's start frame is the cut frame; every seam i
 Vector ledger (measured by seam-check on part renders 0-149, 226-404, 526-704): 90 x− 7.7 → x− 10.9 ‰/f; 240 z+ 7.7 → z+ 10.9; 390 x− 39.4 → x− 43.2 (word probes); 540 z− 7.7 → z− 10.9; 690 x− 1.9 → x− 2.7. Consecutive seams never oppose; the two Z seams are separated by an x seam.
 
 Audio: /audio/generated/seam-reel/music.wav at 0.9, 120 bpm (one bar = 2 s), sections on bar lines, `hits` at 3, 8, 13, 18, 23 s (the five cuts). Effects derive from motion: `whoosh` (move: camera, card, shape) and `thud` (land: card, shape); `quiet` lists the cut frames so the music hits own them.
-References: examples/samples/_template/Spot.tsx for span/pop; src/packages/seams.tsx for every seam function; skills/frameforge-best-practices/references/seams.md for the doctrine.
+References: examples/samples/explainer-patterns/Spot.tsx for span/pop; src/packages/seams.tsx for every seam function; skills/frameforge-best-practices/references/seams.md for the doctrine.
 Prohibitions: no fade-only entrances, no scene starting from rest after a cut, no mirrored vector, no rightward seam. Always: no glow, particles, bezel, real brand, text smaller than 44 px.
 
 Check frames (contact sheet): 40, 84, 96, 160, 200, 234, 246, 300, 384, 396, 470, 534, 546, 620, 684, 696, 760, 880.

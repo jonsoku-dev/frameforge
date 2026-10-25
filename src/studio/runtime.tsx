@@ -2,7 +2,7 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {FrameProvider, RegistryContext, getRegisteredRoot, resolveCompositionMetadata, setInputProps, whenGoogleFontsSettled, whenRenderReady, getFrameforgeEnvironment, type CompositionDefinition, type ResolvedComposition} from '../core/index';
-import {findClippedText} from './textGuard';
+import {clippedTextMessage, findClippedText} from './textGuard';
 
 export type Props = Record<string, unknown>;
 export type Info = {id: string; width: number; height: number; fps: number; durationInFrames: number};
@@ -85,9 +85,10 @@ export async function settle() {
     await img.decode();
   })), 30000);
   await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-  const clipped = findClippedText(target);
-  if (clipped.length) throw new Error(`Clipped text: ${clipped.slice(0, 3).map(item => `"${item.text}" ${item.side} ${item.px}px`).join(', ')}`);
+  // A component error comes first: its fallback text may itself sit in a clipping box.
   const displayedError = document.querySelector('[data-frame-error]');
   if (displayedError) throw new Error(displayedError.textContent || 'Frame rendering failed.');
   if (window.__FRAMEFORGE_ERROR__) throw new Error(window.__FRAMEFORGE_ERROR__);
+  const clipped = findClippedText(target);
+  if (clipped.length) throw new Error(clippedTextMessage(clipped));
 }

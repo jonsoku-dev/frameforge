@@ -79,7 +79,7 @@ frameforge check out.mp4          # frame-check와 flash-check
 
 ### 3. 에이전트 플러그인으로
 
-저장소 자체가 Claude Code, Codex, Cursor, Grok Build용 플러그인입니다. 스킬 11개(`frameforge-best-practices`, `-create`, `-assets`, `-audio`, `-render`, `-studio`, `-check`, `-blocks`, `-voice`, `-3d`, `-generative`)가 들어 있고 MCP 서버는 없습니다.
+저장소 자체가 Claude Code, Codex, Cursor, Grok Build용 플러그인입니다. 스킬 11개(`frameforge-best-practices`, `-create`, `-assets`, `-audio`, `-render`, `-studio`, `-check`, `-blocks`, `-voice`, `-3d`, `-generative`)가 들어 있습니다.
 
 ```sh
 # Claude Code
@@ -96,6 +96,8 @@ npm run skill:install
 
 설치 후 새 세션에서 `/frameforge:frameforge-create 20초 제품 소개 모션그래픽`(Claude Code)이나 `$frameforge-create ...`(Codex)로 시작합니다. Cursor 설치와 각 단계의 확인 방법은 [docs/install.md](docs/install.md), 플러그인 구조는 [docs/plugin.md](docs/plugin.md)에 있습니다.
 
+스킬을 못 읽는 호스트를 위해 MCP 서버도 있습니다. `frameforge mcp`(이 클론에서는 `npm run mcp`)가 stdio로, `frameforge mcp --http --port 4319`가 127.0.0.1의 Streamable HTTP로 열리고, 작품 만들기부터 렌더, 컨택트 시트(이미지로 돌려줌), 검사, 스튜디오까지 14개 도구와 프롬프트 `make_motion_film`, `make_explainer`를 냅니다. Claude Code 플러그인은 이 서버와 `/frameforge:make`, `/frameforge:check`, `/frameforge:studio`, 서브에이전트 `frameforge-maker`를 함께 싣고, Claude Desktop은 `npm run pack:mcpb`로 만든 `dist/frameforge.mcpb`, Codex는 플러그인이나 `codex mcp add`, ChatGPT 개발자 모드와 OpenAI Responses·Agents SDK는 HTTP 서버나 `examples/agents/openai-agents.py`로 연결합니다. 호스트별 순서는 [docs/install.md의 7번](docs/install.md#7-mcp-서버)입니다.
+
 ## 무엇이 들어 있나
 
 - 코어 API. `Composition`, `Sequence`, `Series`, `interpolate`, `spring`, `Audio`, `Video` 등. 수학 함수는 기준 패키지를 실행해 기록한 값과 `1e-6` 안에서 맞춥니다.
@@ -109,7 +111,7 @@ npm run skill:install
 - 스튜디오. 기획, 과정 기록, 변수 조정, 렌더 큐를 한 화면에서 봅니다.
 - 렌더러. Chrome DevTools Protocol로 프레임을 찍고 FFmpeg로 MP4(H.264), WebM(VP9, 알파), MOV(ProRes 4444, 알파), GIF, PNG 시퀀스, HLS를 만듭니다. 구간 렌더, 병렬 청크, 파이프 인코딩, 멱등성 검사, 투명 배경, 배율을 지원합니다.
 - 소리. 작품별 `audio.json`에서 음악을 합성하고, 움직임에서 효과음 시점을 뽑고, 음악을 효과음 아래로 낮춥니다.
-- 에셋. 44종 모티프 키트와 `assets.json` 해결기(호스트 파일, 이미지 명령, Openverse CC0, 키트).
+- 에셋. 46종 모티프 키트와 `assets.json` 해결기(호스트 파일, 이미지 명령, Openverse CC0, 키트).
 - 검사. 글자 잘림 가드, 결정성 린트, 세이프 영역·겹침·대비·크기 감사, frame-check, flash-check, seam-check, narration-check, 음량 보고. `frameforge check`가 한 표로 묶습니다.
 
 API 전체는 [docs/reference/api.md](docs/reference/api.md)에 있습니다.

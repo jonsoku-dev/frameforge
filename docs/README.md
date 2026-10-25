@@ -32,7 +32,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [reference/voice.md](reference/voice.md) | 나레이션 사양, `voice.py`, `useNarration`, 자막, 수식, `narration-check` |
 | [reference/three-d.md](reference/three-d.md) | `3d.json`, 헤드리스 Blender 렌더, Poly Haven 모델, `ImageSequence`, `Model` |
 | [reference/effects.md](reference/effects.md) | 색 보정, LUT, 라이트 리크, 비네트, 그레인 |
-| [reference/generative.md](reference/generative.md) | 생성 배경 시스템과 손그림 주석 |
+| [reference/generative.md](reference/generative.md) | 생성 배경 시스템, `<Shader>` 프리셋, 후처리 이펙트, 손그림 주석 |
 | [reference/blocks-maps.md](reference/blocks-maps.md) | 블록 카탈로그 3: 지도, 경로, 마커와 `geo.py` |
 | [reference/seekable.md](reference/seekable.md) | 외부 애니메이션 라이브러리를 프레임으로 구동하는 어댑터 |
 | [reference/tooling.md](reference/tooling.md) | 출력 형식, 박자 그리드, 레이아웃·대비 감사, 무음 탐지, `frameforge check` |
@@ -74,6 +74,8 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [research/sfx-reference-study.md](research/sfx-reference-study.md) | 효과음 제작 방식 조사 |
 | [research/asset-practice-study.md](research/asset-practice-study.md) | 모션그래픽 에셋 출처와 도구 조사 |
 | [research/motion-tools-absorption.md](research/motion-tools-absorption.md) | 에이전트용 영상 도구 다섯 가지의 REA 분석과 흡수 기록 |
+| [research/benchmark-loop.md](research/benchmark-loop.md) | 원작과의 블라인드 비교 벤치마크 루프와 회차별 변경 |
+| [research/blender-skills.md](research/blender-skills.md) | 공개 Blender 에이전트 스킬 네 곳 조사와 3D 스킬·스튜디오에 가져온 것 |
 
 ## 저장소 루트
 

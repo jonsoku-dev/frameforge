@@ -119,6 +119,8 @@
 - 나레이션: `narrationFrames`, `useNarration(timing)`, `<Voiceover src>`, `<Subtitles timing style="rail"|"embed">`, `<SubtitleLine>`, `captionsFromTiming`, `<Formula tex draw highlight>`. 생성은 `npm run voice -- narration.json`, 검사는 `npm run narration-check -- <film>`. [voice.md](voice.md).
 - 3D: `<ImageSequence src frames fps loop pad startFrame fit>`, `sequenceIndex(frame, fps, seqFps, frames, loop?, startFrame?)`, `sequenceFile(src, index, pad?)`, `<Model src scale position rotation color>`(색을 주면 질감 맵 대신 팔레트 색), `loadModel(src)`, `<Turntable speed phase>`, `<StudioLights intensity color>`(키 라이트가 그림자를 드리움). 렌더는 `npm run blender -- 3d.json`, 모델은 `npm run models -- models.json`. [three-d.md](three-d.md).
 - 생성 배경과 주석: `<Generative system seed width height palette params>`, `GENERATIVE_SYSTEMS`(flowField, particles, starfield, meshGradient, halftone, ripples, voronoi, noiseLines, aurora), `Highlight`, `Encircle`, `Underline`, `StrikeThrough`, `Box`, `Bracket`. [generative.md](generative.md).
+- 보조 움직임: `drift(frame, {x, y, scale, period})`는 카메라나 층에 줄 CSS transform 문자열(`translate(..px, ..px) scale(..)`)을 돌려줍니다. x는 사인, y와 scale은 4분의 1, 2분의 1 주기 늦게 움직여 어느 축이든 늘 움직입니다. 기본 `period` 240프레임, 진폭 기본 0. `breathe(frame, period = 60, amount = 0.03)`은 1 ± amount를 오가는 배율(크기, 불투명도, 글로우 반경). 둘 다 프레임의 순수 함수이고 `period`가 0 이하면 오류입니다. frame-check는 0.5초 전 프레임과 비교하므로 헤드라인이 있는 화면에서 1 px/s의 드리프트도 움직임으로 잡습니다. `src/packages/ambient.ts`, `tests/ambient.test.tsx`.
+- 흐름: `<Stream from={[x, y]} to={[x, y]} progress width color wobble frame>`는 원천에서 목표로 가는 채운 띠(붓는 줄기, 데이터 흐름)를 부모 px 좌표의 SVG로 그립니다. 곡선은 원천에서 수평으로 나와 목표로 떨어지는 2차 곡선이고, 폭은 원천에서 `width`, 목표에서 40%로 가늘어집니다. `progress`가 숫자면 머리 위치(0..1), `[tail, head]`면 꼬리가 원천을 떠나 떨어지고 끝이 뾰족해집니다. `wobble`은 원천에서 0, 목표 쪽으로 커지는 옆 흔들림(px), `frame`은 흔들림을 줄기 아래로 흘립니다. 아무것도 그릴 게 없으면 `null`. 경로만 필요하면 `streamPath(options)`. `src/packages/stream.tsx`.
 - 외부 애니메이션: `<Seekable animate>`, `useSeekable(ref, factory, deps)`, `seekableFrame`. [seekable.md](seekable.md).
 - 효과(`effects` prop): `blurEffect`, `colorMatrixEffect`, `colorCorrectionEffect`, `lutEffect`+`parseCubeLut`, `lightLeakEffect`, `vignetteEffect`, `grainEffect`. [effects.md](effects.md).
 
@@ -138,7 +140,7 @@
 
 ## 모티프 키트
 
-전체 44종: Badge, Bag, BarChart, Bell, Book, Bridge, Calendar, Camera, Card, Clock, Cloud, Coin, CoinStack, Cup, Door, Envelope, Flag, Gift, Headphones, Heart, Key, Laptop, Leaf, Lightbulb, LineChart, Lock, Mic, Moon, Mountain, Mug, Phone, Pin, PlayButton, Rocket, Scooter, SpeechBubble, Star, Sun, Tag, Ticket, Tower, Trophy, Wave, Window.
+전체 46종: Badge, Bag, BarChart, Bell, Book, Bottle, Bridge, Calendar, Camera, Card, Clock, Cloud, Coin, CoinStack, Cup, Door, Envelope, Flag, Gift, Glass, Headphones, Heart, Key, Laptop, Leaf, Lightbulb, LineChart, Lock, Mic, Moon, Mountain, Mug, Phone, Pin, PlayButton, Rocket, Scooter, SpeechBubble, Star, Sun, Tag, Ticket, Tower, Trophy, Wave, Window.
 
 `src/assets/`는 직접 그린 파라미터 벡터 에셋입니다. 모든 에셋이 400 viewBox, 8px 그리드, 정면 시점, 같은 선 굵기(`stroke`, 기본 `size × 0.045`)와 모서리(`radius`, 기본 `size × 0.04`)를 씁니다. 색은 `ink`(선)와 `accent`·`soft`·`paper`(면)만 받습니다. `draw`(0–1)는 선을 그려 넣고, `parts`(0–N)는 `meta.parts` 순서대로 조립 단계를 드러냅니다.
 

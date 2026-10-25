@@ -1,6 +1,6 @@
 ---
 name: frameforge-blocks
-description: Pick and place ready motion-graphics blocks (titles, lower thirds, counters, cards, tickers, checklists, charts, code, diagrams) from the Frameforge catalogue in src/blocks instead of hand-writing them. Use when a film needs a title, a name card, a number, a toast, a chat, a ticker, a chart or a diagram, or when a film looks amateur and its text and cards should be replaced by catalogue blocks.
+description: Pick and place ready motion-graphics blocks (titles, lower thirds, counters, cards, tickers, checklists, kinetic type, charts, code, diagrams) from the Frameforge catalogue in src/blocks instead of hand-writing them. Use when a film needs a title, a name card, a number, a toast, a chat, a ticker, a chart or a diagram, or when a film looks amateur and its text and cards should be replaced by catalogue blocks.
 ---
 
 # Frameforge blocks
@@ -17,7 +17,7 @@ Full props and snippets in Korean: `docs/reference/blocks-text.md`. Every block 
 
 1. Name the job in one phrase (a headline, who is speaking, one number, a product moment, a list, a strip of many items). Find it in the table's "use when" column.
 2. Check the scene has a frame-filling object besides the block. Lower thirds, toasts and counters are overlays; alone on a background the frame fails the thin and huddled checks.
-3. If no block fits, use the motif kit (`@/assets`) or the template's own patterns (`Glyphs`, `Screen`, `Callout`) from `examples/samples/_template/Spot.tsx`, never an icon library and never a one-off animation that fades in.
+3. If no block fits, use the motif kit (`@/assets`) or the explainer patterns (`Glyphs`, `Screen`, `Callout`) in `examples/samples/explainer-patterns/Spot.tsx`, never an icon library and never a one-off animation that fades in.
 
 ## The prop contract
 
@@ -39,16 +39,16 @@ Every motion is `interpolate`, `spring` or `Easing` of `frame`. Each block repor
 
 Helpers exported from `@/blocks` for your own scene code: `blockRise(frame, from, dur, easing?)`, `blockSettle(frame, at, dur, fps, settle)`, `blockPhase(props, enter, exit)`, `blockPlace(props, hidden)`, `blockMask`.
 
-## Catalogue: text, lower thirds, cards
+## Catalogue: text, lower thirds, cards, kinetic type
 
 | id | block | family | own props | use when |
 | --- | --- | --- | --- | --- |
-| `glyph-rise` | `GlyphRise` | text | `text`, `stagger=2`, `rise=12`, `color`, `weight` | a headline or a name; glyphs rise out of a mask, the exit drops them |
+| `glyph-rise` | `GlyphRise` | text | `text`, `stagger=1`, `rise=8`, `by='word'\|'glyph'`, `color`, `weight` | a headline or a name; each word rises out of its mask as one unit (whole words at every frame), the exit drops them |
 | `word-cascade` | `WordCascade` | text | `lines[]`, `stagger=4`, `color`, `weight` | two or three lines of copy; words fall in from below, heavier words later and slower |
 | `zoom-swap` | `ZoomSwap` | text | `words[]`, `hold=36`, `swap=16` | one slot cycling alternatives; Z-axis swap through blur, never two readable |
-| `typewriter` | `Typewriter` | text | `text`, `speed=2`, `blink=15` | a sentence being written behind a block caret; the exit deletes it |
+| `typewriter` | `Typewriter` | text | `text`, `speed=4`, `blink=15`, `by='word'\|'glyph'` | a sentence being written word by word behind a block caret; the exit deletes it |
 | `highlight-sweep` | `HighlightSweep` | text | `before`, `word`, `after`, `delay=12`, `sweep=14` | stress one word; an accent bar sweeps behind it and it turns paper |
-| `counter` | `Counter` | text | `to`, `from=0`, `decimals`, `prefix`, `unit`, `count=40`, `example` | a number counting up with tabular digits and the 예시 tag |
+| `counter` | `Counter` | text | `to`, `from=0`, `decimals`, `prefix`, `unit`, `count=40`, `example`, `lang` | a number counting up with tabular digits and a sample-data tag in the film's language |
 | `lower-third` | `LowerThird` | lower-third | `variant` (`clean-bar`, `bold-block`, `kicker-name`, `soft-pill`, `mask-reveal`, `side-rule`), `name`, `role`, `side`, `enter=16`, `exit=12` | who or what is on screen, over a running scene, in the lower corner of the safe area |
 | `stat-card` | `StatCard` | card | `value`, `label`, `unit`, `prefix`, `decimals`, `example=true`, `width`, `height` | one number that matters on a card with the ink offset block; two side by side to compare |
 | `notification-card` | `NotificationCard` | card | `icon` (kit component from `@/assets`), `title`, `body`, `time`, `from=top｜right`, `width` | a product moment as an OS-neutral toast that slides in, holds, slides out |
@@ -56,8 +56,16 @@ Helpers exported from `@/blocks` for your own scene code: `blockRise(frame, from
 | `ticker` | `Ticker` | card | `items[]`, `speed=4`, `cell`, `height` | many short items scrolling without end, separated by drawn dots |
 | `checklist` | `Checklist` | card | `items[]`, `stagger=14`, `draw=12` | three to five steps ticked off with a drawn check path |
 | `logo-outro` | `LogoOutro` | card | `brand`, `tagline`, `color` | the last scene: name, accent rule, tagline, still hold |
+| `word-beat` | `WordBeat` | kinetic | `words[]`, `size`, `beat=15`, `fields[]`, `punctuation` | a sentence one word per beat; each beat cuts the whole frame to the next flat colour field and punches the word in |
+| `thread` | `Thread` | kinetic | `points[[x,y]]`, `loops[]`, `curl`, `draw=45`, `words[{text,x,y,size}]`, `stroke`, `color` | thinking, connecting, following through: a line draws under and through the words, curls into loops, words rise as its head arrives |
+| `text-field` | `TextField` | kinetic | `rows=24`, `corpus[]`, `speed`, `background`, `beat`, `children` | reading, knowledge, volume: dense small text scrolls behind a hero line (rows are images, the audit ignores them) |
+| `whip-pan` | `WhipPan` | kinetic | `from`, `to`, `dur=8`, `direction`, `smear=0.2` | a cut between colour fields or scenes as a camera whip with one-axis motion blur, never a flat or fully blurred frame |
+| `bauhaus-mosaic` | `BauhausMosaic` | kinetic | `colours[]`, `cols=16`, `beat=15`, `wave`, `flip`, `seed` | a geometric beat: a frame-filling Bauhaus tile grid that flips in waves on every beat |
+| `toggle` | `Toggle` | kinetic | `on`, `size`, `x`, `y`, `align`, `offColour` | switching something on as a premium object: glossy track, springing knob, accent fill |
 
-The same list is `TEXT_BLOCKS`, `LOWER_THIRD_BLOCKS` and `CARD_BLOCKS` (`BlockEntry[]` with `id`, `title`, `family`, `props`, `when`) merged into `CATALOG` from `@/blocks`, so an agent or the studio can read it at runtime.
+Kinetic blocks act out the words in calm or data films (`../frameforge-best-practices/references/utilities.md`); a motion-graphics film writes its own type animation (`../frameforge-best-practices/references/kinetic-type.md`). The full-frame ones (`WordBeat`, `TextField`, `WhipPan`, `BauhausMosaic`) fill their parent and take `frame`, `at`, `palette` but no `size`/`align`.
+
+The same list is `TEXT_BLOCKS`, `LOWER_THIRD_BLOCKS`, `CARD_BLOCKS` and `KINETIC_BLOCKS` (`BlockEntry[]` with `id`, `title`, `family`, `props`, `when`) merged into `CATALOG` from `@/blocks`, so an agent or the studio can read it at runtime.
 
 ## Placing a block in a scene
 
@@ -71,7 +79,7 @@ function Stats({frame}: {frame: number}) {
 }
 ```
 
-Give `out` a few frames inside the next scene's wipe so the block is still there while the wipe covers it. Keep 2–5 s per beat, one dominant motion direction, the last 2 s still (`LogoOutro` stops moving 40 frames after its `at`).
+Give `out` a few frames inside the next scene's wipe so the block is still there while the wipe covers it. Keep 2–5 s per beat, one dominant motion direction, a final hold of 1 s at most with an ambient drift allowed (`LogoOutro` settles 40 frames after its `at`; wrap it in a `drift` layer to keep it alive).
 
 ## Checks
 

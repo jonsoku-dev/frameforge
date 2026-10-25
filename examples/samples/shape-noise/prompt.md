@@ -26,7 +26,7 @@ The name reads for 1.2 s or more: it is fully up at about 490 and holds until 59
 Audio: /audio/generated/shape-noise/music.wav at 0.9, 120 BPM (a bar is 2 s; the mood's tech range is 124 BPM, which is not on bar lines at 2 s). Sections at even seconds: 0-4 hook, 4-10 morph, 10-16 streak, 16-18 name, 18-20 hold (energy 0.1). Hits at 4 s (the morph start) and 15 s (the name landing). 15 s is a beat, not a bar line; the generator pulls the bar grid to the nearest bar, so this offset is advisory and is reported.
 Sound effects come from motion: `MotionSound` role move for whoosh on the paper wipe and streak, role land for impact on the hero landing and the name. `quiet={[120, 450]}` lists the two hit frames. No hand-placed Audio except the root music.
 
-References: examples/samples/cafe-morning/Spot.tsx (Glyphs rise, MotionProbe and MotionSound declarations, Black Han Sans glyph mask), examples/samples/_template/Spot.tsx (SIZES, span/pop/push helpers, Callout pattern). The Trail child reads its own frame because Trail re-renders the child under a frozen frame, so a prop-driven child would draw identical copies.
+References: examples/samples/cafe-morning/Spot.tsx (Glyphs rise, MotionProbe and MotionSound declarations, Black Han Sans glyph mask), examples/samples/explainer-patterns/Spot.tsx (SIZES, span/pop/push helpers, Callout pattern). The Trail child reads its own frame because Trail re-renders the child under a frozen frame, so a prop-driven child would draw identical copies.
 
 Prohibitions: no glow, no particles or dust, no frame border, no bezel, no real brand or logo, no number on screen, no Gothic A1, no #06C755, no icon library, no text smaller than the label size, no full-frame flash, no hard cut between ink and paper (wipes only).
 

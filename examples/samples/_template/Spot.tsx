@@ -1,161 +1,51 @@
-import type {CSSProperties, ReactNode} from 'react';
-import {AbsoluteFill, Audio, Easing, MotionProbe, MotionSound, Sequence, googleFont, interpolate, spring, useCurrentFrame} from 'frameforge';
-import {Card, Cup, type Asset} from './assets';
+import {AbsoluteFill, Audio, Canvas2D, MotionSound, Shader, beatsFromSpec, googleFont, rng, useCurrentFrame, useVideoConfig} from 'frameforge';
+import spec from './template.audio.json';
 
-// Copy this folder to examples/samples/<slug>/, rename TemplateSpot, replace every TODO string, keep the sizes.
+// A bespoke starter: three layers you replace with the film's own rendering code (skills/frameforge-best-practices/references/bespoke.md).
+// Every placeholder below is grey on purpose: nothing here is a design to keep. Replace every TODO, keep the sizes and the contracts.
 const W = 1920;
 const H = 1080;
 const S = Math.min(W, H);
 // Minimums from docs/samples/rules.md (구성 최소치). Go bigger, never smaller.
-const SIZES = {headline: S * 0.1, label: S * 0.035, icon: S * 0.06, hero: S * 0.35, marginX: W * 0.05, marginY: H * 0.05};
-const display = googleFont('Gothic A1', {weights: [900], fallback: 'sans-serif'});
-const ui = googleFont('Noto Sans KR', {weights: [500], fallback: 'sans-serif'});
-const ink = '#111111';
-const paper = '#F4F4F1';
-const accent = '#2F5BFF';
-const ease = Easing.bezier(0.16, 1, 0.3, 1);
-const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} satisfies {extrapolateLeft: 'clamp'; extrapolateRight: 'clamp'};
-const center: CSSProperties = {display: 'flex', alignItems: 'center', justifyContent: 'center'};
-// Absolute scene starts; the last 60 frames are the still hold.
-const AT = {hook: 0, beat1: 90, beat2: 210, promise: 330, name: 450, end: 600};
+const SIZES = {headline: S * 0.1, label: Math.ceil(S * 0.035), marginX: W * 0.05, marginY: H * 0.05};
+// TODO the concept's own faces (Google Fonts; never a system font). The same string works in CSS and in ctx.font.
+const display = googleFont('Inter', {weights: [800], fallback: 'sans-serif'});
+// TODO the palette derived from the concept (four colours at most).
+const palette = {ink: '#111111', paper: '#EEEEEE', accent: '#888888', soft: '#444444'};
+// TODO every seeded value the film needs, made once here so each frame draws from the same numbers.
+const SEEDS = (() => { const next = rng('TODO-slug'); return Array.from({length: 64}, () => [next(), next(), next()] as const); })();
 
-function span(frame: number, from: number, dur: number): number {
-  return interpolate(frame, [from, from + dur], [0, 1], {...clamp, easing: ease});
-}
-
-function pop(frame: number, at: number, dur: number, settle = false): number {
-  return spring({frame, fps: 30, delay: at, durationInFrames: dur, config: {overshootClamping: settle}});
-}
-
-/** Camera push and return around one beat: scale rises to 1 + amount at the midpoint and comes back. */
-function push(frame: number, at: number, dur: number, amount: number): number {
-  const t = interpolate(frame, [at, at + dur], [0, 1], clamp);
-  return 1 + amount * Math.sin(t * Math.PI);
-}
-
-function Glyphs({text, frame, at, size = SIZES.headline, color = ink, stagger = 2}: {text: string; frame: number; at: number; size?: number; color?: string; stagger?: number}) {
-  return <span style={{display: 'flex', color, fontFamily: display, fontSize: size, fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em'}}>
-    {Array.from(text).map((glyph, index) => {
-      const rise = span(frame, at + index * stagger, 12);
-      // Gothic A1 ink rises 0.87em above the baseline but the 1em line box only holds 0.8em, so the mask grows upward without moving the glyph.
-      return <span key={index} style={{display: 'inline-block', overflow: 'hidden', height: '1.15em', paddingTop: '0.1em', marginTop: '-0.1em', paddingInline: '0.06em', marginInline: '-0.06em'}}>
-        <span style={{display: 'inline-block', transform: `translateY(${(1 - rise) * 120}%)`, visibility: rise === 0 ? 'hidden' : 'visible'}}>{glyph === ' ' ? '\u00A0' : glyph}</span>
-      </span>;
-    })}
-  </span>;
-}
-
-function Icon({asset: Shape, frame, at, size = SIZES.icon, color = ink}: {asset: Asset; frame: number; at: number; size?: number; color?: string}) {
-  const p = pop(frame, at, 16);
-  return <span style={{display: 'inline-flex', transform: `scale(${p})`, visibility: p === 0 ? 'hidden' : 'visible'}}>
-    <Shape size={size} color={color} />
-  </span>;
-}
-
-/** A centred card (a screenshot via <Img src={staticFile(...)} />, or drawn content) with an ink block offset behind it. */
-function Screen({frame, at, width = W * 0.7, height = H * 0.7, children}: {frame: number; at: number; width?: number; height?: number; children: ReactNode}) {
-  const rise = pop(frame, at, 20, true);
-  const offset = S * 0.022;
-  return <div style={{position: 'absolute', left: (W - width) / 2, top: (H - height) / 2, width, height, transform: `translateY(${(1 - rise) * H}px)`}}>
-    <MotionProbe id={`screen-${at}`} value={(1 - rise) * H} family="card" axis="y" />
-    <div style={{position: 'absolute', left: offset, top: offset, width, height, background: ink}} />
-    <div style={{position: 'absolute', inset: 0, overflow: 'hidden', background: paper}}>{children}</div>
-  </div>;
-}
-
-/** Dims everything but `rect` (frame px), strokes it in the accent and shows a label card below or above it. */
-function Callout({frame, at, end, rect: [x, y, w, h], text, icon}: {frame: number; at: number; end: number; rect: [number, number, number, number]; text: string; icon: Asset}) {
-  const on = span(frame, at, 8) * (1 - span(frame, end - 8, 8));
-  const p = pop(frame, at, 16) * (1 - span(frame, end - 6, 6));
-  const pad = 8;
-  const cardH = SIZES.label * 2.4;
-  const below = y + h + pad + 40 + cardH < H - SIZES.marginY;
-  return <>
-    <svg width={W} height={H} style={{position: 'absolute', left: 0, top: 0, opacity: on}}>
-      <path d={`M0 0H${W}V${H}H0Z M${x} ${y}h${w}v${h}h${-w}Z`} fillRule="evenodd" fill={ink} fillOpacity={0.55} />
-      <rect x={x - pad} y={y - pad} width={w + pad * 2} height={h + pad * 2} rx={10} fill="none" stroke={accent} strokeWidth={6} />
-    </svg>
-    <div style={{position: 'absolute', left: 0, right: 0, top: below ? y + h + pad + 40 : y - pad - 40 - cardH, ...center, opacity: Math.min(1, p * 1.5), transform: `translateY(${(1 - p) * (below ? -30 : 30)}px)`}}>
-      <div style={{...center, gap: SIZES.label * 0.6, height: cardH, padding: `0 ${SIZES.label * 1.2}px`, borderRadius: 20, background: ink, color: paper, fontFamily: ui, fontWeight: 500, fontSize: SIZES.label, whiteSpace: 'nowrap'}}>
-        <Icon asset={icon} frame={frame} at={at + 4} size={SIZES.icon} color={paper} />{text}
-      </div>
-    </div>
-  </>;
-}
-
-function Hook({frame}: {frame: number}) {
-  const hero = pop(frame, AT.hook, 18) * SIZES.hero;
-  return <AbsoluteFill style={{background: ink}}>
-    <MotionProbe id="hero" value={hero} family="shape" axis="scale" />
-    <div style={{position: 'absolute', right: SIZES.marginX + S * 0.05, top: (H - SIZES.hero) / 2, width: SIZES.hero, height: SIZES.hero, ...center}}>
-      <div style={{width: hero, height: hero, borderRadius: '50%', background: accent}} />
-    </div>
-    <div style={{position: 'absolute', left: SIZES.marginX, top: H * 0.34, display: 'flex', flexDirection: 'column', gap: S * 0.02}}>
-      <Glyphs text="TODO 질문 한 줄" frame={frame} at={AT.hook + 10} color={paper} />
-      <Glyphs text="TODO 둘째 줄" frame={frame} at={AT.hook + 24} color={paper} />
-    </div>
-  </AbsoluteFill>;
-}
-
-function Beat({frame, at, title, items}: {frame: number; at: number; title: string; items: [Asset, string][]}) {
-  return <AbsoluteFill style={{background: paper}}>
-    <div style={{position: 'absolute', left: SIZES.marginX, top: SIZES.marginY + S * 0.04}}><Glyphs text={title} frame={frame} at={at + 2} /></div>
-    <div style={{position: 'absolute', left: SIZES.marginX, right: SIZES.marginX, top: H * 0.4, display: 'flex', justifyContent: 'space-between'}}>
-      {items.map(([shape, word], i) => <div key={word} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S * 0.03, width: (W - SIZES.marginX * 2) / items.length}}>
-        <Icon asset={shape} frame={frame} at={at + 4 + i * 8} size={SIZES.icon * 3} />
-        <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.6, color: ink, opacity: span(frame, at + 14 + i * 8, 10)}}>{word}</div>
-      </div>)}
-    </div>
-  </AbsoluteFill>;
-}
-
-function ScreenBeat({frame}: {frame: number}) {
-  const at = AT.beat2;
-  return <AbsoluteFill style={{background: accent}}>
-    <Screen frame={frame} at={at}>
-      {/* Swap for <Img src={staticFile('/screens/<slug>/<name>.png')} style={{width: '100%', height: '100%'}} /> when a capture exists. */}
-      <div style={{position: 'absolute', left: '6%', top: '10%', width: '50%', height: '12%', background: ink}} />
-      <div style={{position: 'absolute', left: '6%', top: '34%', width: '88%', height: '50%', background: accent, opacity: 0.25}} />
-    </Screen>
-    <Callout frame={frame} at={at + 40} end={AT.promise - 4} rect={[W * 0.15 + W * 0.7 * 0.06, H * 0.15 + H * 0.7 * 0.1, W * 0.7 * 0.5, H * 0.7 * 0.12]} text="TODO 이 버튼이 하는 일" icon={Cup} />
-  </AbsoluteFill>;
-}
-
-function PromiseScene({frame}: {frame: number}) {
-  const wipe = span(frame, AT.promise, 14);
-  return <AbsoluteFill style={{background: paper}}>
-    <AbsoluteFill style={{background: accent, clipPath: `inset(0 ${(1 - wipe) * 100}% 0 0)`}} />
-    <div style={{position: 'absolute', inset: 0, ...center, flexDirection: 'column', gap: S * 0.04}}>
-      <Glyphs text="TODO 약속 한 줄" frame={frame} at={AT.promise + 4} color={paper} />
-      <Icon asset={Cup} frame={frame} at={AT.promise + 20} size={SIZES.icon * 3} color={paper} />
-    </div>
-  </AbsoluteFill>;
-}
-
-function Name({frame}: {frame: number}) {
-  const bar = span(frame, AT.name + 6, 16);
-  return <AbsoluteFill style={{background: ink, ...center, flexDirection: 'column', gap: S * 0.04}}>
-    <Glyphs text="TODO 이름" frame={frame} at={AT.name} size={SIZES.headline * 1.6} color={paper} />
-    <div style={{width: W * 0.4, height: S * 0.02, background: accent, transform: `scaleX(${bar})`}} />
-    <div style={{fontFamily: ui, fontWeight: 500, fontSize: SIZES.label * 1.4, color: paper, opacity: span(frame, AT.name + 30, 12)}}>TODO 한 줄 설명 · 가상 브랜드</div>
-  </AbsoluteFill>;
-}
+// TODO the film's own shader (GLSL ES 3.00). Without a #version line it gets u_time, u_frame, u_resolution, u_seed, centred(),
+// hash/vnoise/fbm and every uniform passed below; with its own #version line it is compiled as written.
+const FRAG = `
+void main() {
+  vec2 p = centred();
+  float n = fbm(p * 3.0 + vec2(u_time * 0.15, -u_time * 0.1));
+  fragColor = vec4(mix(u_ink, u_soft, n + u_pulse * 0.2), 1.0);
+}`;
 
 export function TemplateSpot() {
   const frame = useCurrentFrame();
-  // Two camera pushes at most: the screen callout and the name.
-  const camera = push(frame, AT.beat2 + 36, 30, 0.04) * push(frame, AT.name, 30, 0.04);
-  return <AbsoluteFill style={{background: ink, overflow: 'hidden'}}>
+  const {fps} = useVideoConfig();
+  // The beat grid of the score this film plays: cuts on bar lines, accents on beats and hits.
+  const beats = beatsFromSpec(spec, fps);
+  const pulse = beats.pulse(frame, beats.framesPerBeat / 2);
+  return <AbsoluteFill style={{background: palette.ink, overflow: 'hidden'}}>
     <Audio src="/audio/generated/template/music.wav" volume={0.9} />
-    {/* Effects come from the motion probes (Screen rise, hero pop); quiet lists the music hits so the music plays those. */}
-    <MotionSound src="/audio/generated/template/whoosh.wav" role="move" families={['card', 'wipe']} quiet={[AT.beat1, AT.name]} />
-    <MotionSound src="/audio/generated/template/impact.wav" role="land" families={['card', 'shape']} quiet={[AT.beat1, AT.name]} />
-    <AbsoluteFill style={{transform: `scale(${camera})`}}>
-      {frame < AT.beat1 ? <Hook frame={frame} /> : null}
-      {frame >= AT.beat1 && frame < AT.beat2 ? <Beat frame={frame} at={AT.beat1} title="TODO 첫째 요점" items={[[Cup, 'TODO 하나'], [Card, 'TODO 둘'], [Cup, 'TODO 셋']]} /> : null}
-      {frame >= AT.beat2 && frame < AT.promise ? <ScreenBeat frame={frame} /> : null}
-      {frame >= AT.promise && frame < AT.name ? <PromiseScene frame={frame} /> : null}
-      {frame >= AT.name ? <Name frame={frame} /> : null}
+    {/* Sound effects are derived from motion: TODO report each big move with <MotionProbe id value family axis /> (camera push, a word
+        landing); quiet lists the frames where the music's own hits play. */}
+    <MotionSound src="/audio/generated/template/whoosh.wav" role="move" families={['camera']} quiet={[]} />
+    <MotionSound src="/audio/generated/template/impact.wav" role="land" families={['text']} quiet={[]} />
+    {/* Layer 1, WebGL: TODO the world of the concept. */}
+    <Shader frag={FRAG} width={W} height={H} palette={palette} uniforms={{u_pulse: pulse}} seed="TODO-slug" style={{position: 'absolute', inset: 0}} />
+    {/* Layer 2, canvas 2D: TODO particles, geometry or type the film paints itself. */}
+    <Canvas2D width={W} height={H} style={{position: 'absolute', inset: 0}} draw={(ctx, f) => {
+      ctx.fillStyle = palette.accent;
+      for (const [x, y, z] of SEEDS) ctx.fillRect((x * W + f * (1 + z * 3)) % W, y * H, 6 + z * 10, 6 + z * 10);
+    }} />
+    {/* Layer 3, DOM type: TODO the copy, each line with a behaviour that does what it says. DOM text is checked by the render audit. */}
+    <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', padding: `${SIZES.marginY}px ${SIZES.marginX}px`}}>
+      <div style={{fontFamily: display, fontWeight: 800, fontSize: SIZES.headline * 1.4, color: palette.paper, transform: `scale(${1 + pulse * 0.04})`}}>TODO</div>
     </AbsoluteFill>
   </AbsoluteFill>;
 }

@@ -1,0 +1,77 @@
+{
+  "manifest_version": "0.3",
+  "name": "frameforge",
+  "display_name": "Frameforge",
+  "version": "0.1.0",
+  "description": "Make deterministic motion-graphics and explainer videos with a local Frameforge engine.",
+  "long_description": "Drives a local Frameforge checkout: create films, write their code, generate music, render MP4s, contact sheets and stills (returned as images), run the quality checks and open the studio on 127.0.0.1. Needs a clone of the engine with npm ci, Chrome, ffmpeg and Python with numpy. Nothing leaves your machine.",
+  "author": {
+    "name": "Frameforge"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonsoku-dev/frameforge"
+  },
+  "homepage": "https://github.com/jonsoku-dev/frameforge",
+  "license": "MIT",
+  "keywords": ["video", "motion-graphics", "react", "animation", "rendering"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.mjs",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.mjs"],
+      "env": {
+        "FRAMEFORGE_ENGINE": "${user_config.engine_dir}",
+        "FRAMEFORGE_PROJECT_DIR": "${user_config.project_dir}",
+        "CHROME_PATH": "${user_config.chrome_path}"
+      }
+    }
+  },
+  "user_config": {
+    "engine_dir": {
+      "type": "directory",
+      "title": "Frameforge engine folder",
+      "description": "A clone of github.com/jonsoku-dev/frameforge where npm ci has run",
+      "required": true
+    },
+    "project_dir": {
+      "type": "directory",
+      "title": "Project folder",
+      "description": "A Frameforge project (frameforge init). Empty: the engine's examples/samples",
+      "required": false
+    },
+    "chrome_path": {
+      "type": "file",
+      "title": "Chrome executable",
+      "description": "Only when Chrome is not in the usual place",
+      "required": false
+    }
+  },
+  "tools": [
+    {"name": "project_init", "description": "Create a Frameforge project folder"},
+    {"name": "film_new", "description": "Create a film from the template"},
+    {"name": "film_list", "description": "List the project's films"},
+    {"name": "film_files", "description": "List, read or write files inside one film folder"},
+    {"name": "brief_check", "description": "Check a film's brief and intent ledger"},
+    {"name": "lint", "description": "Determinism lint"},
+    {"name": "score", "description": "Generate music and sound effects"},
+    {"name": "render", "description": "Render a film or frame range to MP4"},
+    {"name": "contact_sheet", "description": "Render frames into one PNG sheet, returned as an image"},
+    {"name": "still", "description": "Render one frame, returned as an image"},
+    {"name": "check", "description": "Frame, flash, seam, narration and brief checks on a render"},
+    {"name": "studio_start", "description": "Start the studio on 127.0.0.1"},
+    {"name": "studio_stop", "description": "Stop the studio"},
+    {"name": "read_skill", "description": "Read Frameforge guidance by name"}
+  ],
+  "prompts": [
+    {"name": "make_motion_film", "description": "Make a motion-graphics film end to end", "arguments": ["request"], "text": "Make this motion-graphics film with the Frameforge tools, following read_skill frameforge-motion: ${arguments.request}"},
+    {"name": "make_explainer", "description": "Make an explainer film end to end", "arguments": ["request"], "text": "Make this explainer film with the Frameforge tools, following read_skill frameforge-create: ${arguments.request}"}
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "runtimes": {
+      "node": ">=24.0.0"
+    }
+  }
+}

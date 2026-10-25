@@ -1,6 +1,6 @@
 import type {CSSProperties} from 'react';
 import {MotionProbe} from 'frameforge';
-import {blockMask, blockPhase, type BlockProps} from './text';
+import {MASK_DROP, blockMask, blockPhase, type BlockProps} from './text';
 import type {BlockEntry} from './types';
 
 export type LowerThirdVariant = 'clean-bar' | 'bold-block' | 'kicker-name' | 'soft-pill' | 'mask-reveal' | 'side-rule';
@@ -19,7 +19,7 @@ export function LowerThird({variant = 'clean-bar', name, role, side = 'left', en
   const roleStyle: CSSProperties = {fontFamily: fonts.ui, fontSize: size * 0.7, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap', color: palette.ink};
   const origin = side === 'left' ? 'left' : 'right';
   // The mask's em heights come from its own font size, so the text style sits on the mask as well as the glyph span.
-  const risen = (t: number, text: string, style: CSSProperties) => <span style={{...style, ...blockMask}}><span style={{display: 'inline-block', transform: `translateY(${(1 - t) * 120}%)`, visibility: t <= 0 ? 'hidden' : 'visible'}}>{text}</span></span>;
+  const risen = (t: number, text: string, style: CSSProperties) => <span style={{...style, ...blockMask}}><span style={{display: 'inline-block', transform: `translateY(${(1 - t) * MASK_DROP}%)`, visibility: t <= 0 ? 'hidden' : 'visible'}}>{text}</span></span>;
   // Slides settle inward toward the side (never past the safe-area edge), so an entering label is still inside the 5 % margin.
   const slid = (t: number, text: string, style: CSSProperties) => <span style={{...style, display: 'inline-block', opacity: t, transform: `translateX(${(1 - t) * dir * size * 0.5}px)`}}>{text}</span>;
   const masked = (t: number, text: string, style: CSSProperties) => <span style={{...style, display: 'inline-block', padding: '0.15em 0.1em', margin: '-0.15em -0.1em', clipPath: side === 'left' ? `inset(0 ${(1 - t) * 100}% 0 0)` : `inset(0 0 0 ${(1 - t) * 100}%)`}}>{text}</span>;
@@ -52,7 +52,7 @@ export function LowerThird({variant = 'clean-bar', name, role, side = 'left', en
       {slid(second, role, roleStyle)}
     </div>,
   }[variant];
-  return <div style={place}>
+  return <div data-block="LowerThird" style={place}>
     <MotionProbe id={id} value={(1 - shape) * dir * size * 2} family="card" axis="x" />
     {body}
   </div>;

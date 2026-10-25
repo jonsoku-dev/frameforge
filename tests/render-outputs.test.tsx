@@ -10,7 +10,7 @@ import {AUDIO, encodeArgs, outputFormat, videoArgs} from '../scripts/render.mjs'
 import {parseLoudnorm, parseSilences, silenceReport} from '../scripts/silence-detect.mjs';
 import {checkTable, ENGINE, summarize} from '../bin/frameforge.mjs';
 import {barPhaseSeconds, beatGrid, beatsFromSpec, loadBeats} from '../src/packages/beats';
-import {contrastRatio, insideSafeArea, over, parseCssColor, rectsOverlap, type Rgba} from '../src/studio/audit';
+import {contrastRatio, coveredShare, insideSafeArea, outsideShare, over, parseCssColor, rectsOverlap, type Rgba} from '../src/studio/audit';
 import kitSpec from '../examples/samples/kit-launch/audio.json';
 
 const close = (actual: number, expected: number, tolerance = 1e-9) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} is not within ${tolerance} of ${expected}`);
@@ -116,6 +116,11 @@ test('audit helpers: WCAG contrast of known pairs, colour parsing, overlap area,
   const viewport = {width: 1920, height: 1080};
   assert.ok(insideSafeArea({x: 96, y: 54, width: 100, height: 50}, viewport, 0.05));
   assert.ok(!insideSafeArea({x: 95, y: 54, width: 100, height: 50}, viewport, 0.05));
+  assert.equal(outsideShare({x: 100, y: 100, width: 200, height: 200}, viewport), 0, 'a subject inside the frame');
+  assert.equal(outsideShare({x: 100, y: 980, width: 200, height: 200}, viewport), 0.5, 'a glass with its bottom half below the frame');
+  assert.equal(outsideShare({x: -400, y: 0, width: 200, height: 200}, viewport), 1, 'fully off screen');
+  assert.equal(coveredShare({x: 0, y: 0, width: 50, height: 100}, {x: 0, y: 0, width: 100, height: 40}), 0.5, 'a bottle over half a step label');
+  assert.equal(coveredShare({x: 0, y: 0, width: 50, height: 100}, {x: 0, y: 0, width: 0, height: 40}), 0);
   assert.ok(!insideSafeArea({x: 1700, y: 54, width: 125, height: 50}, viewport, 0.05));
   assert.ok(!insideSafeArea({x: 96, y: 1000, width: 100, height: 27}, viewport, 0.05));
 });
@@ -162,9 +167,9 @@ test('real renders: a transparent webm of the translucent fixture carries alpha 
     assert.match(probe, /codec_name=vp9/); assert.match(probe, /width=640/); assert.match(probe, /TAG:alpha_mode=1/);
     assert.ok(existsSync(`${webm}.motion.json`));
     const audit = JSON.parse(alpha.stdout.split('\n').find(line => line.startsWith('{"audit"'))!).audit as {code: string; text: string}[];
-    assert.deepEqual(audit.map(item => `${item.code}:${item.text}`).sort(), ['contrast_low:흐린 글자', 'text_outside_safe:가장자리', 'text_overlap:겹침 / 겹침 둘', 'text_too_small:예시 데이터']);
+    assert.deepEqual(audit.map(item => `${item.code}:${item.text}`).sort(), ['contrast_low:흐린 글자', 'corner_hud:top-right', 'element_cropped:잘린 잔', 'subject_overlaps_text:병 / 반투명 레이어', 'text_outside_safe:가장자리', 'text_overlap:겹침 / 겹침 둘', 'text_too_small:예시 데이터']);
     const strict = spawnSync(process.execPath, [join(ENGINE, 'scripts/render.mjs'), 'tests/fixtures/tooling/entry.tsx', 'Translucent', join(out, 'strict.mov'), '--frame-range', '0-1', '--transparent', '--strict-audit'], {cwd: ENGINE, encoding: 'utf8', env});
-    assert.equal(strict.status, 1); assert.match(strict.stderr, /Layout audit: 4 finding/);
+    assert.equal(strict.status, 1); assert.match(strict.stderr, /Layout audit: 7 finding/);
 
     const mp4 = join(out, 'kit.mp4');
     const render = spawnSync(process.execPath, [join(ENGINE, 'scripts/render.mjs'), 'examples/samples/kit-launch/entry.tsx', 'KitLaunch', mp4, '--frame-range', '0-29'], {cwd: ENGINE, encoding: 'utf8', env});
@@ -172,10 +177,11 @@ test('real renders: a transparent webm of the translucent fixture carries alpha 
     assert.ok(!render.stdout.includes('{"audit"'), `kit-launch should audit clean: ${render.stdout}`);
     const check = spawnSync(process.execPath, [join(ENGINE, 'bin/frameforge.mjs'), 'check', mp4, '--film', 'kit-launch', '--json'], {cwd: ENGINE, encoding: 'utf8', env});
     const rows = JSON.parse(check.stdout) as {check: string; status: string; detail: string}[];
-    assert.deepEqual(rows.map(row => row.check), ['frame-check', 'flash-check', 'seam-check', 'narration-check']);
+    assert.deepEqual(rows.map(row => row.check), ['frame-check', 'flash-check', 'seam-check', 'narration-check', 'brief']);
     assert.equal(rows[0]!.status, 'PASS'); assert.equal(rows[1]!.status, 'PASS');
     assert.ok(['PASS', 'FAIL', 'SKIP'].includes(rows[2]!.status), 'seam-check runs when another workstream has landed its script, else SKIPs');
     assert.equal(rows[3]!.status, 'SKIP'); assert.match(rows[3]!.detail, /^(narration\.timing\.json|scripts\/narration-check\.mjs) 없음$/, 'kit-launch has no narration timing');
+    assert.deepEqual(rows[4], {check: 'brief', status: 'SKIP', detail: 'brief.md 없음'}, 'kit-launch predates the brief step');
     assert.equal(check.status, rows.some(row => row.status === 'FAIL') ? 1 : 0);
     const table = spawnSync(process.execPath, [join(ENGINE, 'bin/frameforge.mjs'), 'check', mp4], {cwd: ENGINE, encoding: 'utf8', env}).stdout;
     assert.match(table, /^frame-check {6}PASS {2}/m); assert.match(table, /^narration-check {2}SKIP {2}--film 없음|^narration-check {2}SKIP {2}scripts/m);

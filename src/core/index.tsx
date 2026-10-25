@@ -1,7 +1,7 @@
 import React, {Children, createContext, forwardRef, isValidElement, useContext, useEffect, useRef} from 'react';
 import {finite, integer, positive} from './math';
 import type {MotionSample, MotionFamily, MotionAxis, SoundRole, SoundMap} from './sound';
-export {Easing, interpolate, interpolateColors, assertValidInterpolateEasingOption, assertValidInterpolatePosterizeOption, spring, springTrack, measureSpring, random} from './math';
+export {Easing, interpolate, interpolateColors, assertValidInterpolateEasingOption, assertValidInterpolatePosterizeOption, spring, springTrack, measureSpring, random, rng} from './math';
 export type {EasingFunction, InterpolateColorsOptions, InterpolateOptions, SpringOptions} from './math';
 /** Frameforge's own version, kept equal to package.json by a test. */
 export const VERSION = '0.1.0';
@@ -447,6 +447,11 @@ export * from '../packages/formula';
 export * from '../packages/image-sequence';
 export * from '../packages/model';
 export * from '../packages/generative';
+export * from '../packages/shader';
+export * from '../packages/canvas';
+export * from '../packages/post';
 export * from '../packages/annotations';
 export * from '../packages/beats';
 export * from '../packages/seekable';
+export * from '../packages/ambient';
+export * from '../packages/stream';

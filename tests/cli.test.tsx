@@ -24,10 +24,12 @@ test('renameTemplate applies every rename the template brief lists to the shippe
   const spot = renameTemplate(readFileSync(join(dir, 'Spot.tsx'), 'utf8'), 'demo-spot', 'DemoSpot');
   assert.ok(spot.includes('export function DemoSpot()') && !spot.includes('TemplateSpot'));
   assert.ok(spot.includes('/audio/generated/demo-spot/music.wav') && !spot.includes('/audio/generated/template/'));
+  assert.ok(spot.includes("from './audio.json'") && !spot.includes('template.audio.json'), 'the copy imports its renamed audio spec');
   const entry = renameTemplate(readFileSync(join(dir, 'entry.tsx'), 'utf8'), 'demo-spot', 'DemoSpot');
   assert.ok(entry.includes('id="DemoSpot" component={DemoSpot}'));
   assert.equal(JSON.parse(renameTemplate(readFileSync(join(dir, 'template.audio.json'), 'utf8'), 'demo-spot', 'DemoSpot')).slug, 'demo-spot');
   assert.match(renameTemplate(readFileSync(join(dir, 'prompt.md'), 'utf8'), 'demo-spot', 'DemoSpot'), /^# demo-spot$/m);
+  assert.match(renameTemplate(readFileSync(join(dir, 'brief.md'), 'utf8'), 'demo-spot', 'DemoSpot'), /^# demo-spot$/m);
 });
 
 test('addFilm adds one import and one Composition line and keeps existing films', () => {

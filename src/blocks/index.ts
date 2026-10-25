@@ -7,3 +7,4 @@ export * from './charts';
 export * from './code';
 export * from './diagrams';
 export * from './maps';
+export * from './kinetic';

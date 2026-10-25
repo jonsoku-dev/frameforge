@@ -106,7 +106,7 @@ npm run score
 
 주 에셋과 작은 아이콘은 아래 순서로 구한다(`docs/samples/rules.md`의 에셋과 아이콘 절). 한 작품의 선 굵기·모서리·색을 공유하는 그림이 라이브러리 아이콘보다 자연스럽다.
 
-1. **모티프 키트.** `import {Cup, Phone, Pin} from '@/assets'`. `src/assets/`의 44종은 모두 400 viewBox, 8px 그리드, 정면 시점이고 `{size, ink, accent, soft, paper, stroke, radius, draw, parts, style}`를 받는다. 목록과 의도 매칭용 태그는 `src/assets/catalog.ts`의 `CATALOG`, 시트는 `src/assets/Sheet.tsx`의 `AssetSheet`(한 쪽 24개).
+1. **모티프 키트.** `import {Cup, Phone, Pin} from '@/assets'`. `src/assets/`의 46종은 모두 400 viewBox, 8px 그리드, 정면 시점이고 `{size, ink, accent, soft, paper, stroke, radius, draw, parts, style}`를 받는다. 목록과 의도 매칭용 태그는 `src/assets/catalog.ts`의 `CATALOG`, 시트는 `src/assets/Sheet.tsx`의 `AssetSheet`(한 쪽 24개).
 2. **에셋 해결기.** 작품 폴더의 `assets.json`(`{slug, palette: {ink, accent, soft, paper}, assets: [{name, intent, source, recolor, file}]}`)을 `npm run art -- examples/samples/<slug>/assets.json`(`scripts/assets/art.py`)이 해결한다. `source`가 `auto`(기본)면 이 순서로 시도하고, 값을 주면 그 소스만 쓴다.
    - `host`: 호스트 에이전트가 자기 이미지 도구로 만들어 `public/assets/generated/<slug>/<name>.svg|.png|.webp`에 둔 파일이나 항목의 `file`. SVG는 원본을 `<slug>/.host/`에 남기고 정리한다. PNG/WebP는 래스터 그대로 쓴다(색 바꾸기 없음).
    - `image-command`: 환경 변수 `FRAMEFORGE_IMAGE_COMMAND`(`{prompt}`와 선택 `{out}`이 든 셸 템플릿). 첫 PNG는 `{out}`이거나 명령이 출력한 JSON `paths`의 첫 항목이다. vtracer가 있으면 SVG로 추적하고, 없으면 PNG로 남긴다.

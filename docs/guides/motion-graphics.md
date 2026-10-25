@@ -38,7 +38,7 @@ cafe-morning 20초는 이 표와 조금 다르게 나뉜다. 훅 0–150, 카드
 
 `shots.md`의 장면표는 절대 프레임으로 쓴다. 열은 신, 시간, 프레임, 화면, 움직임, 글자다. "판 진입 66/72/78프레임, rotateY 20→0, 스프링 14프레임"처럼 코드에 그대로 옮길 수 있는 숫자로 적는다. 상대 시간("훅 다음 1초 뒤")은 쓰지 않는다. 리뷰어가 프레임 번호로 결함을 지적하고, 수정자가 같은 번호로 고치기 때문이다. 교차 리뷰는 장면표와 `Spot.tsx`에서 프레임을 읽어 지적했다.
 
-참고 레퍼런스는 이유와 함께 적는다. "참고했다"로 끝내지 않는다. cafe-morning의 `prompt.md`는 "References and why" 절에 레퍼런스마다 무엇을 가져왔는지 한 줄씩 적었다. 예를 들어 `examples/samples/_template/Spot.tsx`에서는 `pop`, `push`, `span` 헬퍼와 `SIZES` 최솟값을 가져왔다. 레퍼런스를 먼저 분석하고, 무엇을 왜 가져오는지 보고한 뒤 타임라인 시트를 만든다.
+참고 레퍼런스는 이유와 함께 적는다. "참고했다"로 끝내지 않는다. cafe-morning의 `prompt.md`는 "References and why" 절에 레퍼런스마다 무엇을 가져왔는지 한 줄씩 적었다. 예를 들어 `examples/samples/explainer-patterns/Spot.tsx`에서는 `pop`, `push`, `span` 헬퍼와 `SIZES` 최솟값을 가져왔다. 레퍼런스를 먼저 분석하고, 무엇을 왜 가져오는지 보고한 뒤 타임라인 시트를 만든다.
 
 ## 3. 화면
 
@@ -89,7 +89,7 @@ cafe-morning의 헤드라인은 120–360px, 카드 제목은 52px, 훅의 컵�
 
 **방송 플래시 기준.** 풀프레임 플래시는 2프레임, 한 편에 두 번까지다. 렌더 뒤 `node scripts/flash-check.mjs <video.mp4> [fps]`로 검사한다. 이 스크립트는 화면의 25% 이상에서 밝기가 전체 범위의 10% 이상 바뀌면 전환 하나로 센다. 반대 방향 전환 두 개가 플래시 하나다. 어느 1초 창에서든 플래시가 셋을 넘으면 실패한다. Ofcom 지침의 근사이며 Harding 인증이 아니다.
 
-**마지막 2초 정지.** 마지막 60프레임에는 글자가 움직이지 않는다. cafe-morning은 태그라인이 526프레임에 다 들어오고 540–599프레임은 바뀌지 않는다. 헤드라인은 다음 큰 전환 전에 1.2초(36프레임) 이상 읽힌다. 마지막 진입은 정지가 시작되기 전에 끝낸다.
+**끝 정지 1초 이하.** 마지막 30프레임(1초)까지만 글자가 멈춘다. 그 앞의 모든 숏에는 카메라 드리프트, 시차, 숨 쉬는 요소 같은 보조 움직임이 있어 어떤 0.5초 창도 얼어 있지 않다(`drift`, `breathe`, `docs/samples/rules.md` 모션). 끝 정지 안에서도 잔잔한 드리프트는 둘 수 있다. 예전 규칙(마지막 2초 정지)으로 만든 cafe-morning은 540–599프레임이 바뀌지 않는다. 헤드라인은 다음 큰 전환 전에 1.2초(36프레임) 이상 읽힌다. 마지막 진입은 정지가 시작되기 전에 끝낸다.
 
 ## 5. 결정성과 금지 목록
 
@@ -112,7 +112,7 @@ cafe-morning의 헤드라인은 120–360px, 카드 제목은 52px, 훅의 컵�
 
 ## 6. 글자 마스크와 잘림 가드
 
-**Gothic A1이 잘린 이유.** Gothic A1 900의 잉크는 기준선 위 0.87em까지 올라간다. `lineHeight: 1`인 줄 상자는 위로 0.8em만 담는다. 그래서 `overflow: hidden` 마스크가 글자 윗부분을 잘랐다(`examples/samples/_template/Spot.tsx`의 `Glyphs` 주석).
+**Gothic A1이 잘린 이유.** Gothic A1 900의 잉크는 기준선 위 0.87em까지 올라간다. `lineHeight: 1`인 줄 상자는 위로 0.8em만 담는다. 그래서 `overflow: hidden` 마스크가 글자 윗부분을 잘랐다(`examples/samples/explainer-patterns/Spot.tsx`의 `Glyphs` 주석).
 
 **여유를 둔 마스크.** 마스크를 키우되 글자 위치는 그대로 둔다. 안쪽 여백을 늘리고 같은 크기의 음수 바깥 여백으로 되돌린다. Gothic A1은 위 0.1em, 좌우 0.06em이다.
 
@@ -125,7 +125,7 @@ cafe-morning의 헤드라인은 120–360px, 카드 제목은 52px, 훅의 컵�
 
 | 글꼴 | 마스크 높이 | 위 | 아래 | 좌우 | 파일 |
 | --- | --- | --- | --- | --- | --- |
-| Gothic A1 900 | 1.15em | 0.1em | 0 | 0.06em | `examples/samples/_template/Spot.tsx` |
+| Gothic A1 900 | 1.15em | 0.1em | 0 | 0.06em | `examples/samples/explainer-patterns/Spot.tsx` |
 | Black Han Sans | 1.3em | 0.15em | 0 | 0.08em | `examples/samples/cafe-morning/Spot.tsx` |
 | Do Hyeon | 1.3em | 0.15em | 0 | 0.08em | `examples/samples/kit-launch/Spot.tsx` |
 | Jua | 1.4em | 0.3em | 0 | 0.12em | `examples/samples/route-story/Spot.tsx` |
@@ -148,7 +148,7 @@ Noto Sans KR의 괄호는 1.15em 상자 아래로 내려간다. 괄호가 잘리
 
 ## 7. 코드 패턴
 
-모든 패턴은 `examples/samples/_template/Spot.tsx`에 있고 cafe-morning, kit-launch 같은 샘플이 같은 모양으로 복사해 쓴다. 헬퍼를 공용 모듈로 빼지 않은 것은 각 작품이 파일 하나로 읽히게 하려는 선택이다(추정. 샘플 브리프가 "참조 영화의 헬퍼 밖의 추상화 금지"라고 적었다).
+모든 패턴은 `examples/samples/explainer-patterns/Spot.tsx`에 있고 cafe-morning, kit-launch 같은 샘플이 같은 모양으로 복사해 쓴다. 헬퍼를 공용 모듈로 빼지 않은 것은 각 작품이 파일 하나로 읽히게 하려는 선택이다(추정. 샘플 브리프가 "참조 영화의 헬퍼 밖의 추상화 금지"라고 적었다).
 
 **`useCurrentFrame()`은 루트에서 한 번.** 장면 컴포넌트는 `frame`을 props로 받는다. 모든 장면이 같은 프레임 값을 보고, 장면을 겹쳐 그릴 때 시간 기준이 어긋나지 않는다.
 
@@ -190,7 +190,7 @@ const camera = push(frame, AT.beat2 + 36, 30, 0.04) * push(frame, AT.name, 30, 0
 
 **`Glyphs`.** 글자마다 `span`으로 0에서 1이 되는 값 `rise`를 구한다. 안쪽 span을 `translateY((1 - rise) * 120%)`로 올린다. `rise`가 0인 동안은 `visibility: hidden`이다. 바깥 span이 6절의 마스크다. `stagger`가 글자 간격(프레임)이다. 퇴장이 필요하면 `out` 프레임에서 `rise`를 다시 빼면 된다.
 
-**`Sequence`와 `Audio`.** 음악은 루트에 `Audio` 하나다. 효과음은 움직임에서 나온다. 움직이는 요소에 `<MotionProbe>`를 달고 루트에서 `<MotionSound>`로 소리 파일을 매핑하면 엔진이 움직임의 시작·착지·등장 프레임에 소리를 놓는다(`examples/samples/_template/Spot.tsx`). 움직임이 없는 사건만 사건과 같은 프레임의 `Sequence` 안에 `Audio`를 손으로 둔다. `layout="none"`이라 화면 배치에 영향이 없다. 렌더러는 0.5초보다 가깝거나 4초 안에 3개를 넘는 효과음을 거부한다. 아래는 카운트가 끝나는 프레임에 손으로 놓는 형태다.
+**`Sequence`와 `Audio`.** 음악은 루트에 `Audio` 하나다. 효과음은 움직임에서 나온다. 움직이는 요소에 `<MotionProbe>`를 달고 루트에서 `<MotionSound>`로 소리 파일을 매핑하면 엔진이 움직임의 시작·착지·등장 프레임에 소리를 놓는다(`examples/samples/explainer-patterns/Spot.tsx`). 움직임이 없는 사건만 사건과 같은 프레임의 `Sequence` 안에 `Audio`를 손으로 둔다. `layout="none"`이라 화면 배치에 영향이 없다. 렌더러는 0.5초보다 가깝거나 4초 안에 3개를 넘는 효과음을 거부한다. 아래는 카운트가 끝나는 프레임에 손으로 놓는 형태다.
 
 ```tsx
 <Audio src="/audio/generated/<slug>/music.wav" volume={0.9} />
@@ -249,7 +249,7 @@ ffmpeg -i renders/samples/<slug>.mp4 -vf "select='not(mod(n\,15))',scale=320:-1,
 | 한글 없는 글꼴 | Manrope, Roboto Mono, DM Serif Display, DM Sans | Noto Sans KR, Gowun Batang, IBM Plex Sans KR로 교체 |
 | 늦은 훅 | 첫 글자 3.8초, 이름 4.7초 완성 | 첫 글자 시작을 당기고 stagger를 줄인다. 인용 1줄 114→48 |
 | 요소가 프레임에 비해 작음 | 목록 폭 1/3, 파형 폭 50% | 주인공 형태를 35% 이상으로, 목록을 프레임 끝까지 |
-| 마지막 2초 움직임 | 정지 1.4초 | 마지막 진입을 정지 시작 전에 끝낸다 |
+| 마지막 2초 움직임(옛 규칙) | 정지 1.4초 | 지금 규칙은 끝 정지 1초 이하, 그 앞은 보조 움직임 |
 
 남은 예외도 기록한다. 처음 2초가 선 하나인 경우나 검정 위 글자 하나만 2초 보이는 경우가 그렇다.
 

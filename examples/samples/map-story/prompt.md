@@ -50,7 +50,7 @@ One continuous camera carries the film: the zoom is the only large move, and eve
 ## References and why
 
 - `examples/samples/data-reel/Spot.tsx`: block placement, headline timing, MotionSound wiring.
-- `examples/samples/_template/Spot.tsx`: sizes and the still hold.
+- `examples/samples/explainer-patterns/Spot.tsx`: sizes and the still hold.
 - `docs/reference/blocks-maps.md`: the map block props used here.
 
 ## Prohibitions
