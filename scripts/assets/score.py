@@ -14,7 +14,7 @@ OUT = os.path.join(ROOT, 'public', 'audio', 'generated')
 FFMPEG = os.environ.get('FFMPEG_PATH') or os.environ.get('FFMPEG', 'ffmpeg')
 NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 rng = np.random.default_rng(0)  # reseeded per file so no output depends on generation order
-GENERATION = 'v4'  # part of the output digest; raising it regenerates every composition.
+GENERATION = 'v5'  # part of the output digest; raising it regenerates every composition.
 
 
 def ts(dur):
@@ -815,10 +815,21 @@ def score(spec):
         floor = 10 ** (-(6 + 4 * x['weight']) / 20)
         shape = np.interp(np.arange(a, b), [a, h, b], [1, floor, 1])
         bed[a:b] = np.minimum(bed[a:b], shape)
-    return master(mix, m, curve, role_curve('pad'), role_curve('sc'), dip, bed, dur, secs, beat)
+    return master(mix, m, curve, role_curve('pad'), role_curve('sc'), dip, bed, dur, secs, beat, plan)
 
 
-def master(mix, m, curve, pad_gain, sc_role, dip, bed, dur, secs, beat):
+HIT_RING = 0.35  # seconds a hit sounds at full level before the closing fade may begin
+
+
+def fade_start(secs, dur, plan):
+    """Where the closing fade begins: the last section or the last 2 s, but never before the last hit has rung for
+    HIT_RING s, so a hit on the final lockup lands at full level (the fade then shortens, keeping at least 0.6 s)."""
+    start = min(secs[-1]['from'], dur - 2)
+    last = max((x['at'] for x in plan if x['at'] < dur), default=None)
+    return start if last is None or last + HIT_RING <= start else min(last + HIT_RING, dur - 0.6)
+
+
+def master(mix, m, curve, pad_gain, sc_role, dip, bed, dur, secs, beat, plan=()):
     n = mix.n
     b = mix.bus
     if m.get('drum_lp'):
@@ -868,7 +879,7 @@ def master(mix, m, curve, pad_gain, sc_role, dip, bed, dur, secs, beat):
         ride = ride + 1.5 * err  # over-relaxed: a section often controls only part of its own level
         ride = np.clip(ride - ride.max(), -30, 0)  # a near-silent section must not ask for +200 dB
     t = np.arange(n) / SR
-    fade_from = min(secs[-1]['from'], dur - 2)
+    fade_from = fade_start(secs, dur, plan)
     fade = np.where(t < fade_from, 1.0, np.clip((dur - t) / (dur - fade_from), 0, 1) ** 3)
     return pre * fade, out * fade
 
@@ -944,7 +955,10 @@ def check(pre, final, spec):
     for x, accent in zip(spec['hits'], accents(final, spec['hits'], 0.2)):
         assert accent >= TRANSIENT_DB, f"hit {x['at']}: only {accent:.1f} dB over the 200 ms before it, under {TRANSIENT_DB} dB"
     win = max(rms_db(final[:, i:i + SR]) for i in range(0, final.shape[1] - SR, SR // 10))
-    assert win - rms_db(final[:, -SR:]) >= 20, 'last second must sit 20 dB under the loudest second'
+    # The closing stretch sits 20 dB under the loudest second: the last second, or the last quarter second when a hit on the
+    # final lockup shortened the fade.
+    tail_s = 1.0 if fade_start(spec['sections'], spec['durationSeconds'], spec['hits']) <= spec['durationSeconds'] - 2 else 0.25
+    assert win - rms_db(final[:, -int(SR * tail_s):]) >= 20, f'last {tail_s:g} s must sit 20 dB under the loudest second'
 
 
 # ---------------------------------------------------------------- spec and CLI
@@ -1053,7 +1067,8 @@ def generate(path, force):
 def self_check():
     """Scores three specs in memory (no files): 90 bpm at 18.666 s and 18.667 s, where the last bar starts 0.4 ms before the end and its
     pad rings 3.3 s past it, with light slams whose accent the duck and transient must carry; and a 120 bpm reel with a bare hit on
-    every bar, whose hits must stay heavy enough and peak over the bed (a single limiter used to flatten them to 0 dB)."""
+    every bar, whose hits must stay heavy enough and peak over the bed (a single limiter used to flatten them to 0 dB); and a 144 bpm
+    piece whose last hit lands on the final lockup 1.67 s before the end, inside the old closing fade."""
     global rng
     reel = {'slug': 'self-check', 'durationSeconds': 15, 'bpm': 120, 'key': 'A minor', 'mood': 'tech', 'seed': 3, 'loudness': {'I': -16, 'TP': -1},
             'sections': [{'from': 0, 'to': 2, 'energy': 0.7}, {'from': 2, 'to': 12, 'energy': 0.9}, {'from': 12, 'to': 15, 'energy': 0.3}],
@@ -1061,6 +1076,11 @@ def self_check():
     specs = [{'slug': 'self-check', 'durationSeconds': dur, 'bpm': 90, 'key': 'A minor', 'mood': 'dramatic', 'seed': 7, 'loudness': {'I': -24, 'TP': -2},
               'sections': [{'from': 0, 'to': 2.667, 'energy': 0.3}, {'from': 2.667, 'to': 13.333, 'energy': 0.85}, {'from': 13.333, 'to': 17.333, 'energy': 0.5}, {'from': 17.333, 'to': dur, 'energy': 0.1}],
               'hits': [2.667, {'at': 8.0, 'style': 'lift'}, {'at': 10.667, 'weight': 0.3}, {'at': 13.333, 'style': 'soft'}]} for dur in (18.666, 18.667)] + [reel]
+    # A name that lands on the final lockup, inside the last 2 s: the closing fade used to swallow this hit.
+    lockup = {'slug': 'self-check', 'durationSeconds': 15, 'bpm': 144, 'key': 'F# minor', 'mood': 'tech', 'seed': 5, 'loudness': {'I': -16, 'TP': -1},
+              'sections': [{'from': 0, 'to': 1.667, 'energy': 0.6}, {'from': 1.667, 'to': 11.667, 'energy': 0.9}, {'from': 11.667, 'to': 15, 'energy': 0.6}],
+              'hits': [1.667, 6.667, 11.667, 13.333]}
+    specs.append(lockup)
     for spec in specs:
         dur = spec['durationSeconds']
         validate(spec, 'self-check.audio.json')
@@ -1068,6 +1088,8 @@ def self_check():
         pre, mix = score(spec)
         assert mix.shape[1] == int(round(dur * SR)), f'{dur} s: {mix.shape[1]} samples'
         check(pre, mix, spec)
+        if spec is lockup:
+            assert fade_start(spec['sections'], dur, spec['hits']) > 13.333, 'the closing fade must wait for the lockup hit'
         if spec is reel:
             assert min(x['weight'] for x in spec['hits']) >= 0.4, f"dense hits fell under weight 0.4: {[x['weight'] for x in spec['hits']]}"
             peak = lambda a, b: np.abs(mix[:, max(0, int(a * SR)):int(b * SR)]).max(initial=1e-9)
