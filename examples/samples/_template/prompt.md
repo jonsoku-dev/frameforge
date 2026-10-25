@@ -2,7 +2,7 @@
 
 Copy this folder to `examples/samples/<slug>/`. Rename `template.audio.json` to `audio.json` and set its `slug` to `<slug>`; change `/audio/generated/template/` in `Spot.tsx` to `/audio/generated/<slug>/`; rename `TemplateSpot` and the composition id in `entry.tsx`. Fill every TODO below and in the copy, keep `SIZES`.
 
-The six sections follow `docs/samples/rules.md` "기획 구조". The table alone decides *what*; Direction and Banned decide *how good*. A worked example: `examples/samples/morph-ui/prompt.md`.
+Fill `brief.md` first (request verbatim, intent ledger, engine translation, gaps; `node bin/frameforge.mjs brief-check <slug>` must PASS); this plan follows its Engine translation and never drops a must or forbid row. The six sections follow `docs/samples/rules.md` "기획 구조". The table alone decides *what*; Direction and Banned decide *how good*. A worked example: `examples/samples/morph-ui/prompt.md`.
 
 ## Inputs
 

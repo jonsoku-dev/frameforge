@@ -177,10 +177,11 @@ test('real renders: a transparent webm of the translucent fixture carries alpha 
     assert.ok(!render.stdout.includes('{"audit"'), `kit-launch should audit clean: ${render.stdout}`);
     const check = spawnSync(process.execPath, [join(ENGINE, 'bin/frameforge.mjs'), 'check', mp4, '--film', 'kit-launch', '--json'], {cwd: ENGINE, encoding: 'utf8', env});
     const rows = JSON.parse(check.stdout) as {check: string; status: string; detail: string}[];
-    assert.deepEqual(rows.map(row => row.check), ['frame-check', 'flash-check', 'seam-check', 'narration-check']);
+    assert.deepEqual(rows.map(row => row.check), ['frame-check', 'flash-check', 'seam-check', 'narration-check', 'brief']);
     assert.equal(rows[0]!.status, 'PASS'); assert.equal(rows[1]!.status, 'PASS');
     assert.ok(['PASS', 'FAIL', 'SKIP'].includes(rows[2]!.status), 'seam-check runs when another workstream has landed its script, else SKIPs');
     assert.equal(rows[3]!.status, 'SKIP'); assert.match(rows[3]!.detail, /^(narration\.timing\.json|scripts\/narration-check\.mjs) 없음$/, 'kit-launch has no narration timing');
+    assert.deepEqual(rows[4], {check: 'brief', status: 'SKIP', detail: 'brief.md 없음'}, 'kit-launch predates the brief step');
     assert.equal(check.status, rows.some(row => row.status === 'FAIL') ? 1 : 0);
     const table = spawnSync(process.execPath, [join(ENGINE, 'bin/frameforge.mjs'), 'check', mp4], {cwd: ENGINE, encoding: 'utf8', env}).stdout;
     assert.match(table, /^frame-check {6}PASS {2}/m); assert.match(table, /^narration-check {2}SKIP {2}--film 없음|^narration-check {2}SKIP {2}scripts/m);

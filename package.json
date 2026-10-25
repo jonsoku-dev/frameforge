@@ -33,6 +33,7 @@
     "beats": "python3 scripts/assets/beats.py",
     "seam-check": "node scripts/seam-check.mjs",
     "narration-check": "node scripts/narration-check.mjs",
+    "brief-check": "node scripts/brief-check.mjs",
     "geo": "python3 scripts/assets/geo.py",
     "transcribe": "node scripts/transcribe.mjs"
   },

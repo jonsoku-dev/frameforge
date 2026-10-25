@@ -7,12 +7,14 @@
 - `examples/samples/<slug>/Spot.tsx`: 컴포지션. `useCurrentFrame()`은 루트에서 한 번. 장면 컴포넌트는 `frame`을 props로 받는다. 예외는 `<CameraMotionBlur>` 하나다. 블러의 복사본은 정지된 하위 트리라서, 그 안의 그림 루트에서 한 번 더 불러 소수 프레임을 받는다(`examples/samples/morph-ui/Spot.tsx`의 `Picture`).
 - `examples/samples/<slug>/entry.tsx`: 이 컴포지션 하나만 `registerRoot`로 등록. 장면 ID는 PascalCase slug.
 - `examples/samples/<slug>/audio.json`: 소리 사양(아래 소리 절). `assets.json`(그림 에셋 해결 사양)과 `assets.tsx`(직접 그린 에셋)는 필요할 때만.
+- `examples/samples/<slug>/brief.md`: 엔진 브리프. 기획보다 먼저 쓴다(아래 "기획 구조"의 0번). 템플릿은 `examples/samples/_template/brief.md`.
 - `examples/samples/<slug>/prompt.md`: 기획. 아래 "기획 구조" 절의 여섯 칸(입력, 방향, 구조, 빌드, 함정, 시작)을 채운다. 템플릿은 `examples/samples/_template/prompt.md`.
 
 ## 기획 구조
 
-장면표만 있는 기획은 "무엇을"만 정하고 "어떤 취향으로"를 비워 둔다. 그 빈칸을 모델이 채우면 헤드라인과 카드를 컷으로 잇는 평범한 영상이 나온다. 잘 만든 모션 그래픽 프롬프트는 거의 모두 아래 여섯 칸으로 되어 있어서, `prompt.md`도 이 순서를 따른다.
+장면표만 있는 기획은 "무엇을"만 정하고 "어떤 취향으로"를 비워 둔다. 그 빈칸을 모델이 채우면 헤드라인과 카드를 컷으로 잇는 평범한 영상이 나온다. 잘 만든 모션 그래픽 프롬프트는 거의 모두 아래 여섯 칸으로 되어 있어서, `prompt.md`도 이 순서를 따른다. 그 앞에 요청을 옮기는 엔진 브리프가 온다.
 
+0. **엔진 브리프(`brief.md`).** 사용자 요청을 그대로 두고 엔진에 맞게 옮긴다. 의도는 하나도 잃지 않는다. `## Request`에 요청 원문을 고치지 않고 붙인다. `## Intent ledger`는 요청의 절마다 한 행이다. 행은 따옴표로 그대로 옮긴 절, 종류(`must` 필수, `forbid` 금지, `taste` 취향, `implied` 장르가 당연히 기대하는 것. 예: 쇼릴의 이름 카드, 런칭의 제품 공개), 엔진 수단(셰이더 프리셋, 블록, 이음새, `audio.json` 필드, 크기·fps·길이), 확인 위치(구조 행과 프레임 범위, 또는 검사 이름)를 적는다. 절들을 합치면 요청의 모든 단어가 들어가야 한다. `## Engine translation`은 엔진 말로 다시 쓴 기획(컨셉, 세계, 주인공, 팔레트, `showreel.md` 계열과 대표 기법, 길이·크기·fps, 소리)이다. 구체성은 더해도 되지만 필수와 금지를 거스르거나 약하게 하거나 빼지 않는다. 취향은 필수와 부딪히지 않으면 지킨다. implied는 명시된 절을 이기지 못한다. "마음대로" 같은 열린 요청은 과감하게 정하고 `Decision:`으로 적어 사용자의 의도와 구별한다. `## Gaps`에는 엔진이 못 하는 것이나 서로 부딪히는 것과 고른 대안을 적는다(없으면 `None.`). 조용히 빼지 않고, 마지막 보고에서 사용자에게 다시 말한다. `node bin/frameforge.mjs brief-check <slug>`가 PASS여야 다음으로 간다. `brief.md`가 없는 작품은 이 단계 전에 만든 것으로 보고 SKIP한다. `frameforge new`와 템플릿 복사는 늘 `brief.md`를 가져오므로 새 작품은 채울 때까지 FAIL이다.
 1. **입력.** 시작 전에 정해야 할 것. 상태 목록, 색, 곡의 BPM, 가상 브랜드 이름. 사용자에게 받을 것과 기본값을 적는다.
 2. **방향.** 한 문단으로 쓰는 취향. 기준이 되는 수준(예: "Dribbble 수준의 UI 모션"), 주인공 하나, 카메라가 하는 일, 글꼴, 이징 성격을 적는다. 끝에 `금지:` 한 줄을 둔다. 금지에는 이 작품이 빠지기 쉬운 상투를 이름으로 적는다("헤드라인 + 카드 세 장 나열", "페이드로만 등장", "템플릿처럼 보이는 것", "빈 박자").
 3. **구조.** 박자 단위. 첫 줄에 `BPM, 마디 수, 박마다 무엇이 일어나는가`를 쓰고, 표의 각 행은 박 또는 마디 하나이며 절대 프레임 범위를 갖는다. 행마다 "주인공이 어떤 상태가 되는가"와 "카메라가 무엇을 채우는가"를 적는다. 연속 모핑 영상은 행이 컷이 아니라 상태 변화다. 그래서 `Cuts: none`(또는 `Cuts: 120, 300`) 한 줄로 실제 컷을 적고, seam-check는 표 대신 이 줄을 읽는다.
@@ -98,5 +100,6 @@
 ## 검사
 
 - 먼저 자기 포트의 개발 서버와 CDP 스크립트로 키프레임 6장 이상을 찍고 본다. 색이 프레임을 채우는지, 글자가 잘리지 않는지, 직전 장과 다른지.
+- `node bin/frameforge.mjs brief-check <slug>`가 PASS여야 한다(`frameforge check --film <slug>`의 `brief` 행). 넘기기 전에 의도 장부를 콘택트 시트, 프레임, 검사 결과와 다시 맞춰 보고, 보고에 필수·금지 절마다 통과·실패와 빈틈을 적는다.
 - `npm run build`와 `npm test`가 통과해야 한다. `npm run lint:video -- examples/samples/<slug>/entry.tsx`에 `error`가 없어야 한다.
 - 전체 렌더 `npm run render -- examples/samples/<slug>/entry.tsx <Id> renders/samples/<slug>.mp4` 뒤 `npm run frame-check`와 `node scripts/flash-check.mjs`를 돌린다. 다른 렌더와 동시에 돌리면 `FRAMEFORGE_PORT`로 렌더러의 Vite 포트(기본 4318)를 바꾼다.

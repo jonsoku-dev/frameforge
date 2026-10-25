@@ -19,9 +19,10 @@ const USAGE = `frameforge <command>
   models <slug>                    models.json의 CC0 모델·HDRI를 받는다
   seam-check <video>.motion.json [--prompt prompt.md|--scenes a,b]
   narration-check <slug> [--prompt prompt.md]
+  brief-check <slug>               brief.md의 요청 원문, 의도 장부, 엔진 번역, 빈틈을 검사한다
   lint <slug|entry.tsx>            결정성 린트
   check <video.mp4> [--fps N] [--film <slug|folder>] [--prompt prompt.md] [--json]
-                                   frame-check, flash-check, seam-check(<video>.motion.json이 있을 때), narration-check(narration.timing.json이 있을 때)를 한 표로`;
+                                   frame-check, flash-check, seam-check(<video>.motion.json이 있을 때), narration-check(narration.timing.json이 있을 때), brief(brief.md가 있을 때)를 한 표로`;
 
 /** The nearest folder at or above `start` holding frameforge.json, with its films folder; null inside the engine checkout. */
 export function findProject(start) {
@@ -98,7 +99,7 @@ export function summarize(name, stdout, stderr) {
   return lines[0] ?? '';
 }
 
-/** frame-check, flash-check, then seam-check and narration-check when their script and input exist; each row is {check, status, detail}. */
+/** frame-check, flash-check, then seam-check, narration-check and brief when their script and input exist (a film without brief.md predates the brief step and SKIPs); each row is {check, status, detail}. */
 export function runChecks(video, {fps, folder, prompt, project} = {}) {
   const script = name => join(ENGINE, 'scripts', `${name}.mjs`);
   const motion = `${video}.motion.json`;
@@ -110,6 +111,7 @@ export function runChecks(video, {fps, folder, prompt, project} = {}) {
     {check: 'flash-check', args: [script('flash-check'), video, ...(fps ? [fps] : [])]},
     {check: 'seam-check', skip: optional('seam-check', motion, ''), args: [script('seam-check'), motion, ...(brief ? ['--prompt', brief] : [])]},
     {check: 'narration-check', skip: optional('narration-check', timing, '--film 없음'), args: [script('narration-check'), folder ?? '']},
+    {check: 'brief', skip: optional('brief-check', folder && join(folder, 'brief.md'), '--film 없음'), args: [script('brief-check'), folder ?? '']},
   ];
   return plan.map(({check, skip, args}) => {
     if (skip) return {check, status: 'SKIP', detail: skip};
@@ -128,7 +130,7 @@ const README = `# Frameforge 프로젝트
 이 폴더는 Frameforge 엔진 밖에서 영상을 만드는 프로젝트다. 엔진 위치는 \`frameforge.json\`의 \`engine\`에 적혀 있다.
 
 - \`films/index.tsx\` 스튜디오와 렌더가 읽는 진입 파일. \`frameforge new <slug>\`가 import 한 줄과 \`<Composition>\` 한 줄을 더한다.
-- \`films/<slug>/\` 영상 하나: \`Spot.tsx\`(프레임 함수), \`entry.tsx\`(이 영상만 등록), \`audio.json\`(음악과 효과음 명세), \`prompt.md\`(기획), \`assets.tsx\`.
+- \`films/<slug>/\` 영상 하나: \`Spot.tsx\`(프레임 함수), \`entry.tsx\`(이 영상만 등록), \`audio.json\`(음악과 효과음 명세), \`brief.md\`(요청 원문과 의도 장부), \`prompt.md\`(기획), \`assets.tsx\`.
 - \`films/_template/\` \`frameforge new\`가 복사하는 원본. 고치면 이후 새 영상에 반영된다.
 - \`renders/\` 스튜디오에서 요청한 렌더 결과.
 
@@ -175,6 +177,7 @@ function newFilm(project, slug) {
   if (existsSync(folder)) throw new Error(`${folder} 가 이미 있습니다.`);
   const own = join(films, '_template');
   cpSync(existsSync(own) ? own : join(ENGINE, 'examples/samples/_template'), folder, {recursive: true});
+  if (!existsSync(join(folder, 'brief.md'))) cpSync(join(ENGINE, 'examples/samples/_template/brief.md'), join(folder, 'brief.md'));  // a project template made before the brief step
   if (existsSync(join(folder, 'template.audio.json'))) renameSync(join(folder, 'template.audio.json'), join(folder, 'audio.json'));
   const id = filmId(slug);
   for (const name of readdirSync(folder)) if (/\.(tsx|ts|json|md)$/.test(name)) writeFileSync(join(folder, name), renameTemplate(readFileSync(join(folder, name), 'utf8'), slug, id));
@@ -209,6 +212,7 @@ export function main(argv) {
     case 'models': return run('python3', [join(ENGINE, 'scripts/assets/models.py'), filmFile(project, positional[0], 'models.json')], project);
     case 'seam-check': return run(node, [join(ENGINE, 'scripts/seam-check.mjs'), ...positional, ...flags], project);
     case 'narration-check': return run(node, [join(ENGINE, 'scripts/narration-check.mjs'), dirname(filmFile(project, positional[0], 'narration.json')), ...flags], project);
+    case 'brief-check': return run(node, [join(ENGINE, 'scripts/brief-check.mjs'), positional[0]?.includes('/') ? resolve(cwd, positional[0]) : dirname(filmFile(project, positional[0], 'entry.tsx')), ...flags], project);
     case 'lint': return run(node, [join(ENGINE, 'scripts/lint.mjs'), filmFile(project, positional[0], 'entry.tsx')], project);
     case 'check': {
       const video = positional[0] && resolve(cwd, positional[0]);
