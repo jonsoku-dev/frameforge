@@ -48,7 +48,7 @@ Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugi
 
 | 파일 | 호스트 | 하는 일 |
 | --- | --- | --- |
-| `mcp/server.mjs` | 모두 | 도구 14개와 프롬프트 2개. stdio 기본, `--http --port`는 127.0.0.1의 Streamable HTTP(`/mcp`), Host 검사, `--allow-host`는 터널용 |
+| `mcp/server.mjs` | 모두 | 도구 14개와 프롬프트 2개. stdio 기본, `--http --port`는 127.0.0.1의 Streamable HTTP(`/mcp`), Host 검사, `--allow-host`는 터널용(`FRAMEFORGE_MCP_TOKEN` 필수) |
 | `.claude-plugin/plugin.json`의 `mcpServers` | Claude Code | `node ${CLAUDE_PLUGIN_ROOT}/bin/frameforge.mjs mcp`, 기본 프로젝트는 `CLAUDE_PROJECT_DIR`. 루트 `.mcp.json`은 두지 않는다(이 저장소를 연 세션이 프로젝트 MCP로 읽음) |
 | `commands/make.md`, `check.md`, `studio.md` | Claude Code | `/frameforge:make`, `/frameforge:check`, `/frameforge:studio` |
 | `agents/frameforge-maker.md` | Claude Code | MCP 도구만으로 작품 하나를 끝까지 만드는 서브에이전트 |

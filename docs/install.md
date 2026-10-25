@@ -218,7 +218,7 @@ frameforge mcp --http --port 4319           # http://127.0.0.1:4319/mcp
 
 `npx frameforge-local mcp`는 npm 레지스트리에 패키지가 없으므로 `npm link`로 전역에 올린 클론을 부릅니다. 링크한 클론이 이 버전보다 오래되면 `모르는 명령: mcp`가 나오니 그 클론을 갱신하거나 다시 링크합니다.
 
-HTTP 모드는 127.0.0.1에만 열리고 `Host` 헤더가 `127.0.0.1:<포트>`나 `localhost:<포트>`가 아니면 403으로 막습니다(DNS 리바인딩 방어). 터널을 쓰면 `--allow-host <터널 호스트>`를 더합니다. 인증이 없으므로 터널 URL을 아는 사람은 누구나 이 컴퓨터에서 렌더하고 작품 폴더에 쓸 수 있습니다. 쓸 때만 열고 끝나면 닫습니다.
+HTTP 모드는 127.0.0.1에만 열리고 `Host` 헤더가 `127.0.0.1:<포트>`나 `localhost:<포트>`가 아니면 403으로 막습니다(DNS 리바인딩 방어). 터널을 쓰면 `--allow-host <터널 호스트>`를 더하고, 환경 변수 `FRAMEFORGE_MCP_TOKEN`에 16자 이상의 임의 문자열을 넣어야 합니다(없으면 서버가 시작하지 않습니다). 모든 요청은 `Authorization: Bearer <토큰>` 헤더를 보내거나, 헤더를 못 보내는 호스트라면 `/mcp/<토큰>` 경로를 씁니다. 토큰을 파일에 적지 말고, 쓸 때만 터널을 열고 끝나면 닫습니다.
 
 ### Claude Code
 
@@ -277,8 +277,8 @@ codex mcp list                                                              # fr
 
 ChatGPT도 OpenAI 서버가 URL에 접속하므로 claude.ai와 같은 터널이 필요합니다.
 
-1. `frameforge mcp --http --port 4319 --allow-host <터널 호스트>`와 터널을 띄웁니다.
-2. ChatGPT 설정 → 앱과 커넥터 → 고급 설정에서 개발자 모드를 켜고, 커넥터 만들기에서 URL `https://<터널 호스트>/mcp`, 인증 없음을 고릅니다.
+1. `FRAMEFORGE_MCP_TOKEN=<임의 문자열> frameforge mcp --http --port 4319 --allow-host <터널 호스트>`와 터널을 띄웁니다.
+2. ChatGPT 설정 → 앱과 커넥터 → 고급 설정에서 개발자 모드를 켜고, 커넥터 만들기에서 URL `https://<터널 호스트>/mcp/<토큰>`, 인증 없음을 고릅니다(토큰이 경로에 들어 있습니다).
 3. 대화에서 그 커넥터를 켜고 `make_motion_film` 순서대로 요청합니다.
 
 도구에는 `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint` 표시가 붙어 있어 ChatGPT가 쓰기 도구(`film_files`, `render` 등)만 확인을 묻습니다. 위젯(출력 템플릿)은 없습니다. 이미지는 MCP 이미지 콘텐츠로 돌아갑니다.
@@ -288,16 +288,18 @@ ChatGPT도 OpenAI 서버가 URL에 접속하므로 claude.ai와 같은 터널이
 Responses API의 `mcp` 도구도 OpenAI 쪽에서 접속하므로 공개 URL(터널)이 필요합니다.
 
 ```python
+import os
 from openai import OpenAI
 client = OpenAI()   # OPENAI_API_KEY는 환경 변수에서
 response = client.responses.create(
     model="<모델>",
-    tools=[{"type": "mcp", "server_label": "frameforge", "server_url": "https://<터널 호스트>/mcp", "require_approval": "never"}],
+    tools=[{"type": "mcp", "server_label": "frameforge", "server_url": "https://<터널 호스트>/mcp",
+            "headers": {"Authorization": f"Bearer {os.environ['FRAMEFORGE_MCP_TOKEN']}"}}],
     input="read_skill로 frameforge-motion을 읽고 8초 아이덴트를 만들어 줘",
 )
 ```
 
-`require_approval`을 `"never"`로 두면 쓰기 도구도 묻지 않고 실행합니다. 처음에는 기본값(승인 요청)으로 씁니다.
+`require_approval`을 지정하지 않으면 도구 호출마다 승인을 묻습니다. `"never"`로 두면 쓰기 도구도 묻지 않고 실행하므로, 처음에는 기본값으로 씁니다.
 
 ### OpenAI Agents SDK
 
@@ -316,6 +318,7 @@ python3 examples/agents/openai-agents.py ~/my-films "12초 제품 런칭 모션�
 | 변수 | 기본값 | 읽는 곳 | 뜻 |
 | --- | --- | --- | --- |
 | `FRAMEFORGE_PORT` | `4318` | `scripts/render.mjs` | `npm run render`가 띄우는 Vite 서버 포트. 렌더를 동시에 여러 개 돌릴 때 바꿉니다. 스튜디오 포트(4317)와 스튜디오 출력 탭의 렌더 포트(4318 고정)는 바꾸지 않습니다. |
+| `FRAMEFORGE_MCP_TOKEN` | 없음 | `mcp/server.mjs` | HTTP MCP 서버의 접근 토큰(16자 이상). `--allow-host`(터널)를 쓸 때 필수입니다. 요청은 `Authorization: Bearer <토큰>` 또는 `/mcp/<토큰>` 경로로 보냅니다. 파일에 적지 않습니다. |
 | `FRAMEFORGE_PROJECT` | 없음 | `vite.config.ts` | 저장소 밖 프로젝트 루트. 그 폴더에 `frameforge.json`이 있어야 합니다. `frameforge` CLI가 프로젝트 안에서 실행될 때 자동으로 넣습니다. |
 | `FRAMEFORGE_PROJECT_DIR` | 현재 폴더 | `mcp/server.mjs` | MCP 서버의 기본 프로젝트(`frameforge.json`이 있는 폴더). `--project`가 먼저입니다. 프로젝트가 아니면 엔진의 `examples/samples`를 씁니다. |
 | `FRAMEFORGE_ENGINE` | `mcp/`의 위 폴더 | `mcp/server.mjs`, `mcpb/server/index.mjs` | MCP 서버가 쓰는 엔진 클론. Desktop 확장이 설정 값으로 넣습니다. |

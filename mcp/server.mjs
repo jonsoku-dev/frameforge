@@ -3,6 +3,7 @@
 import {spawn} from 'node:child_process';
 import {existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync} from 'node:fs';
 import {createServer} from 'node:http';
+import {timingSafeEqual} from 'node:crypto';
 import {dirname, isAbsolute, join, relative, resolve, sep} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -21,7 +22,9 @@ const MINUTE = 60_000;
 export const USAGE = `frameforge mcp [--project <dir>] [--http] [--port 4319] [--allow-host <host>]
   stdio by default. --http serves Streamable HTTP at http://127.0.0.1:<port>/mcp (loopback only).
   --project (or FRAMEFORGE_PROJECT_DIR) is the folder with frameforge.json; without one the engine's examples/samples is used.
-  --allow-host adds a Host header value a tunnel forwards (DNS rebinding protection rejects other hosts).`;
+  --allow-host adds a Host header value a tunnel forwards (DNS rebinding protection rejects other hosts).
+  FRAMEFORGE_MCP_TOKEN (required with --allow-host): every HTTP request must send "Authorization: Bearer <token>"
+  or use the path /mcp/<token> (for hosts that cannot send headers, such as ChatGPT developer-mode connectors).`;
 
 /** Project root and films folder for a directory: its frameforge.json project, or the engine with examples/samples. */
 export function projectAt(dir) {
@@ -308,9 +311,16 @@ export async function serve(flags = []) {
   const port = Number(value('--port') ?? 4319);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(`--port must be a port number: ${value('--port')}`);
   const hosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`, ...flags.flatMap((flag, at) => flag === '--allow-host' ? [flags[at + 1]] : [])]);
+  const token = process.env.FRAMEFORGE_MCP_TOKEN || '';
+  // A tunnel makes the server reachable from the internet; without a token anyone with the URL could render and write films.
+  if (flags.includes('--allow-host') && token.length < 16) throw new Error('--allow-host needs FRAMEFORGE_MCP_TOKEN (16+ characters) in the environment.');
+  const same = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
   const http = createServer(async (req, res) => {
     if (!hosts.has(req.headers.host ?? '')) return res.writeHead(403).end(`Host ${req.headers.host} is not allowed; start with --allow-host ${req.headers.host}`);
-    if (new URL(req.url ?? '/', 'http://x').pathname !== '/mcp') return res.writeHead(404).end('MCP endpoint is /mcp');
+    const path = new URL(req.url ?? '/', 'http://x').pathname;
+    const bearer = (req.headers.authorization ?? '').replace(/^Bearer\s+/i, '');
+    if (token && !same(bearer, token) && !same(path, `/mcp/${token}`)) return res.writeHead(401).end('Missing or wrong token');
+    if (path !== '/mcp' && !(token && same(path, `/mcp/${token}`))) return res.writeHead(404).end('MCP endpoint is /mcp');
     // Stateless: one server and transport per request; the project and studio live in `state`.
     const server = buildServer(state);
     const transport = new StreamableHTTPServerTransport({sessionIdGenerator: undefined});

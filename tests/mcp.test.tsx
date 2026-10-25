@@ -55,3 +55,21 @@ test('the MCP server lists tools and prompts, reads skills, writes only inside a
     assert.equal((await call('check', {video: '/etc/hosts'})).isError, true, 'check refuses a video outside the project');
   } finally { await client.close(); }
 });
+
+test('a tunnelled HTTP server needs a token and rejects requests without it', async () => {
+  const {spawn, spawnSync} = await import('node:child_process');
+  const bin = join(ENGINE, 'bin/frameforge.mjs');
+  const refused = spawnSync(process.execPath, [bin, 'mcp', '--http', '--port', '4391', '--allow-host', 'x.example'], {encoding: 'utf8', env: {...process.env, FRAMEFORGE_MCP_TOKEN: ''}});
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr + refused.stdout, /FRAMEFORGE_MCP_TOKEN/);
+  const token = 'test-token-0123456789';
+  const server = spawn(process.execPath, [bin, 'mcp', '--http', '--port', '4392', '--allow-host', 'x.example'], {env: {...process.env, FRAMEFORGE_MCP_TOKEN: token}, stdio: ['ignore', 'ignore', 'pipe']});
+  try {
+    await new Promise<void>((ready, fail) => { server.stderr!.on('data', chunk => String(chunk).includes('Frameforge MCP on') && ready()); server.once('exit', code => fail(new Error(`exited ${code}`))); });
+    const post = (path: string, headers: Record<string, string> = {}) => fetch(`http://127.0.0.1:4392${path}`, {method: 'POST', headers: {'content-type': 'application/json', accept: 'application/json, text/event-stream', ...headers}, body: JSON.stringify({jsonrpc: '2.0', id: 1, method: 'tools/list'})});
+    assert.equal((await post('/mcp')).status, 401);
+    assert.equal((await post('/mcp', {authorization: 'Bearer wrong-token-0123456789'})).status, 401);
+    assert.notEqual((await post('/mcp', {authorization: `Bearer ${token}`})).status, 401);
+    assert.notEqual((await post(`/mcp/${token}`)).status, 401);
+  } finally { server.kill(); }
+});
