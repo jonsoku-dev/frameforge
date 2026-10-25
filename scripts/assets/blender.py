@@ -5,15 +5,19 @@
 
 3d.json sits next to the film's audio.json:
   {"slug", "shots": [{"name", "frames", "fps", "width", "height", "seed", "engine": eevee|cycles, "samples", "transparent",
-    "camera": {"preset": turntable|orbit|dolly|static, "radius", "height", "fov", "from", "to"},
-    "subject": {"kind": primitive|glb|script, "primitive": cube|sphere|torus|monkey|cylinder, "src", "script", "scale", "rotation"},
-    "material": {"base", "metallic", "roughness", "emission"}, "light": {"preset": studio|sunset|hdri, "hdri", "strength"},
+    "camera": {"preset": turntable|orbit|dolly|static, "radius", "height", "fov", "from", "to", "ease": linear|inout|out,
+               "radiusTo", "heightTo", "target"},
+    "subject": {"kind": builtin|primitive|glb|script, "builtin": head|bottle|gem|knot|plush, "detail", "primitive": cube|sphere|
+                torus|monkey|cylinder, "src", "script", "scale", "rotation"},
+    "look": glossy|glass|chrome|plush|toon|scanline|wireframe|holographic, "sweep": {"to": <look>, "from", "until"}, "bloom", "dof",
+    "material": {"base", "metallic", "roughness", "emission", "accent", "trim", "lines", "width", "glow", "ior", "scroll"},
+    "light": {"preset": studio|sunset|hdri, "hdri": <path or bundled name>, "rotate", "strength"},
     "background": "#rrggbb"|"transparent", "shadowCatcher"}]}
 `subject.src` and `light.hdri` are paths under public/assets/generated/<slug>/ (what models.py writes); `subject.script` is a
 path next to 3d.json whose `build(scene, shot)` adds the subject and returns its object(s).
 Output: public/assets/generated/<slug>/3d/<shot>/0000.png ... plus manifest.json {frames, fps, width, height, specHash,
 blender, seconds, generation}. A shot whose manifest carries the same specHash and whose PNGs all exist is skipped;
---force renders again. specHash covers the shot, the script/model/HDRI file bytes and GENERATION.
+--force renders again. specHash covers the shot, the script/model/HDRI file bytes, the blender_*.py builders and GENERATION.
 Blender: BLENDER_PATH, `blender` on PATH, or the usual macOS/Linux install paths. The scene itself is built by
 blender_scene.py, which lists the determinism settings."""
 import glob, hashlib, json, os, re, shutil, subprocess, sys, time
@@ -23,7 +27,7 @@ import blender_scene as scene  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(ROOT, 'public', 'assets', 'generated')
-GENERATION = '3d-2'  # bump to re-render every shot
+GENERATION = '3d-3'  # bump to re-render every shot
 CANDIDATES = ('/opt/homebrew/bin/blender', '/Applications/Blender.app/Contents/MacOS/Blender', '/usr/bin/blender', '/snap/bin/blender')
 HEX = re.compile(r'#[0-9a-fA-F]{6}')
 NAME = re.compile(r'[a-z0-9][a-z0-9-]*')
@@ -52,8 +56,21 @@ def validate(spec, path):
         camera, subject, light, material = (shot.get(k) or {} for k in ('camera', 'subject', 'light', 'material'))
         need(camera.get('preset', 'turntable') in scene.CAMERAS, f"{where}: camera.preset must be one of {', '.join(scene.CAMERAS)}")
         kind = subject.get('kind', 'primitive')
-        need(kind in ('primitive', 'glb', 'script'), f'{where}: subject.kind must be primitive, glb or script')
+        need(kind in ('primitive', 'builtin', 'glb', 'script'), f'{where}: subject.kind must be primitive, builtin, glb or script')
         need(kind != 'primitive' or subject.get('primitive', 'torus') in scene.PRIMITIVES, f"{where}: subject.primitive must be one of {', '.join(scene.PRIMITIVES)}")
+        need(kind != 'builtin' or subject.get('builtin', 'head') in scene.BUILTINS, f"{where}: subject.builtin must be one of {', '.join(scene.BUILTINS)}")
+        need(isinstance(subject.get('detail', 256), int) and 64 <= subject.get('detail', 256) <= 512, f'{where}: subject.detail must be an integer 64-512')
+        look, sweep = shot.get('look'), shot.get('sweep')
+        need(look is None or look in scene.LOOKS, f"{where}: look must be one of {', '.join(scene.LOOKS)}")
+        need(sweep is None or (look and isinstance(sweep, dict) and sweep.get('to') in scene.LOOKS and all(isinstance(sweep.get(k), int) for k in ('from', 'until'))
+                               and 0 <= sweep['from'] < sweep['until'] < shot.get('frames', 0)),
+             f'{where}: sweep needs a look and is {{"to": <look>, "from": <frame>, "until": <later frame inside the shot>}}')
+        need('toon' not in (look, sweep and sweep.get('to')) or shot.get('engine', 'eevee') == 'eevee', f'{where}: the toon look is EEVEE only')
+        need(camera.get('ease', 'linear') in scene.EASES, f"{where}: camera.ease must be one of {', '.join(scene.EASES)}")
+        for key in ('bloom', 'dof'):
+            need(shot.get(key) is None or (isinstance(shot[key], (int, float)) and shot[key] >= 0), f'{where}: {key} must be a number >= 0')
+        for key in ('accent', 'trim'):
+            need(HEX.fullmatch(str(material.get(key, '#000000'))), f'{where}: material.{key} must be #rrggbb')
         need(kind != 'glb' or isinstance(subject.get('src'), str), f'{where}: subject.src is the model path under public/assets/generated/{spec["slug"]}/')
         need(kind != 'script' or isinstance(subject.get('script'), str), f'{where}: subject.script is a .py path next to 3d.json')
         need(light.get('preset', 'studio') in scene.LIGHTS, f"{where}: light.preset must be one of {', '.join(scene.LIGHTS)}")
@@ -69,13 +86,15 @@ def shot_files(spec, shot, spec_dir):
     subject, light = shot.get('subject') or {}, shot.get('light') or {}
     paths = [os.path.join(spec_dir, subject['script'])] if subject.get('script') else []
     paths += [os.path.join(generated, subject['src'])] if subject.get('src') else []
-    paths += [os.path.join(generated, light['hdri'])] if light.get('hdri') else []
+    paths += [os.path.join(generated, light['hdri'])] if light.get('hdri') and light['hdri'] not in scene.BUNDLED_HDRIS else []
     return paths
 
 
 def spec_hash(shot, files):
     digest = hashlib.sha256((json.dumps(shot, sort_keys=True) + GENERATION).encode())
-    for path in files:
+    # The scene builders are part of the picture too: editing a builtin mesh or a look re-renders without a GENERATION bump.
+    here = os.path.dirname(os.path.abspath(__file__))
+    for path in [os.path.join(here, f'blender_{part}.py') for part in ('scene', 'builtins', 'looks')] + list(files):
         with open(path, 'rb') as f:
             digest.update(f.read())
     return digest.hexdigest()[:16]
@@ -152,6 +171,15 @@ def self_check():
     location, _ = scene.camera_pose({**cam, 'preset': 'dolly', 'from': 8, 'to': 2}, 9, 10)
     assert close(location, (0, -2, 3)), location
     assert close(scene.camera_pose({**cam, 'preset': 'dolly'}, 9, 10)[0], (0, -4, 3)), 'a dolly without from/to stays at radius'
+    assert scene.ease(0.5, 'inout') == 0.5 and scene.ease(0.25, 'inout') < 0.25 and scene.ease(0.25, 'out') > 0.25 and scene.ease(1, 'out') == 1
+    location, _ = scene.camera_pose({**cam, 'preset': 'static', 'radiusTo': 2.0, 'heightTo': 1.0}, 9, 10)  # push-in and crane
+    assert close(location, (0, -2, 1)), location
+    location, _ = scene.camera_pose({**cam, 'preset': 'orbit', 'from': 0, 'to': 90, 'ease': 'inout', 'radiusTo': 2.0}, 2, 5)  # halfway
+    assert close(location, (3 * scene.math.sin(scene.math.pi / 4), -3 * scene.math.cos(scene.math.pi / 4), 3)), location
+    _, rotation = scene.camera_pose({**cam, 'preset': 'static', 'target': 3.0}, 0, 10)
+    assert close(rotation, (scene.math.pi / 2, 0, 0)), 'a camera level with its target looks straight ahead'
+    sweep = {'from': 10, 'until': 20}
+    assert scene.sweep_level(sweep, 0, -1, 1) < -1 < 1 < scene.sweep_level(sweep, 30, -1, 1) and abs(scene.sweep_level(sweep, 15, -1, 1)) < 1e-9
     assert scene.frame_range(None, 10) == (0, 9) and scene.frame_range('2-5', 10) == (2, 5) and scene.frame_range('7', 10) == (7, 7)
     for bad in ('5-2', '0-10', '-1-3'):
         try:
@@ -162,6 +190,9 @@ def self_check():
     merged = scene.merged({'name': 'x', 'camera': {'radius': 9}})
     assert merged['camera']['radius'] == 9 and merged['camera']['preset'] == 'turntable' and merged['material']['base'] == '#2F5BFF'
     assert scene.merged({'name': 'x', 'subject': {'kind': 'glb', 'src': 'm.gltf'}})['material'] is None, 'a model keeps its own materials'
+    hero = scene.merged({'name': 'x', 'subject': {'kind': 'builtin', 'builtin': 'head'}, 'material': {'accent': '#FF0000'}})
+    assert hero['look'] == 'glossy' and hero['material']['accent'] == '#FF0000' and hero['material']['lines'] == 36.0 and hero['bloom'] == scene.BLOOM
+    assert scene.merged({'name': 'x'})['bloom'] == 0.0, 'a shot without a look gets no compositor'
     assert scene.merged({'name': 'x', 'subject': {'kind': 'glb', 'src': 'm.gltf'}, 'material': {'base': '#000000'}})['material']['roughness'] == 0.35
     shot = {'name': 'hero', 'frames': 2, 'fps': 30, 'width': 64, 'height': 36}
     with tempfile.TemporaryDirectory() as folder:
@@ -177,7 +208,14 @@ def self_check():
     for bad, message in (({'slug': 'Bad'}, 'slug'), ({'slug': 'ok', 'shots': []}, 'shots'), ({'slug': 'ok', 'shots': [{**shot, 'frames': 0}]}, 'frames'),
                          ({'slug': 'ok', 'shots': [{**shot, 'engine': 'octane'}]}, 'engine'), ({'slug': 'ok', 'shots': [{**shot, 'camera': {'preset': 'crane'}}]}, 'camera.preset'),
                          ({'slug': 'ok', 'shots': [{**shot, 'subject': {'kind': 'glb'}}]}, 'subject.src'), ({'slug': 'ok', 'shots': [shot, shot]}, 'unique'),
-                         ({'slug': 'ok', 'shots': [{**shot, 'background': 'paper'}]}, 'background')):
+                         ({'slug': 'ok', 'shots': [{**shot, 'background': 'paper'}]}, 'background'),
+                         ({'slug': 'ok', 'shots': [{**shot, 'subject': {'kind': 'builtin', 'builtin': 'robot'}}]}, 'subject.builtin'),
+                         ({'slug': 'ok', 'shots': [{**shot, 'look': 'matte'}]}, 'look must be'),
+                         ({'slug': 'ok', 'shots': [{**shot, 'look': 'scanline', 'sweep': {'to': 'glossy', 'from': 0, 'until': 5}}]}, 'sweep'),
+                         ({'slug': 'ok', 'shots': [{**shot, 'sweep': {'to': 'glossy', 'from': 0, 'until': 1}}]}, 'sweep'),
+                         ({'slug': 'ok', 'shots': [{**shot, 'engine': 'cycles', 'look': 'toon'}]}, 'EEVEE only'),
+                         ({'slug': 'ok', 'shots': [{**shot, 'camera': {'ease': 'bounce'}}]}, 'camera.ease'),
+                         ({'slug': 'ok', 'shots': [{**shot, 'bloom': -1}]}, 'bloom')):
         import contextlib, io
         try:
             with contextlib.redirect_stderr(io.StringIO()) as err:
@@ -185,7 +223,8 @@ def self_check():
             raise AssertionError(f'accepted {bad}')
         except SystemExit:
             assert message in err.getvalue(), (message, err.getvalue())
-    print('blender self-check ok (linear colour, camera presets, frame ranges, defaults, spec hash, validation)')
+    validate({'slug': 'ok', 'shots': [{**shot, 'subject': {'kind': 'builtin', 'builtin': 'gem'}, 'look': 'scanline', 'sweep': {'to': 'glossy', 'from': 0, 'until': 1}}]}, 'fixture')
+    print('blender self-check ok (linear colour, camera presets, push-in, crane, easing, sweep level, defaults, spec hash, validation)')
 
 
 if __name__ == '__main__':

@@ -6,9 +6,9 @@ Motion graphics means spectacle and continuity by default: every second shows an
 
 Before the Structure table, write one paragraph in `prompt.md` Direction under `Concept:`:
 
-1. **The single idea**, one sentence ("what happens in one second", "a retro machine wakes up and finds a face", "who I am, said in what I do", "every cut lands on the beat").
+1. **The single idea**, one sentence ("a lighthouse keeper's last night shift", "a glass bottle remembers the sea it came from", "a typeface grows up", "a city map that breathes with traffic").
 2. **The world** it happens in (deep space, a CRT set, a printed page, a Bauhaus poster wall, a data room).
-3. **One hero subject** that recurs and changes state across the film (the Earth, a scan-line head, a thread, a tile grid, a number).
+3. **One hero subject** that recurs and changes state across the film (a rendered bust, a gem, a planet, a thread, a tile grid, a number). A 3D hero is a Blender shot (`frameforge-3d`), not a shader.
 4. **The palette, derived from the concept** (pick or adapt one below; never the default red and lavender).
 5. **Three to five signature moves** chosen for this concept from at most two families below.
 6. **How motion enacts the words**: for each line of copy, what the motion does that the sentence says (`references/kinetic-type.md`).
@@ -30,12 +30,12 @@ Self-check before code: if your scene list could be pasted into another prompt's
 | --- | --- | --- |
 | Type-led | a voice, a manifesto, "who we are", a list of promises | one word per beat on flat colour fields (`WordBeat`), a thread that draws under and loops through words (`Thread`), a line on a field of dense text (`TextField`), extruded stacked type (`<Extrude>`), a word cut straight through, whip pans between fields (`WhipPan`), glyph rises (`GlyphRise`) |
 | Geometric / Bauhaus | design, systems, rhythm, a studio reel | seeded tile mosaics that flip on the beat (`BauhausMosaic`), saturated flat colour fields that change every beat, circles and quarter-circles as wipes, a premium toggle or switch flipping on (`Toggle`), whip pans with directional blur (`WhipPan`) |
-| 3D hero | a product, a model, a mind, a launch | one lit subject that turns and changes style: a scan-line bust that becomes a glossy one (`shaders.sliced`, `u_style`, `u_mix`, `u_orbit`), a torus knot or blob; a rendered turntable (`frameforge-3d`); 3D perspective card fly-throughs; rim light and `<Glow>` |
-| Cosmic / scientific | scale, time, speed, "in one second" | a lit planet with terminator, clouds and city lights (`shaders.planet`), a star with corona and flare (`shaders.sun`), light orbits round a sphere (`shaders.orbits`), numbers counting (`Counter`), streaks for speed (`shaders.streaks`) |
+| 3D hero | a product, a model, a mind, a launch | one lit subject rendered by Blender (`frameforge-3d`) that turns and changes look: a builtin `head`, `bottle`, `gem`, `knot` or `plush`, or a Poly Haven model; `look` glossy, glass, chrome, holographic, toon, plush, wireframe or scanline; a `sweep` from scan lines to gloss; bloom, depth of field, an eased orbit with push-in and crane; played with `<ImageSequence>`; 3D perspective card fly-throughs; `<Glow>` on the type around it |
+| Cosmic / scientific | scale, time, speed, distance | a lit planet with terminator, clouds and city lights (`shaders.planet`; a Blender sphere with a Poly Haven texture when it is the hero), a star with corona and flare (`shaders.sun`), light orbits round a sphere (`shaders.orbits`), numbers counting (`Counter`), streaks for speed (`shaders.streaks`) |
 | Retro / CRT | a launch with nostalgia, games, music | a CRT power-on (a dot that becomes a line that becomes the picture), `<Scanlines>`, `<VhsGlitch>` bursts on the snare, `<ChromaticShift>`, a neon tunnel (`shaders.tunnel`), a glitch title, halftone (`shaders.grainField`) |
 | Data | results, growth, a product in numbers | charts that build on the beat (`BarChart`, `LineChart`), a drawn curve with a glowing head (`evolvePath`), waveform bars from `beatsFromSpec`, an isometric cube field as a city of values (`shaders.cubeField`), counters |
 
-Image-like texture (macro, liquid, gradient, grain) is a supporting layer in any family: `shaders.iris`, `shaders.liquid`, `shaders.gradientMesh`, `shaders.grainField`, never stock images.
+Image-like texture (macro, liquid, gradient, grain) is a supporting layer in any family: `shaders.iris`, `shaders.liquid`, `shaders.gradientMesh`, `shaders.grainField`, never stock images. The raymarched presets `shaders.sliced`, `shaders.planet`, `shaders.sun` and `shaders.orbits` are backgrounds and textures (a planet far behind the type, orbits as a screen layer), or the hero only when Blender is absent; say so in `prompt.md`.
 
 ## Palettes
 
@@ -56,13 +56,13 @@ Pick one, adapt it to the concept, name it in Inputs. Four colours: ink, paper, 
 
 One beat is 0.5 s (15 frames at 30 fps). Thirty beats, cuts on bar lines (every 2 s), a new move every beat or two, all from the concept's families. Fill the rows with your own concept; the example rows show the shape, not the content.
 
-| Frames | Beats | What the row must do | Example (concept "one second", cosmic family) |
+| Frames | Beats | What the row must do | Example (concept "a lighthouse keeper's last night shift", 3D hero and type-led) |
 | --- | --- | --- | --- |
-| 0-30 | 1-2 | Hook: the hero or its world fills the frame, already moving | a macro of the planet's terminator, clouds sliding |
-| 30-120 | 3-8 | Establish the hero and the idea in words that the motion enacts | camera pulls back to the whole planet; "ONE SECOND" counts in |
-| 120-300 | 9-20 | Change the hero's state every bar; each state a different signature move | light orbits race round it; the sun flares; a counter of what happens per second |
-| 300-405 | 21-27 | The turn: the biggest transformation, on the biggest hit | the camera rides a light ray to the sun |
-| 405-450 | 28-30 | Live lockup, settled by 420, still moving at 449 | the name over the slowly turning planet, a light sweep across it |
+| 0-30 | 1-2 | Hook: the hero or its world fills the frame, already moving | a macro of the rendered lamp's glass, a beam sliding across it |
+| 30-120 | 3-8 | Establish the hero and the idea in words that the motion enacts | the camera cranes down the tower; "LAST WATCH" sweeps on with the beam |
+| 120-300 | 9-20 | Change the hero's state every bar; each state a different signature move | the lamp drawn in scan lines, then swept to chrome; the beam paints each word |
+| 300-405 | 21-27 | The turn: the biggest transformation, on the biggest hit | dawn: the push-in lands on the glossy lamp as it goes dark |
+| 405-450 | 28-30 | Live lockup, settled by 420, still moving at 449 | the name over the slowly orbiting lamp, a light sweep across it |
 
 Every row is a seam from the previous one (`references/seams.md`, `zoomThrough`, `WhipPan`).
 
@@ -165,14 +165,24 @@ Live lockup, never a dead hold:
 </div>
 ```
 
-3D hero: a scan-line bust that turns into a glossy one while the camera orbits (one hero for the whole film):
+3D hero: a rendered subject drawn in scan lines that sweeps to gloss while the camera orbits and pushes in (one hero for the whole film). The shot lives in `3d.json` (`frameforge-3d`):
 
-```tsx
-<Shader frag={shaders.sliced} width={1920} height={1080} palette={palette} seed="hero"
-  uniforms={{u_shape: 0, u_style: 1, u_orbit: -0.6 + frame * 0.012, u_mix: interpolate(frame, [150, 195], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})}} />
+```json
+{"name": "lens", "frames": 150, "fps": 30, "width": 1920, "height": 1080,
+ "camera": {"preset": "orbit", "from": -35, "to": 30, "ease": "inout", "radius": 9, "radiusTo": 7.2, "height": 1.4, "heightTo": 0.7, "target": 0.2, "fov": 30},
+ "subject": {"kind": "builtin", "builtin": "gem"}, "look": "scanline", "sweep": {"to": "chrome", "from": 30, "until": 110},
+ "material": {"base": "#C8CCD4", "accent": "#FFB347", "scroll": 0.04}, "dof": 4, "background": "#07070B"}
 ```
 
-Cosmic hero: a lit planet turning, then light orbits round it:
+```tsx
+<Sequence from={120} layout="none">
+  <ImageSequence src="/assets/generated/<slug>/3d/lens" frames={150} fps={30} />
+</Sequence>
+```
+
+Type, `<Glow>` and seams go around the sequence as in any scene. Without Blender, the fallback is the raymarched bust: `<Shader frag={shaders.sliced} uniforms={{u_style: 1, u_orbit, u_mix}} />`, written down in `prompt.md` as a substitution.
+
+Cosmic background: a lit planet turning behind the type, light orbits round it:
 
 ```tsx
 <Shader frag={shaders.planet} width={1920} height={1080} palette={palette} seed="earth" uniforms={{u_spin: 0.15, u_light: [0.8, 0.3, 0.5], u_zoom: interpolate(frame, [0, 90], [1.2, 0.36], {extrapolateRight: 'clamp'})}} />
@@ -183,7 +193,7 @@ Type-led and Bauhaus moves are blocks; usage per block is in `references/kinetic
 
 ```tsx
 import {BauhausMosaic, Thread, TextField, Toggle, WhipPan, WordBeat} from '@/blocks';
-<WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={300} words={['EVERY', 'ON', 'BEAT']} punctuation="." fields={['#3045e8', '#d6f23a', '#16141c']} beat={15} />
+<WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={300} words={['KEEP', 'THE', 'LIGHT']} punctuation="." fields={['#3045e8', '#d6f23a', '#16141c']} beat={15} />
 ```
 
 ## Checks for a reel
@@ -192,4 +202,5 @@ import {BauhausMosaic, Thread, TextField, Toggle, WhipPan, WordBeat} from '@/blo
 - frame-check `motion share` near 1, no frozen run.
 - The last 2 s: the name whole and legible and still moving (frame-check end motion share at least 0.5); no corner readout in the audit.
 - The concept paragraph is there, and the scene list could not be pasted into another prompt's film.
-- Every effect is a component above, a block, a `<Shader>` preset or `grainEffect`; no stock images, no CSS animations.
+- Every effect is a component above, a block, a `<Shader>` preset, a Blender shot or `grainEffect`; no stock images, no CSS animations.
+- A 3D hero is a Blender shot (or a Poly Haven `<Model>`), not a raymarched preset, unless `prompt.md` records that Blender was absent.
