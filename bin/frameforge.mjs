@@ -163,6 +163,7 @@ function init(target) {
   if (existsSync(template)) throw new Error(`${template} 가 이미 있습니다.`);
   cpSync(join(ENGINE, 'examples/samples/_template'), template, {recursive: true});
   renameSync(join(template, 'template.audio.json'), join(template, 'audio.json'));
+  writeFileSync(join(template, 'Spot.tsx'), readFileSync(join(template, 'Spot.tsx'), 'utf8').replaceAll('./template.audio.json', './audio.json'));
   writeFileSync(join(root, 'frameforge.json'), `${JSON.stringify({engine: ENGINE, films: 'films'}, null, 2)}\n`);
   if (!existsSync(join(root, 'films/index.tsx'))) writeFileSync(join(root, 'films/index.tsx'), INDEX);
   if (!existsSync(join(root, 'package.json'))) writeFileSync(join(root, 'package.json'), `${JSON.stringify({name: basename(root).toLowerCase().replace(/[^a-z0-9-]/g, '-'), private: true, scripts: {studio: 'frameforge studio', render: 'frameforge render'}}, null, 2)}\n`);
