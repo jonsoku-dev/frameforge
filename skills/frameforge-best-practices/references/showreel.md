@@ -6,7 +6,7 @@ Motion graphics means spectacle and continuity by default: every second shows an
 
 Before the Structure table, write one paragraph in `prompt.md` Direction under `Concept:`:
 
-1. **The single idea**, one sentence ("what happens in one second", "a retro machine wakes up and finds a face", "who I am, said in what I do", "every cut lands on the beat").
+1. **The single idea**, one sentence ("a city's power grid wakes at dusk", "a paper boat sails through a storm of headlines", "a recipe told by the knife", "a typeface learns to dance").
 2. **The world** it happens in (deep space, a CRT set, a printed page, a Bauhaus poster wall, a data room).
 3. **One hero subject** that recurs and changes state across the film (the Earth, a scan-line head, a thread, a tile grid, a number).
 4. **The palette, derived from the concept** (pick or adapt one below; never the default red and lavender).
@@ -31,7 +31,7 @@ Self-check before code: if your scene list could be pasted into another prompt's
 | Type-led | a voice, a manifesto, "who we are", a list of promises | one word per beat on flat colour fields (`WordBeat`), a thread that draws under and loops through words (`Thread`), a line on a field of dense text (`TextField`), extruded stacked type (`<Extrude>`), a word cut straight through, whip pans between fields (`WhipPan`), glyph rises (`GlyphRise`) |
 | Geometric / Bauhaus | design, systems, rhythm, a studio reel | seeded tile mosaics that flip on the beat (`BauhausMosaic`), saturated flat colour fields that change every beat, circles and quarter-circles as wipes, a premium toggle or switch flipping on (`Toggle`), whip pans with directional blur (`WhipPan`) |
 | 3D hero | a product, a model, a mind, a launch | one lit subject that turns and changes style: a scan-line bust that becomes a glossy one (`shaders.sliced`, `u_style`, `u_mix`, `u_orbit`), a torus knot or blob; a rendered turntable (`frameforge-3d`); 3D perspective card fly-throughs; rim light and `<Glow>` |
-| Cosmic / scientific | scale, time, speed, "in one second" | a lit planet with terminator, clouds and city lights (`shaders.planet`), a star with corona and flare (`shaders.sun`), light orbits round a sphere (`shaders.orbits`), numbers counting (`Counter`), streaks for speed (`shaders.streaks`) |
+| Cosmic / scientific | scale, time, speed, distance | a lit planet with terminator, clouds and city lights (`shaders.planet`), a star with corona and flare (`shaders.sun`), light orbits round a sphere (`shaders.orbits`), numbers counting (`Counter`), streaks for speed (`shaders.streaks`) |
 | Retro / CRT | a launch with nostalgia, games, music | a CRT power-on (a dot that becomes a line that becomes the picture), `<Scanlines>`, `<VhsGlitch>` bursts on the snare, `<ChromaticShift>`, a neon tunnel (`shaders.tunnel`), a glitch title, halftone (`shaders.grainField`) |
 | Data | results, growth, a product in numbers | charts that build on the beat (`BarChart`, `LineChart`), a drawn curve with a glowing head (`evolvePath`), waveform bars from `beatsFromSpec`, an isometric cube field as a city of values (`shaders.cubeField`), counters |
 
@@ -56,13 +56,13 @@ Pick one, adapt it to the concept, name it in Inputs. Four colours: ink, paper, 
 
 One beat is 0.5 s (15 frames at 30 fps). Thirty beats, cuts on bar lines (every 2 s), a new move every beat or two, all from the concept's families. Fill the rows with your own concept; the example rows show the shape, not the content.
 
-| Frames | Beats | What the row must do | Example (concept "one second", cosmic family) |
+| Frames | Beats | What the row must do | Example (invented concept "a city's power grid wakes at dusk", data and geometric families) |
 | --- | --- | --- | --- |
-| 0-30 | 1-2 | Hook: the hero or its world fills the frame, already moving | a macro of the planet's terminator, clouds sliding |
-| 30-120 | 3-8 | Establish the hero and the idea in words that the motion enacts | camera pulls back to the whole planet; "ONE SECOND" counts in |
-| 120-300 | 9-20 | Change the hero's state every bar; each state a different signature move | light orbits race round it; the sun flares; a counter of what happens per second |
-| 300-405 | 21-27 | The turn: the biggest transformation, on the biggest hit | the camera rides a light ray to the sun |
-| 405-450 | 28-30 | Live lockup, settled by 420, still moving at 449 | the name over the slowly turning planet, a light sweep across it |
+| 0-30 | 1-2 | Hook: the hero or its world fills the frame, already moving | a macro of a fuse glowing amber, sparks drifting |
+| 30-120 | 3-8 | Establish the hero and the idea in words that the motion enacts | camera pulls back to the whole grid map; "LIGHTS ON" counts in |
+| 120-300 | 9-20 | Change the hero's state every bar; each state a different signature move | current races along the lines; towers flare one by one; a counter of homes lit |
+| 300-405 | 21-27 | The turn: the biggest transformation, on the biggest hit | the camera rides a current into the central station |
+| 405-450 | 28-30 | Live lockup, settled by 420, still moving at 449 | the name over the glowing map, a light sweep across it |
 
 Every row is a seam from the previous one (`references/seams.md`, `zoomThrough`, `WhipPan`).
 
@@ -183,7 +183,7 @@ Type-led and Bauhaus moves are blocks; usage per block is in `references/kinetic
 
 ```tsx
 import {BauhausMosaic, Thread, TextField, Toggle, WhipPan, WordBeat} from '@/blocks';
-<WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={300} words={['EVERY', 'ON', 'BEAT']} punctuation="." fields={['#3045e8', '#d6f23a', '#16141c']} beat={15} />
+<WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={300} words={['STACK', 'SHIFT', 'SHIP']} punctuation="." fields={['#e8572a', '#f4efe4', '#1d3b2f']} beat={15} />
 ```
 
 ## Checks for a reel

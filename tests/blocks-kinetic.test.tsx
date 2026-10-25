@@ -12,7 +12,7 @@ const fonts = {display: 'sans-serif', ui: 'sans-serif'};
 const render = (frame: number, node: React.ReactNode) => renderToStaticMarkup(<FrameProvider config={config} frame={frame}>{node}</FrameProvider>);
 
 const BLOCKS: [string, (f: number) => React.ReactElement][] = [
-  ['WordBeat', f => <kinetic.WordBeat frame={f} at={0} palette={palette} fonts={fonts} size={300} words={['EVERY', 'ON', 'BEAT']} punctuation="." />],
+  ['WordBeat', f => <kinetic.WordBeat frame={f} at={0} palette={palette} fonts={fonts} size={300} words={['STACK', 'SHIFT', 'SHIP']} punctuation="." />],
   ['Thread', f => <kinetic.Thread frame={f} at={0} palette={palette} fonts={fonts} points={[[300, 480], [1000, 470], [1400, 330], [1700, 850]]} loops={[1]} words={[{text: 'I think', x: 300, y: 300, size: 140}]} />],
   ['TextField', f => <kinetic.TextField frame={f} at={0} palette={palette} beat={10} />],
   ['WhipPan', f => <kinetic.WhipPan frame={f} at={10} from={<i>out</i>} to={<b>in</b>} />],

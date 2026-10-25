@@ -236,7 +236,7 @@ export function Toggle({frame, at, on, fps = 30, palette, size, x, y, align = 'c
 }
 
 export const KINETIC_BLOCKS: BlockEntry[] = [
-  {id: 'word-beat', title: 'Word beat', family: 'kinetic', props: ['words[]', 'size', 'beat=15', 'fields[]', 'punctuation', 'weight=900'], when: 'A sentence spoken one word per beat ("EVERY / ON / BEAT."): each beat cuts the whole frame to the next flat colour field and punches the word in.'},
+  {id: 'word-beat', title: 'Word beat', family: 'kinetic', props: ['words[]', 'size', 'beat=15', 'fields[]', 'punctuation', 'weight=900'], when: 'A sentence spoken one word per beat ("STACK / SHIFT / SHIP."): each beat cuts the whole frame to the next flat colour field and punches the word in.'},
   {id: 'thread', title: 'Thread', family: 'kinetic', props: ['points[[x,y]]', 'loops[]', 'curl=42', 'draw=45', 'words[{text,x,y,size,at?}]', 'stroke=6', 'color'], when: 'Thinking, connecting, following through: a line draws under and through the words, curls into loops, and each word rises as the head reaches it.'},
   {id: 'text-field', title: 'Text field', family: 'kinetic', props: ['rows=24', 'corpus[]', 'font', 'speed=1', 'background', 'color', 'seed', 'beat=0', 'children'], when: 'Reading, knowledge, volume: dense small text scrolls row by row behind a hero line passed as children.'},
   {id: 'whip-pan', title: 'Whip pan', family: 'kinetic', props: ['from', 'to', 'dur=8', "direction='left'|'right'|'up'|'down'", 'smear=0.2'], when: 'A cut between two colour fields or scenes as a fast camera whip with directional motion blur, never a flat or fully blurred frame.'},

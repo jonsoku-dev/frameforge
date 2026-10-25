@@ -233,7 +233,7 @@ OS 중립 토스트. 키트 에셋 컴포넌트를 아이콘 자리에 받아(`i
 ```tsx
 import {WordBeat, Thread, WhipPan} from '@/blocks';
 
-<AbsoluteFill><WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={300} words={['EVERY', 'ON', 'BEAT']} punctuation="." fields={['#3045e8', '#d6f23a', '#16141c']} /></AbsoluteFill>
+<AbsoluteFill><WordBeat frame={frame} at={0} palette={palette} fonts={fonts} size={300} words={['STACK', 'SHIFT', 'SHIP']} punctuation="." fields={['#e8572a', '#f4efe4', '#1d3b2f']} /></AbsoluteFill>
 ```
 
 검사는 `npx tsx --test tests/blocks-kinetic.test.tsx`입니다. 같은 프레임 같은 마크업, 프레임마다 움직임, 박마다 단어 하나, 고리의 모양, 텍스트 필드에 DOM 글자가 주인공뿐인지, 휩 팬 가운데 프레임에 두 장면과 한 축 블러가 있는지, 모자이크 물결이 일부 칸만 뒤집는지, 토글 손잡이의 이동을 봅니다.
