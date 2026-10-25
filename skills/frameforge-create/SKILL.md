@@ -5,6 +5,8 @@ description: Create a new Frameforge film (motion-graphics showreel, ident, laun
 
 # Create a film
 
+Motion graphics (showreel, reel, ident, launch, promo, brand film, "show off", "go all out"): stop here and follow `../frameforge-motion/SKILL.md` instead of the steps below. The steps below are for explainers, process films, captions, charts, data films and calm films.
+
 1. Repository root = two folders above this file (it holds `package.json` with `"name": "frameforge-local"`). Run `npm install` once if `node_modules` is missing.
 2. Pick a slug (kebab-case) and copy `examples/samples/_template/` to `examples/samples/<slug>/`; rename `template.audio.json` to `audio.json`, set `"slug"`, and change `./template.audio.json` to `./audio.json` in `Spot.tsx`.
    Not inside the engine repository: run `frameforge init <dir>` once (or `node <engine>/bin/frameforge.mjs init <dir>`), then `frameforge new <slug>` inside it. That copies the template to `films/<slug>/`, applies every rename and registers it in `films/index.tsx`; use `frameforge score|art|lint|render|studio|check` there instead of the npm scripts, with `films/<slug>` in place of `examples/samples/<slug>`.

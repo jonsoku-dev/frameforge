@@ -3,7 +3,10 @@ name: frameforge-best-practices
 description: Make deterministic motion-graphics and explainer videos with the Frameforge engine (React frame functions, bespoke WebGL, canvas and three.js rendering, generated music, motion-derived sound effects, a deterministic renderer and checks). Use when the user asks for a video, spot, ad, intro, explainer, reel, ident or caption film, or asks to render, check, fix or tune one. Works the same in Claude Code, Codex, Cursor and Grok Build.
 ---
 
+
 # Frameforge best practices
+
+Motion-graphics films (showreel, ident, launch, promo, "show off") follow `../frameforge-motion/SKILL.md` only; the rules below are for explainers, process, caption, chart and data films.
 
 This skill holds every rule; the task skills (`frameforge-create`, `frameforge-assets`, `frameforge-audio`, `frameforge-render`, `frameforge-studio`, `frameforge-check`) and the lever skills (`frameforge-blocks`, `frameforge-voice`, `frameforge-3d`, `frameforge-generative`) are entry points into it. The repository root is two folders above this file.
 

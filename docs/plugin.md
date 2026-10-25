@@ -8,6 +8,7 @@ Frameforge는 저장소 자체가 포터블 에이전트 플러그인이다. 기
 | --- | --- |
 | `frameforge-best-practices` | 전체 규칙과 참조 문서(assets, motion, sound, checks, hosts). 다른 스킬의 진입점 |
 | `frameforge-create` | 새 작품: 브리프 → 에셋 → Spot → audio.json → 등록 |
+| `frameforge-motion` | 모션그래픽(쇼릴, 아이덴트, 런칭, 홍보): 콘셉트 하나를 셰이더·캔버스·three.js 코드로 직접 그림. 엔진은 렌더, 음악, 검사만 |
 | `frameforge-assets` | 모티프 키트, assets.json 해결(호스트 이미지 스킬 → 생성 → CC0 → 키트), 에셋 시트 |
 | `frameforge-audio` | audio.json, 생성·측정, 움직임에서 나오는 효과음 |
 | `frameforge-render` | 렌더 옵션(frame-range, concurrency, pipe, idempotent) |
