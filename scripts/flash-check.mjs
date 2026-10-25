@@ -1,8 +1,8 @@
 import {execFileSync, spawn} from 'node:child_process';
 
-// Approximates the Ofcom flashing guidance (not a Harding FPA certification): a transition is a luminance change of at
-// least 10% of full scale over at least 25% of the picture; a flash is a pair of opposing transitions; more than three
-// flashes within any one second fails.
+// Approximates the WCAG 2.x / Ofcom general-flash rule (not a Harding FPA certification): a transition is a change in
+// relative luminance (sRGB linearised) of at least 0.1 where the darker of the two states is below 0.8, over at least
+// 25% of the picture; a flash is a pair of opposing transitions; more than three flashes within any one second fails.
 const [file, fpsArg] = process.argv.slice(2);
 if (!file) { console.error('usage: node scripts/flash-check.mjs <video> [fps]  (fps defaults to the video\'s own rate)'); process.exit(2); }
 const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
@@ -14,6 +14,7 @@ const chunks = [];
 for await (const chunk of ffmpeg.stdout) chunks.push(chunk);
 const raw = Buffer.concat(chunks);
 const frames = Math.floor(raw.length / size);
+const toLinear = Float32Array.from({length: 256}, (_, v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
 const transitions = [];
 let previous = null;
 for (let index = 0; index < frames; index++) {
@@ -21,8 +22,8 @@ for (let index = 0; index < frames; index++) {
   if (previous) {
     let changed = 0, delta = 0;
     for (let pixel = 0; pixel < size; pixel++) {
-      const d = frame[pixel] - previous[pixel];
-      if (Math.abs(d) >= 26) { changed++; delta += d; }
+      const a = toLinear[previous[pixel]], b = toLinear[frame[pixel]], d = b - a;
+      if (Math.abs(d) >= 0.1 && Math.min(a, b) < 0.8) { changed++; delta += d; }
     }
     if (changed / size >= 0.25) transitions.push({frame: index, area: Math.round(changed / size * 100) / 100, direction: delta > 0 ? 'up' : 'down'});
   }
