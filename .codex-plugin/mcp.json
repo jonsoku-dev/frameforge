@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "frameforge": {
+      "command": "node",
+      "args": [
+        "./bin/frameforge.mjs",
+        "mcp"
+      ],
+      "cwd": ".",
+      "env_vars": [
+        "FRAMEFORGE_PROJECT_DIR",
+        "CHROME_PATH",
+        "FFMPEG_PATH",
+        "FFPROBE_PATH"
+      ],
+      "tool_timeout_sec": 900
+    }
+  }
+}

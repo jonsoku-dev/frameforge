@@ -1,6 +1,6 @@
 # Frameforge를 에이전트 플러그인으로 쓰기 (2026-10-20)
 
-Frameforge는 저장소 자체가 포터블 에이전트 플러그인이다. 기준 엔진이 하는 방식(공식 문서 `docs/ai/claude-code-plugin`, `docs/ai/codex-plugin`, 모노레포 `packages/agent-plugin`·`claude-code-plugin`의 공개 매니페스트)을 그대로 따랐다: 루트 `plugin.json`(agent-plugins.org 스키마) + `skills/<이름>/SKILL.md` + 호스트별 오버레이(`.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`) + 마켓플레이스 파일(`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`). MCP는 두지 않는다(기준 엔진도 호스팅 MCP를 폐기하고 스킬로 대체했다: 토큰 비용, 설치 난이도, 에이전트가 잘 부르지 않음).
+Frameforge는 저장소 자체가 포터블 에이전트 플러그인이다. 기준 엔진이 하는 방식(공식 문서 `docs/ai/claude-code-plugin`, `docs/ai/codex-plugin`, 모노레포 `packages/agent-plugin`·`claude-code-plugin`의 공개 매니페스트)을 그대로 따랐다: 루트 `plugin.json`(agent-plugins.org 스키마) + `skills/<이름>/SKILL.md` + 호스트별 오버레이(`.codex-plugin/plugin.json`, `.claude-plugin/plugin.json`) + 마켓플레이스 파일(`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`). 스킬을 읽는 호스트에는 스킬이 기본 길이다. 스킬을 못 읽는 호스트(Claude Desktop, claude.ai, ChatGPT, OpenAI Responses·Agents SDK)를 위해 2026-10-25부터 로컬 MCP 서버 `frameforge mcp`를 둔다. 호스팅 서버가 아니라 사용자의 컴퓨터에서 CLI를 감싸는 얇은 층이고, 스킬 본문은 `read_skill` 도구로 같은 내용을 준다.
 
 ## 스킬
 
@@ -44,6 +44,21 @@ Codex는 저장소의 `.agents/skills`와 `$HOME/.agents/skills`에서도 스킬
 
 Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugins/local/frameforge` 후 재시작(기준 엔진의 Cursor 안내와 같은 방식). Grok Build·스킬만 쓰는 호스트: `npm run skill:install`이 `~/.claude/skills`, `~/.codex/skills`, `~/.cursor/skills`, `~/.grok/skills` 중 이미 있는 폴더에 스킬 11개를 심볼릭 링크한다(없는 폴더는 건너뛴다).
 
+## MCP 서버와 호스트별 연결
+
+| 파일 | 호스트 | 하는 일 |
+| --- | --- | --- |
+| `mcp/server.mjs` | 모두 | 도구 14개와 프롬프트 2개. stdio 기본, `--http --port`는 127.0.0.1의 Streamable HTTP(`/mcp`), Host 검사, `--allow-host`는 터널용 |
+| `.claude-plugin/plugin.json`의 `mcpServers` | Claude Code | `node ${CLAUDE_PLUGIN_ROOT}/bin/frameforge.mjs mcp`, 기본 프로젝트는 `CLAUDE_PROJECT_DIR`. 루트 `.mcp.json`은 두지 않는다(이 저장소를 연 세션이 프로젝트 MCP로 읽음) |
+| `commands/make.md`, `check.md`, `studio.md` | Claude Code | `/frameforge:make`, `/frameforge:check`, `/frameforge:studio` |
+| `agents/frameforge-maker.md` | Claude Code | MCP 도구만으로 작품 하나를 끝까지 만드는 서브에이전트 |
+| `mcpb/manifest.json`, `mcpb/server/index.mjs` | Claude Desktop | `npm run pack:mcpb` → `dist/frameforge.mcpb`. 설정 값은 엔진 폴더(필수), 프로젝트 폴더, Chrome 경로 |
+| `.codex-plugin/mcp.json` | Codex | 플러그인 폴더에서 `node ./bin/frameforge.mjs mcp`, `tool_timeout_sec` 900 |
+| `mcp.json` | agent-plugins.org 포터블 호스트 | `type: stdio`, `${PLUGIN_ROOT}` |
+| `examples/agents/openai-agents.py` | OpenAI Agents SDK | stdio로 서버를 띄우고 프롬프트를 지시문으로 써서 작품 하나를 만듦. 키는 환경 변수 `OPENAI_API_KEY`만 |
+
+도구 목록, 호스트별 설치와 확인, 터널 경고(claude.ai, ChatGPT 개발자 모드, Responses API는 공개 URL이 필요하고 서버에는 인증이 없음)는 [install.md의 7번](install.md#7-mcp-서버)에 있다.
+
 ## 사용
 
 새 세션에서 `/frameforge:frameforge-create 20초 제품 소개 모션그래픽`(Claude) 또는 `$frameforge-create ...`(Codex). 작품은 플러그인 저장소의 `examples/samples/<slug>/`에 만들어지고, 스튜디오는 `frameforge-studio`로 띄운다.
@@ -52,3 +67,5 @@ Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugi
 
 - npm 배포: 엔진은 아직 npm 레지스트리에 올리지 않았다. 저장소 밖 프로젝트는 `bin/frameforge.mjs`(`frameforge init/new/studio/render/score/art/lint/check`)로 만들 수 있고, `npm link`로 PATH에 올린다(`docs/reference/cli.md`, 설치는 `docs/install.md`). `npx frameforge`처럼 설치 없이 부르는 길과 생성물을 프로젝트 쪽에 두는 일은 남았다.
 - Codex 플러그인은 로컬 마켓플레이스로 검증했고, ChatGPT 디렉터리 등록은 하지 않았다.
+- MCP 서버는 stdio(테스트와 실제 렌더 세션)와 HTTP(curl)로 확인했다. Claude Desktop에 .mcpb를 실제로 설치하는 것, ChatGPT 개발자 모드·Responses API의 터널 연결, Agents SDK 예제 실행(키 필요)은 확인하지 않았다.
+- HTTP 모드에는 인증이 없다. 터널은 쓸 때만 연다.

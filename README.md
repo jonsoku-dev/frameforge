@@ -79,7 +79,7 @@ frameforge check out.mp4          # frame-check와 flash-check
 
 ### 3. 에이전트 플러그인으로
 
-저장소 자체가 Claude Code, Codex, Cursor, Grok Build용 플러그인입니다. 스킬 11개(`frameforge-best-practices`, `-create`, `-assets`, `-audio`, `-render`, `-studio`, `-check`, `-blocks`, `-voice`, `-3d`, `-generative`)가 들어 있고 MCP 서버는 없습니다.
+저장소 자체가 Claude Code, Codex, Cursor, Grok Build용 플러그인입니다. 스킬 11개(`frameforge-best-practices`, `-create`, `-assets`, `-audio`, `-render`, `-studio`, `-check`, `-blocks`, `-voice`, `-3d`, `-generative`)가 들어 있습니다.
 
 ```sh
 # Claude Code
@@ -95,6 +95,8 @@ npm run skill:install
 ```
 
 설치 후 새 세션에서 `/frameforge:frameforge-create 20초 제품 소개 모션그래픽`(Claude Code)이나 `$frameforge-create ...`(Codex)로 시작합니다. Cursor 설치와 각 단계의 확인 방법은 [docs/install.md](docs/install.md), 플러그인 구조는 [docs/plugin.md](docs/plugin.md)에 있습니다.
+
+스킬을 못 읽는 호스트를 위해 MCP 서버도 있습니다. `frameforge mcp`(이 클론에서는 `npm run mcp`)가 stdio로, `frameforge mcp --http --port 4319`가 127.0.0.1의 Streamable HTTP로 열리고, 작품 만들기부터 렌더, 컨택트 시트(이미지로 돌려줌), 검사, 스튜디오까지 14개 도구와 프롬프트 `make_motion_film`, `make_explainer`를 냅니다. Claude Code 플러그인은 이 서버와 `/frameforge:make`, `/frameforge:check`, `/frameforge:studio`, 서브에이전트 `frameforge-maker`를 함께 싣고, Claude Desktop은 `npm run pack:mcpb`로 만든 `dist/frameforge.mcpb`, Codex는 플러그인이나 `codex mcp add`, ChatGPT 개발자 모드와 OpenAI Responses·Agents SDK는 HTTP 서버나 `examples/agents/openai-agents.py`로 연결합니다. 호스트별 순서는 [docs/install.md의 7번](docs/install.md#7-mcp-서버)입니다.
 
 ## 무엇이 들어 있나
 
