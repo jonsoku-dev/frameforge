@@ -10,7 +10,7 @@ const USAGE = `frameforge <command>
   init <dir>                       새 프로젝트를 만든다 (films/_template, frameforge.json, package.json, README.md)
   new <slug>                       films/<slug>를 템플릿에서 만들고 films/index.tsx에 등록한다
   studio [--port 4317]             스튜디오를 연다
-  render <slug|entry.tsx> <Id> <out.mp4|.webm|.mov|.gif|folder/> [props-json] [--frame-range 0-59] [--frames ..] [--concurrency N] [--pipe] [--check-idempotent]
+  render <slug|entry.tsx> <Id> <out.mp4|.webm|.mov|.gif|folder/> [props-json] [--frame-range 0-59] [--frames ..] [--concurrency N] [--pipe] [--check-idempotent] [--idempotent-frames 0,30,59]
                                    [--codec ..] [--audio-codec ..] [--muted] [--crf N] [--transparent] [--scale S] [--gif-fps N] [--strict-audit]
   score <slug>                     audio.json으로 음악과 효과음을 만든다
   art <slug>                       assets.json으로 에셋을 해결한다
@@ -111,13 +111,31 @@ export function runChecks(video, {fps, folder, prompt, project} = {}) {
   const plan = [
     {check: 'frame-check', args: [script('frame-check'), video, ...(fps ? ['--fps', fps] : [])]},
     {check: 'flash-check', args: [script('flash-check'), video, ...(fps ? [fps] : [])]},
-    {check: 'seam-check', skip: optional('seam-check', motion, ''), args: [script('seam-check'), motion, ...(brief ? ['--prompt', brief] : [])]},
+    {check: 'seam-check', skip: optional('seam-check', motion, ''), args: [script('seam-check'), motion, ...(brief ? ['--prompt', brief] : []), '--json']},
     {check: 'narration-check', skip: optional('narration-check', timing, '--film 없음'), args: [script('narration-check'), folder ?? '']},
     {check: 'brief', skip: optional('brief-check', folder && join(folder, 'brief.md'), '--film 없음'), args: [script('brief-check'), folder ?? '']},
   ];
   return plan.map(({check, skip, args}) => {
     if (skip) return {check, status: 'SKIP', detail: skip};
     const result = spawnSync(process.execPath, args, {cwd: ENGINE, encoding: 'utf8', env: {...process.env, ...(project ? {FRAMEFORGE_PROJECT: project.root} : {})}});
+    if (check === 'seam-check' && !result.error) {
+      try {
+        const report = JSON.parse(result.stdout);
+        if (!Array.isArray(report.boundaries) || !Array.isArray(report.skipped) || !Array.isArray(report.findings)) throw new Error('invalid seam-check report');
+        const findings = report.findings.map(f => `${f.severity} ${f.code} @${f.boundary}`);
+        const detail = [`${report.boundaries.length} seam(s) checked`, ...findings, ...(report.skipped.length ? [`outside render: ${report.skipped.join(', ')}`] : [])].join('; ');
+        if (result.status !== 0 || report.findings.some(f => f.severity === 'error')) return {check, status: 'FAIL', detail};
+        if (report.findings.length || (report.skipped.length && report.boundaries.length)) return {check, status: 'WARN', detail};
+        if (report.skipped.length) return {check, status: 'SKIP', detail};
+        if (!report.boundaries.length) {
+          const declaredNoCuts = brief && /^\s*(?:[-*]\s*)?Cuts:\s*none(?:\s|$)/im.test(readFileSync(brief, 'utf8'));
+          return declaredNoCuts ? {check, status: 'SKIP', detail: 'Cuts: none'} : {check, status: 'WARN', detail: 'no cut boundaries detected; none were measured'};
+        }
+        return {check, status: 'PASS', detail};
+      } catch (error) {
+        return {check, status: 'FAIL', detail: result.status === 0 ? `invalid seam-check report: ${error.message}` : summarize(check, result.stderr ?? '', result.stdout ?? '')};
+      }
+    }
     return {check, status: result.status === 0 ? 'PASS' : 'FAIL', detail: result.error ? String(result.error) : summarize(check, result.stdout ?? '', result.stderr ?? '')};
   });
 }

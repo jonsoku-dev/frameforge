@@ -5,7 +5,7 @@ export function renameTemplate(text: string, slug: string, id: string): string;
 export function addFilm(index: string, slug: string, id: string, entry: string): string;
 export function parseArgs(argv: string[]): {command: string; positional: string[]; flags: string[]};
 export function main(argv: string[]): number | undefined;
-export type CheckRow = {check: string; status: 'PASS' | 'FAIL' | 'SKIP'; detail: string};
+export type CheckRow = {check: string; status: 'PASS' | 'WARN' | 'FAIL' | 'SKIP'; detail: string};
 export function summarize(name: string, stdout: string, stderr: string): string;
 export function runChecks(video: string, options?: {fps?: string; folder?: string; prompt?: string; project?: {root: string; films: string} | null}): CheckRow[];
 export function checkTable(rows: CheckRow[]): string;

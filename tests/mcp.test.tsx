@@ -20,11 +20,25 @@ test('the MCP server lists tools and prompts, reads skills, writes only inside a
     assert.deepEqual((await client.listTools()).tools.map(tool => tool.name).sort(),
       ['brief_check', 'check', 'contact_sheet', 'film_files', 'film_list', 'film_new', 'lint', 'project_init', 'read_skill', 'render', 'score', 'still', 'studio_start', 'studio_stop']);
     assert.deepEqual((await client.listPrompts()).prompts.map(prompt => prompt.name).sort(), ['make_explainer', 'make_motion_film']);
-    assert.match(JSON.stringify((await client.getPrompt({name: 'make_motion_film', arguments: {request: '10초 아이덴트'}})).messages), /10초 아이덴트/);
+    const motionPrompt = JSON.stringify((await client.getPrompt({name: 'make_motion_film', arguments: {request: '10초 아이덴트'}})).messages);
+    assert.match(motionPrompt, /10초 아이덴트/);
+    assert.match(motionPrompt, /prior and next information, focus, retained elements, transition and settled reading interval/);
+    assert.match(motionPrompt, /NOT VERIFIED/);
+    assert.match(motionPrompt, /Stills and audio measurements do not prove playback or listening/);
+    const explainerPrompt = JSON.stringify((await client.getPrompt({name: 'make_explainer', arguments: {request: '무음 제품 사용법'}})).messages);
+    assert.match(explainerPrompt, /무음 제품 사용법/);
+    assert.match(explainerPrompt, /MET, UNMET or NOT VERIFIED/);
+    assert.match(explainerPrompt, /actual check statuses/);
+    assert.match(explainerPrompt, /Preserve requested audio or silence/);
+    assert.match(explainerPrompt, /never delete user-owned files/);
 
     const names = JSON.parse(body(await call('read_skill')));
     assert.ok(names.includes('frameforge-motion') && names.includes('frameforge-best-practices/bespoke'));
     assert.equal(body(await call('read_skill', {name: 'frameforge-motion'})), readFileSync(join(ENGINE, 'skills/frameforge-motion/SKILL.md'), 'utf8'));
+    const createSkill = body(await call('read_skill', {name: 'frameforge-create'}));
+    assert.equal(createSkill, readFileSync(join(ENGINE, 'skills/frameforge-create/SKILL.md'), 'utf8'));
+    assert.match(createSkill, /Preserve requested audio or silence/);
+    assert.match(createSkill, /Never delete user-owned files/);
     assert.equal((await call('read_skill', {name: '../package'})).isError, true, 'a traversal name is rejected');
 
     const init = await call('project_init', {dir: project});

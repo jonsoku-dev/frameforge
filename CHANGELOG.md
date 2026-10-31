@@ -10,6 +10,9 @@
 
 ### 추가
 
+- **전환 프레임 반복 검사** 전체 영상 렌더에 `--check-idempotent --idempotent-frames 0,30,120`을 지정하면 선택한 프레임을 두 번 캡처해 비교하고 결과에 실제 검사 목록을 기록합니다. MCP `render`에서는 `idempotent_frames`로 지정합니다. 기본 첫·중간·끝 세 프레임 검사는 그대로입니다. 검사하지 않은 프레임과 영상의 미적 품질은 이 검사로 검증되지 않습니다.
+- **모션그래픽 상태와 피드백 설계** 제작 스킬과 에이전트·MCP 프롬프트가 사건 전후의 정보, 시선, 읽기 시간과 구체적 결함의 수정·재검토를 다룹니다. 의도된 정지와 미검증 재생·청취를 구분하며, 비교 근거는 `docs/research/motion-comparison-2026-10.md`에 기록합니다.
+
 - **MCP 서버와 Claude·OpenAI 연결** `frameforge mcp`(`mcp/server.mjs`, stdio 기본, `--http`는 127.0.0.1 Streamable HTTP와 Host 검사): 도구 `project_init`, `film_new`, `film_list`, `film_files`(작품 폴더 밖 경로·심볼릭 링크 거부), `brief_check`, `lint`, `score`, `render`(진행 알림, 시간 제한), `contact_sheet`·`still`(PNG를 이미지로), `check`, `studio_start`/`studio_stop`, `read_skill`, 프롬프트 `make_motion_film`, `make_explainer`. Claude Code 플러그인의 `mcpServers`, `commands/`(make, check, studio), `agents/frameforge-maker.md`, Claude Desktop 확장 `mcpb/manifest.json`과 `npm run pack:mcpb`, Codex 플러그인의 `.codex-plugin/mcp.json`, 포터블 `mcp.json`, `examples/agents/openai-agents.py`. 의존성 `@modelcontextprotocol/sdk` 1.32.1, `zod` 4.6.6.
 - **직접 만들기가 먼저** 모션 그래픽 작품(쇼릴, 아이덴트, 런칭, 프로모)은 자기 렌더링 코드를 쓴다. 런타임 `<Canvas2D draw>`(글꼴을 기다린 뒤 그림), `<ThreeCanvas>` 안의 `<Bloom>`, `rng(seed)` 난수열, 참고 `references/bespoke.md`. 블록, 키트, 프리셋은 부록 `references/utilities.md`. `references/showreel.md`는 기준과 자기 점검만 남겼다. 템플릿은 셰이더·캔버스·DOM 세 층의 시작점이고, 예전 설명 영상 패턴은 `examples/samples/explainer-patterns/`. 감사는 `aria-hidden`·`data-fx="ghost"` 복제 글자와 똑같은 글자 겹침을 세지 않고, 지적 기준이 0.3초(여백 밖 글자는 한 번에 이어서 0.3초)다.
 - **Blender 3D 스킬과 스튜디오** 스킬 `frameforge-3d-modeling`, `-3d-materials`, `-3d-lighting`, `-3d-animation`, `-3d-review`. `3d.json`에 절차적 소프트박스 스튜디오, 속이 빈 병과 `subject.liquid`, 유리 `absorption`·`density`·`frost`, `view`(standard·agx·neutral), 리그 `three-point`·`product`·`rim`과 `light.ratio`, `subject.ops`, `subject.keys`, `motionBlur`, `scatter`, `denoise`, `radius`를 빼면 잘리지 않는 자동 프레이밍. 기본 `head`는 CC0 스캔 흉상(노멀 맵 유지, 오프라인이면 조각 흉상). `npm run blender -- <3d.json> --inspect`와 `--review`(여섯 방향 시트). Cycles PNG의 렌더 시간 텍스트 청크를 지워 같은 그림이 같은 바이트가 된다.
@@ -46,6 +49,7 @@
 
 ### 바뀜
 
+- **경계 검사 상태** `frameforge check`는 측정되지 않은 경계를 PASS로 묶지 않고 WARN 또는 SKIP과 이유를 표시합니다. 실제 측정 오류는 FAIL이며 기존 frame-check 기준은 바꾸지 않습니다. MCP `check`의 `pass`는 모든 행이 PASS일 때만 true이고, 오류가 없는 WARN·SKIP을 포함한 실행은 `noFailures: true`로 구분합니다.
 - **frame-check** 기본 끝 정지가 2초에서 1초로 줄었습니다(`--hold`). 0.5초 전 프레임과 비교해 얼어붙은 구간이 1초를 넘으면 실패하고, `motion share`를 출력합니다. 옛 정지 지표(앞 프레임과 비교, 4초 기준 실패)는 출력만 합니다. 예전 규칙으로 만든 샘플 렌더는 이 기준에서 실패합니다(`docs/research/benchmark-loop.md`).
 - **글자 블록** `GlyphRise` 기본이 단어 단위(`by="word"`, `stagger` 1, `rise` 8), `Typewriter` 기본이 단어 단위(`by="word"`, `speed` 4)입니다. 글자 단위는 `by="glyph"`.
 - **규칙** 모든 숏에 보조 움직임, 글자의 중간 상태 금지(스크램블 금지), 과정 영상의 원인과 결과 동시 표시, 이유를 적은 질감 도구(글로우나 비네트 하나, 그레인, 하프톤, 두 번째 그라데이션, 목적 있는 파티클, HUD 글자) 허용.

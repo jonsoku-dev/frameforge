@@ -290,13 +290,16 @@ function pipeEncoder(fps, encode, output) {
 /** Original local renderer. Public option names mirror a small documented subset. */
 /** With `frames`, renders only those frames and tiles them into one PNG contact sheet instead of encoding a video.
  * `frameRange` [from, to] renders that inclusive range; `concurrency` splits it across that many Chromes (chunks of at least 2 s);
- * `pipe` streams PNGs to ffmpeg instead of writing them; `checkIdempotent` first renders frames from, mid and to twice and compares the bytes.
+ * `pipe` streams PNGs to ffmpeg instead of writing them; `checkIdempotent` compares two captures of selected frames.
+ * `idempotentFrames` optionally chooses the frames to check; they must be included in the rendered output.
  * The container follows the output extension (see outputFormat); `codec`, `audioCodec`, `crf`, `gifFps` override its defaults; `transparent`
  * captures over a clear page and encodes alpha; `scale` multiplies the output size (device scale factor); `strictAudit` fails on any layout finding. */
-export async function renderMedia({serveUrl, composition, outputLocation, inputProps = {}, codec, audioCodec, crf, gifFps, transparent = false, scale = 1, strictAudit = false, frames, frameRange, concurrency = 1, pipe = false, checkIdempotent = false, onProgress}) {
+export async function renderMedia({serveUrl, composition, outputLocation, inputProps = {}, codec, audioCodec, crf, gifFps, transparent = false, scale = 1, strictAudit = false, frames, frameRange, concurrency = 1, pipe = false, checkIdempotent = false, idempotentFrames, onProgress}) {
   if (frames && (!frames.length || frames.some(frame => !Number.isInteger(frame) || frame < 0))) throw new Error('frames must be a non-empty list of non-negative integers.');
   if (frames && frameRange) throw new Error('frames and frameRange cannot be combined.');
   if (frameRange && !(Array.isArray(frameRange) && frameRange.length === 2 && frameRange.every(Number.isInteger) && 0 <= frameRange[0] && frameRange[0] <= frameRange[1])) throw new Error('frameRange must be [from, to] with 0 <= from <= to integers.');
+  if (idempotentFrames !== undefined && !checkIdempotent) throw new Error('idempotentFrames requires checkIdempotent.');
+  if (idempotentFrames !== undefined && (!Array.isArray(idempotentFrames) || !idempotentFrames.length || idempotentFrames.some(frame => !Number.isInteger(frame) || frame < 0))) throw new Error('idempotentFrames must be a non-empty list of non-negative integers.');
   if (!Number.isInteger(concurrency) || concurrency < 1) throw new Error('concurrency must be a positive integer.');
   if (!(scale > 0)) throw new Error('scale must be a positive number.');
   if (!outputLocation) throw new Error('outputLocation is required.');
@@ -329,6 +332,9 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
     const [from, to] = frameRange ?? [0, selected.durationInFrames - 1];
     if (to >= selected.durationInFrames) throw new Error(`frameRange ends at ${to} but ${id} has ${selected.durationInFrames} frames.`);
     const wanted = frames ?? Array.from({length: to - from + 1}, (_, index) => from + index);
+    const wantedSet = idempotentFrames && new Set(wanted);
+    if (idempotentFrames?.some(frame => !wantedSet.has(frame))) throw new Error('idempotentFrames must be included in the rendered frames.');
+    const probe = checkIdempotent ? [...new Set(idempotentFrames ?? [wanted[0], wanted[Math.floor(wanted.length / 2)], wanted.at(-1)])] : undefined;
     const metrics = {width: selected.width, height: selected.height, deviceScaleFactor: scale, mobile: false};
     // The studio stylesheet paints the render page white; a transparent render clears that and Chrome's own default so captures keep alpha.
     const prepare = async page => {
@@ -342,13 +348,12 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
       // Its own page, so the out-of-order frames leave no motion or artifact state in the render.
       const page = await open('profile-idempotent');
       await prepare(page);
-      const probe = [...new Set([wanted[0], wanted[Math.floor(wanted.length / 2)], wanted.at(-1)])];
       const shots = [];
-      for (const pass of [0, 1]) for (const frame of probe) {
+      for (const pass of [0, 1]) for (const [index, frame] of probe.entries()) {
         const hints = await renderFrame(page, id, frame, inputProps);
         const png = hints.skip ? Buffer.alloc(0) : await capture(page, hints);
         if (pass === 0) shots.push(png);
-        else if (!png.equals(shots[probe.indexOf(frame)])) throw new Error(`frame_not_idempotent: frame ${frame} captured different pixels on a second render; derive every value from useCurrentFrame() and random(seed).`);
+        else if (!png.equals(shots[index])) throw new Error(`frame_not_idempotent: frame ${frame} produced different PNG bytes on a second capture.`);
       }
       await page.close();
     }
@@ -443,7 +448,7 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
       if (!sequencePattern) for (const file of (await readdir(staging)).sort((a, b) => Number(a === basename(staged)) - Number(b === basename(staged)))) await link(join(staging, file), join(outDir, file));
     } finally { await rm(staging, {recursive: true, force: true}); }
     const identicalFrames = results.reduce((sum, item) => sum + item.identical, 0);
-    return {outputLocation: resolve(sequencePattern ?? outputLocation), composition: selected, frames: wanted.length, chunks: chunks.length, identicalFrames, identicalShare: Math.round(identicalFrames / wanted.length * 1000) / 1000, ...(format ? {format: {container: format.container, codec: format.codec, pixFmt: format.pixFmt, audio: format.audio, width: size.width, height: size.height}} : {}), auditFindings: findings.length, ...(checkIdempotent ? {idempotent: true} : {})};
+    return {outputLocation: resolve(sequencePattern ?? outputLocation), composition: selected, frames: wanted.length, chunks: chunks.length, identicalFrames, identicalShare: Math.round(identicalFrames / wanted.length * 1000) / 1000, ...(format ? {format: {container: format.container, codec: format.codec, pixFmt: format.pixFmt, audio: format.audio, width: size.width, height: size.height}} : {}), auditFindings: findings.length, ...(checkIdempotent ? {idempotent: true, idempotentFrames: probe} : {})};
   } finally {
     for (const encoder of encoders) encoder.kill();
     await Promise.all(pages.map(page => page.close()));
@@ -455,19 +460,26 @@ async function main() {
   const options = {}, positional = [];
   for (let index = 2; index < process.argv.length; index++) {
     const arg = process.argv[index];
-    if (['--frames', '--concurrency', '--frame-range', '--codec', '--audio-codec', '--crf', '--scale', '--gif-fps'].includes(arg)) options[arg] = process.argv[++index];
+    if (arg === '--idempotent-frames') {
+      const value = process.argv[++index];
+      if (typeof value !== 'string' || !/^\d+(,\d+)*$/.test(value)) throw new Error('--idempotent-frames requires a comma-separated list of non-negative integers.');
+      options[arg] = value;
+    }
+    else if (['--frames', '--concurrency', '--frame-range', '--codec', '--audio-codec', '--crf', '--scale', '--gif-fps'].includes(arg)) options[arg] = process.argv[++index];
     else if (['--pipe', '--check-idempotent', '--transparent', '--muted', '--strict-audit'].includes(arg)) options[arg] = true;
     else positional.push(arg);
   }
   const frames = options['--frames']?.split(',').map(Number);
+  const idempotentFrames = options['--idempotent-frames']?.split(',').map(Number);
+  if (idempotentFrames && !options['--check-idempotent']) throw new Error('--idempotent-frames requires --check-idempotent.');
   const [entry = 'examples/samples/index.tsx', id = 'KitLaunch', output = 'renders/kit-launch.mp4', propsJson = '{}'] = positional;
   if (entry === '--help') {
-    console.log(`npm run render -- [entry.tsx] [composition-id] [output] [input-props-json] [--frames 30,120,240] [--frame-range 0-299] [--concurrency 3] [--pipe] [--check-idempotent]
+    console.log(`npm run render -- [entry.tsx] [composition-id] [output] [input-props-json] [--frames 30,120,240] [--frame-range 0-299] [--concurrency 3] [--pipe] [--check-idempotent] [--idempotent-frames 0,30,120]
                  [--codec h264|vp9|prores|gif|png] [--audio-codec aac|opus|pcm|none] [--muted] [--crf N] [--transparent] [--scale S] [--gif-fps N] [--strict-audit]
 Requires local Chrome and FFmpeg. calculateMetadata runs before encoding. <Audio> and <Video> sound from public/ or a downloaded https:// URL is mixed in (volume, trim, playbackRate via atempo, pan for motion sounds); Video frames come from ffmpeg extraction.
 Output format by extension: .mp4 h264 + aac (default), .webm vp9 (libvpx-vp9, -b:v 0 -crf 32) + opus, .mov prores_ks 4444 + pcm_s16le, .gif (palettegen/paletteuse, --gif-fps caps the rate, no sound), .m3u8 HLS (h264 + aac in 4 s .ts segments named <name>_%03d.ts beside the playlist, one chunk, no --transparent), a PNG sequence when the output ends with / or holds %05d (numbered by frame, nothing encoded). --codec overrides the codec, --audio-codec the sound codec (--muted skips the mix), --crf the quality.
 --transparent renders over a clear page and keeps alpha (webm yuva420p, mov yuva444p10le, gif palette, png rgba; an error for h264). --scale S multiplies the output size (device scale factor; width and height must stay integers, even for h264 and vp9).
---frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s; gif, m3u8 and PNG sequences render in one chunk); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent fails with frame_not_idempotent when the first, middle or last frame renders differently twice.
+--frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s; gif, m3u8 and PNG sequences render in one chunk); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent compares two captures of the first, middle and last output frames. --idempotent-frames selects output frames to check instead and requires --check-idempotent. The result lists the tested frames; untested frames are not checked.
 Every render prints {"audit": [...]} once with the layout findings (text outside the 5% safe area, overlapping text, low contrast, small labels, a data-subject element cropped by the frame or covering text) seen for 0.3 s or more (text outside the safe area for 0.3 s in one run), and corner_hud for small text in a frame corner over more than half the frames (opt in with data-hud="allow"); --strict-audit turns them into a failure. A video render also writes <output>.motion.json for seam-check. FRAMEFORGE_PORT changes the Vite port (default 4318).`);
     return;
   }
@@ -491,7 +503,7 @@ Every render prints {"audit": [...]} once with the layout findings (text outside
   const began = performance.now();
   try {
     await server.listen();
-    const result = await renderMedia({serveUrl: `http://127.0.0.1:${port}`, composition: id, outputLocation: output, inputProps, frames, frameRange, concurrency, pipe: !!options['--pipe'], checkIdempotent: !!options['--check-idempotent'],
+    const result = await renderMedia({serveUrl: `http://127.0.0.1:${port}`, composition: id, outputLocation: output, inputProps, frames, frameRange, concurrency, pipe: !!options['--pipe'], checkIdempotent: !!options['--check-idempotent'], idempotentFrames,
       codec: options['--codec'], audioCodec: options['--muted'] ? 'none' : options['--audio-codec'], crf: numberOr('--crf', undefined), gifFps: numberOr('--gif-fps', undefined), scale: numberOr('--scale', 1), transparent: !!options['--transparent'], strictAudit: !!options['--strict-audit'], onProgress: ({renderedFrames, totalFrames}) => {
       if (renderedFrames % 30 === 0 || renderedFrames === totalFrames) console.log(`${renderedFrames}/${totalFrames} frames`);
     }});
