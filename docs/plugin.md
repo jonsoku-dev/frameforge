@@ -8,7 +8,7 @@ Frameforge는 저장소 자체가 포터블 에이전트 플러그인이다. 기
 | --- | --- |
 | `frameforge-best-practices` | 전체 규칙과 참조 문서(assets, motion, sound, checks, hosts). 다른 스킬의 진입점 |
 | `frameforge-create` | 새 작품: 브리프 → 에셋 → Spot → audio.json → 등록 |
-| `frameforge-motion` | 모션그래픽(쇼릴, 아이덴트, 런칭, 홍보): 콘셉트 하나를 셰이더·캔버스·three.js 코드로 직접 그림. 엔진은 렌더, 음악, 검사만 |
+| `frameforge-motion` | 모션그래픽(쇼릴, 아이덴트, 런칭, 홍보): 사건별 정보·시각적 중심·읽기 시간을 설계하고 요청에 맞는 매체로 구현 |
 | `frameforge-assets` | 모티프 키트, assets.json 해결(호스트 이미지 스킬 → 생성 → CC0 → 키트), 에셋 시트 |
 | `frameforge-audio` | audio.json, 생성·측정, 움직임에서 나오는 효과음 |
 | `frameforge-render` | 렌더 옵션(frame-range, concurrency, pipe, idempotent) |
@@ -62,6 +62,12 @@ Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugi
 ## 사용
 
 새 세션에서 `/frameforge:frameforge-create 20초 제품 소개 모션그래픽`(Claude) 또는 `$frameforge-create ...`(Codex). 작품은 플러그인 저장소의 `examples/samples/<slug>/`에 만들어지고, 스튜디오는 `frameforge-studio`로 띄운다.
+
+모션그래픽은 `frameforge-motion`에서 각 사건의 전후 정보, 유지 요소, 주목 대상과 읽기 시간을 계획한다. Claude의 `/frameforge:make`는 실제 렌더와 브리프를 검토하고 근거가 있는 결함을 제작자에게 되돌려 수정·재검토한다. 별도 리뷰어를 썼는지와 실제 재생·청취 여부를 구분해 보고한다. 정지 프레임이나 오디오 파형은 정상 속도 재생과 청취를 대신하지 않으며, 불가능한 평가는 미검증으로 남는다. MCP의 `make_motion_film` 프롬프트와 Codex의 같은 스킬도 이 계획·검토 경로를 따른다. 기술 검사에서 의도한 읽기 구간이 지적되면 실제 상태와 충돌을 보고하고, 경고를 지우기 위한 장식 움직임을 넣지 않는다.
+
+MCP `render`에 `idempotent_frames: [0, 30, 59]`처럼 출력에 포함된 프레임 번호를 지정하면 각 프레임을 두 번 캡처해 비교한다. 성공 시 반환 `summary.idempotentFrames`에 실제 검사한 번호가 나온다. 생략하면 기존과 같이 반복 검사를 실행하지 않는다. 이 검사는 선택한 프레임만 다루며 전체 프레임의 결정성을 보증하지 않는다.
+
+MCP `check`의 `pass`는 모든 검사 행이 PASS일 때만 `true`다. `noFailures`는 FAIL 없이 명령이 끝났는지를 나타내므로 WARN이나 SKIP이 있어도 `true`일 수 있다. 예를 들어 `Cuts: none`으로 이음새 검사를 의도적으로 건너뛴 경우 `noFailures: true`, `pass: false`이며 품질 실패를 뜻하지 않는다. WARN·SKIP은 정상 도구 응답이고 실제 FAIL은 도구 오류로 반환된다. 각 행과 관찰 범위를 함께 확인한다.
 
 ## 아직 아닌 것
 

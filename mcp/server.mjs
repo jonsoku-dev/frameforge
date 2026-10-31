@@ -117,21 +117,21 @@ const WORKFLOW = {
   make_motion_film: {skill: 'frameforge-motion', title: 'Make a motion-graphics film', steps: `1. read_skill frameforge-motion and read_skill frameforge-best-practices/bespoke; follow them over this list.
 2. film_new <slug>, then film_files read entry.tsx and set duration, size and fps to what the request says.
 3. Brief: film_files write brief.md (the request verbatim, one intent-ledger row per clause, engine translation, gaps); brief_check until PASS.
-4. Concept: one idea, its world, a hero that recurs and changes, a palette from the idea; write it at the top of prompt.md.
-5. Bespoke code: film_files write Spot.tsx as a pure function of useCurrentFrame() with your own shader, canvas and three.js code; lint until it has no findings.
-6. score: film_files write audio.json (mood, bpm, sections on the cuts, hits on the big moments), then score.
-7. contact_sheet with one frame per scene; look at every cell and remake the two weakest scenes with a new idea (the second pass), then contact_sheet again.
-8. render the whole film, then check with the mp4 path and the slug; fix every FAIL.
-9. Report what you made, every must and forbid clause with PASS or FAIL, the check table, and what you did not verify.`},
+4. In prompt.md plan the concept and each major event's prior and next information, focus, retained elements, transition and settled reading interval. Source-check factual sequences.
+5. film_files write Spot.tsx as a pure function of useCurrentFrame(), using media and techniques suited to the brief; lint until it has no findings.
+6. Preserve requested audio. Write audio.json and call score when generated sound fits and its sources are authorized.
+7. contact_sheet covering each major state, transition and last frame; critique focus and timing, revise weak scenes and inspect the revision.
+8. render the whole film, then check with the mp4 path and slug. Fix concrete defects and inspect the revised intervals, repeating while evidence and permissions allow. Review flagged holds against their purpose instead of adding motion to clear a diagnostic.
+9. Review playback and listen to the final mix when available. Report each must and forbid clause as MET, UNMET or NOT VERIFIED with evidence, actual check statuses, observation method and gaps. Stills and audio measurements do not prove playback or listening.`},
   make_explainer: {skill: 'frameforge-create', title: 'Make an explainer film', steps: `1. read_skill frameforge-create and read_skill frameforge-best-practices; follow them over this list. Read the references they point to with read_skill.
 2. film_new <slug>; film_files read entry.tsx, prompt.md and brief.md.
 3. Brief: film_files write brief.md (request verbatim, intent ledger, engine translation, gaps); brief_check until PASS.
-4. Concept and Structure table in prompt.md on the beat grid; show the table before writing code.
+4. Concept and Structure table in prompt.md; use a beat grid when it serves the brief and show the table before writing code.
 5. Code: film_files write Spot.tsx (blocks, kit and bespoke code as the skill allows); lint until clean.
-6. score: film_files write audio.json, then score.
+6. Preserve requested audio or silence. Write audio.json and call score only when generated sound fits the request and its sources are authorized. The renderer generates a score whenever audio.json exists: remove an unused audio.json and import only if they came from the newly copied template, never delete user-owned files. If the available tools cannot do that, report the limitation rather than claim the requested workflow was performed.
 7. contact_sheet with one cell per scene; critique each cell in prompt.md (Second pass), remake the two weakest scenes, sheet again.
 8. render the whole film, then check with the mp4 path and the slug; fix every FAIL.
-9. Report every must and forbid clause with PASS or FAIL and evidence, the check table, and what you did not verify.`},
+9. Report every must and forbid clause as MET, UNMET or NOT VERIFIED with evidence, the actual check statuses, and what you did not verify.`},
 };
 
 /** One McpServer with every tool and prompt; `state` holds the default project and the studio child across requests. */
@@ -211,12 +211,13 @@ export function buildServer(state) {
   tool('render', 'Render a film (or an inclusive frame range) to an MP4 under <project>/renders/. Returns the path and the renderer\'s JSON summary. Sends progress notifications.', {
     slug: slugArg, frame_range: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional().describe('[from, to] inclusive'),
     name: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/).optional().describe('Output file stem; default <slug>'), concurrency: z.number().int().min(1).max(8).optional(),
+    idempotent_frames: z.array(z.number().int().min(0)).min(1).optional().describe('Output frame numbers to render twice and compare; the summary reports the frames checked'),
     timeout_minutes: timeoutArg, project: projectArg,
-  }, writes, async ({slug, frame_range, name, concurrency, timeout_minutes, project}, extra) => {
+  }, writes, async ({slug, frame_range, name, concurrency, idempotent_frames, timeout_minutes, project}, extra) => {
     const p = pick(project);
     if (frame_range && frame_range[0] > frame_range[1]) throw new Error('frame_range must be [from, to] with from <= to.');
     const out = freeOutput(p, name ?? (frame_range ? `${slug}-${frame_range[0]}-${frame_range[1]}` : slug), '.mp4');
-    const {run, summary, audit} = await renderTool(p, slug, out, [...(frame_range ? ['--frame-range', frame_range.join('-')] : []), ...(concurrency ? ['--concurrency', String(concurrency)] : [])], extra, timeout_minutes);
+    const {run, summary, audit} = await renderTool(p, slug, out, [...(frame_range ? ['--frame-range', frame_range.join('-')] : []), ...(concurrency ? ['--concurrency', String(concurrency)] : []), ...(idempotent_frames ? ['--check-idempotent', '--idempotent-frames', idempotent_frames.join(',')] : [])], extra, timeout_minutes);
     return run.code === 0 ? text({video: out, summary, ...(audit ? {audit: JSON.parse(audit).audit} : {}), next: `check {video: "${out}", slug: "${slug}"}`}) : result(run);
   });
   const image = (file, info) => ({content: [{type: 'image', data: readFileSync(file).toString('base64'), mimeType: 'image/png'}, {type: 'text', text: JSON.stringify({file, ...info}, null, 1)}]});
@@ -237,7 +238,7 @@ export function buildServer(state) {
     const file = join(dir, `${String(frame).padStart(5, '0')}.png`);
     return run.code === 0 && existsSync(file) ? image(file, {frame, scale}) : result(run);
   });
-  tool('check', 'Run frame-check, flash-check, seam-check, narration-check and brief on a rendered video; returns the table rows. Video must be inside the project.', {
+  tool('check', 'Run frame-check, flash-check, seam-check, narration-check and brief on a rendered video. pass is true only when every row passes; noFailures is true when no check failed. WARN and SKIP are not passes. Video must be inside the project.', {
     video: z.string().describe('Path of the rendered video (absolute, or relative to the project)'), slug: slugArg.optional().describe('The film, for the narration and brief rows'), project: projectArg,
   }, ro, async ({video, slug, project}, extra) => {
     const p = pick(project);
@@ -245,7 +246,13 @@ export function buildServer(state) {
     if (!file.startsWith(p.root + sep) || !existsSync(file)) throw new Error(`video must be an existing file inside ${p.root}: ${video}`);
     if (slug) filmFolder(p, slug);
     const run = await cli(p, ['check', file, ...(slug ? ['--film', slug] : []), '--json'], {timeout: 20 * MINUTE, extra});
-    try { const rows = JSON.parse(run.stdout); return text({pass: run.code === 0, rows}, run.code !== 0); } catch { return result(run); }
+    try {
+      const rows = z.array(z.object({check: z.string(), status: z.enum(['PASS', 'WARN', 'SKIP', 'FAIL']), detail: z.string()})).min(1).parse(JSON.parse(run.stdout));
+      const noFailures = run.code === 0 && rows.every(row => row.status !== 'FAIL');
+      return text({pass: noFailures && rows.every(row => row.status === 'PASS'), noFailures, rows}, !noFailures);
+    } catch {
+      return run.code === 0 ? text('Invalid check result: expected nonempty PASS/WARN/SKIP/FAIL rows.', true) : result(run);
+    }
   });
 
   tool('studio_start', 'Start the studio (live preview with sound) for the project on 127.0.0.1 and return its URL. One studio per server.', {

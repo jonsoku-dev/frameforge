@@ -8,3 +8,5 @@ Before claiming done:
 5. The render's `{"audit": [...]}` line also reports `element_cropped` (a `data-subject` element more than 2 % outside the frame) and `subject_overlaps_text` (a subject covering more than 20 % of a text box), and `corner_hud` (small text, under 6 % of the short side, within 8 % of two edges for more than half the frames: a timecode, frame counter, scene number, BPM or REC; remove it or opt in with `data-hud="allow"` and a reason in `prompt.md`).
 6. Render log: `motionSounds` lists the derived effects with frame, role, intensity, pan; `identicalShare` is the still-frame share.
 7. Write in `prompt.md`: what was measured, what was not, and every deviation from the brief.
+
+These are the current check thresholds, not a judgment that a reading hold is artistically wrong. Examine flagged intervals against their purpose; fix unintended problems and report an intentional hold or unresolved conflict with the actual result intact. A declared `--hold` skips the specified end check, so report that skip rather than a pass. Watch and listen to the final mix when available; stills, measurements and a technical pass do not prove playback or listening.
