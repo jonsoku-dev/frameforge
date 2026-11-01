@@ -152,6 +152,16 @@ export function mergeSegments(lists) {
   }
   return merged;
 }
+/** A motion effect must have a real duration; guessing can truncate its tail. */
+export function probeMotionSoundDuration(file) {
+  const probe = process.env.FFPROBE_PATH || 'ffprobe';
+  const result = spawnSync(probe, ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], {encoding: 'utf8'});
+  const diagnostic = result.stderr ?? '';
+  if (result.error || result.status !== 0 || diagnostic.length) throw new Error(`Could not probe MotionSound duration for ${file}: ${result.error?.message || diagnostic.trim() || (diagnostic.length ? 'ffprobe emitted diagnostic output' : `ffprobe exited ${result.status}`)}`);
+  const seconds = Number(result.stdout.trim());
+  if (!Number.isFinite(seconds) || seconds <= 0) throw new Error(`Invalid MotionSound duration for ${file}: ${result.stdout.trim() || '(empty)'}`);
+  return seconds;
+}
 const run = (command, args) => new Promise((resolveRun, reject) => {
   const child = spawn(command, args, {stdio: ['ignore', 'ignore', 'pipe']});
   let stderr = '';
@@ -404,11 +414,12 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
       const derived = await lead.evaluate(`window.__FRAMEFORGE__.soundClips(${selected.fps})`) ?? [];
       const authored = segments.filter(({clip}) => clip.startFrame > 0).map(({first}) => first);
       const lengths = new Map();
-      for (const clip of derived) {
+      // Silent outputs retain motion evidence but do not need audio files or duration probes.
+      for (const clip of format.audio === 'none' ? [] : derived) {
         if (authored.some(first => Math.abs(first - clip.startFrame) < selected.fps / 2)) continue;
         const file = resolve(join(project, 'public'), '.' + decodeURIComponent(clip.src));
         if (!existsSync(file)) throw new Error(`MotionSound src must name a file under public/: ${clip.src}`);
-        if (!lengths.has(file)) lengths.set(file, Number(spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], {encoding: 'utf8'}).stdout) || 1);
+        if (!lengths.has(file)) lengths.set(file, probeMotionSoundDuration(file));
         const last = Math.min(to, clip.startFrame + Math.ceil(lengths.get(file) * selected.fps) - 1);
         if (last < clip.startFrame) continue;
         segments.push({clip: {key: clip.key, src: clip.src, volume: clip.volume, trimBefore: 0, startFrame: clip.startFrame}, first: clip.startFrame, last, pan: clip.pan});
