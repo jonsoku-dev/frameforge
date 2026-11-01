@@ -1,24 +1,24 @@
 ---
 name: frameforge-3d
-description: Add rendered 3D to a Frameforge film: a 3d.json shot spec rendered by headless Blender into a PNG sequence that <ImageSequence> plays (builtin sculpted hero subjects, premium looks such as glossy, glass, chrome, scanline with a scanline-to-glossy sweep, bloom, depth of field, eased orbit, push-in and crane moves), CC0 models and HDRIs fetched from Poly Haven with models.json, and <Model>/<Turntable>/<StudioLights> inside <ThreeCanvas>. Use when a brief asks for a 3D hero, a lit or glossy subject, a product turntable, a dolly or orbit shot, or a real model instead of a spinning primitive.
+description: "Add rendered 3D to a Frameforge film: a 3d.json shot spec rendered by headless Blender into a PNG sequence that <ImageSequence> plays (builtin sculpted hero subjects, premium looks such as glossy, glass, chrome, scanline with a scanline-to-glossy sweep, bloom, depth of field, eased orbit, push-in and crane moves), CC0 models and HDRIs fetched from Poly Haven with models.json, and <Model>/<Turntable>/<StudioLights> inside <ThreeCanvas>. Use when a brief asks for a 3D hero, a lit or glossy subject, a product turntable, a dolly or orbit shot, or a real model instead of a spinning primitive."
 ---
 
 # Frameforge 3D
 
-Everything is a spec file next to the Spot plus an idempotent script, like `assets.json` → `npm run art` and `audio.json` → `npm run score`. No live socket, no server. Full reference: `docs/reference/three-d.md`.
+The bundled Blender route uses a spec file next to the Spot and an idempotent script. A separately authored local scene is also supported as a production choice; its provenance and verification must be recorded separately. Neither route needs a live Blender socket or server. Full reference: `docs/reference/three-d.md`.
 
-For the craft of a shot, open the 3D skills: `frameforge-3d-modeling` (subject, ops, framing), `frameforge-3d-materials` (looks, glass, view), `frameforge-3d-lighting` (rigs, ratios, soft-box world), `frameforge-3d-animation` (camera, keys, motion blur, scatter) and `frameforge-3d-review` (`--inspect`, `--review`, the one-variable loop).
+For the craft of a shot, open the 3D skills: `frameforge-3d-modeling` (subject, ops, framing), `frameforge-3d-materials` (looks, glass, view), `frameforge-3d-lighting` (rigs, ratios, soft-box world), `frameforge-3d-animation` (camera, keys, motion blur, scatter) and `frameforge-3d-review` (`--inspect`, `--review`, visual and technical review).
 
-## A 3D hero is a Blender shot by default
+## Choose the subject and rendering route for the shot
 
-A film whose hero is a 3D subject (a head, a product, a gem, a knot, a mascot) renders it with Blender: `3d.json` with `subject.kind: "builtin"` or a Poly Haven model, a `look`, a moving camera, and `<ImageSequence>` in the Spot. The raymarched `<Shader>` presets (`sliced`, `planet`, `sun`, `orbits`) are backgrounds, textures and the fallback when Blender is absent, never the hero when Blender is there: next to a lit render they read as tech demos.
+For a dimensional hero, choose an authored subject, suitable licensed model or builtin for the intended silhouette and expression. Blender can render geometry, materials, contact shadows and camera depth into `<ImageSequence>`; ThreeCanvas or an authored shader can also serve the brief. A preset name or switching to 3D does not establish finish. Compare the actual representative picture with the observed reference before extending its motion.
 
-Pick in this order:
+These are available routes, not a priority order:
 1. A builtin hero: `head` (the CC0 scanned classical bust, fetched once and shared; offline or with `subject.scan: false` a sculpted bust with lids, irises, lips and short curls on a turned socle), `bottle` (a serum bottle with a gold cap), `gem` (a round brilliant), `knot` (a twisted (2, 3) torus knot with a rounded-triangle profile), `plush` (a soft round mascot with ears and gloss-black eyes).
 2. A Poly Haven CC0 model through `models.json` when the brief names a real object (`marble_bust_01` is a scanned classical bust, `horse_statue_01` a porcelain horse, `rubber_duck_toy`, `vintage_pocket_watch`), as `"subject": {"kind": "glb", "src": "models/<name>/<name>.gltf"}`. A `look` overrides its materials; leave `look` out to keep its scanned textures.
-3. `subject.kind: "script"` for a shape neither has.
+3. `subject.kind: "script"` for authored geometry or staging, including when a builtin exists but its silhouette, expression or construction does not fit. A separately authored local Blender scene is also an option when the shot needs a rig or scene control outside this spec; record its command, source, seed, versions and project-owned output path. Do not overwrite shared generated assets. The spec renderer's manifests, inspect commands and determinism tests do not automatically cover a separate script: record equivalent local provenance and verify its actual frame outputs and Frameforge playback.
 
-Then a `look` and a camera move:
+Choose material, light and camera together for the picture; a stationary camera is valid. Example API configuration (not a visual template):
 
 ```json
 {"name": "reveal", "frames": 90, "fps": 30, "width": 1920, "height": 1080, "samples": 32,
@@ -50,7 +50,7 @@ Then a `look` and a camera move:
 
 - A hero subject, a product or object that should turn, be lit like a studio shot, or be seen from a moving camera: render it with Blender and play the PNGs. The film stays a pure frame function; the pictures are files.
 - A scene needs a real model turning live with the frame (a vase behind a title): `<Model>` inside `<ThreeCanvas>`.
-- A flat motif or kit asset already says it: do not use 3D. Three motion families per film still apply; a rendered shot counts as one.
+- If a flat drawing already delivers the intended craft, keep it. Choose techniques and movement for the brief, without a fixed number of motion families.
 
 ## The loop: spec → render → play
 
@@ -66,7 +66,7 @@ Then a `look` and a camera move:
 2. Quick look: `npm run blender -- examples/samples/<slug>/3d.json --frames 0-1`, then Read `public/assets/generated/<slug>/3d/<shot>/0000.png`. Adjust the spec, repeat (`--force` when only the renderer changed).
 3. Full render: `npm run blender -- examples/samples/<slug>/3d.json` (EEVEE 1080p: about one second per frame; a 150-frame hero in 2–3 minutes, speed details above). The folder gets `manifest.json` (`frames`, `fps`, `width`, `height`, `specHash`, `blender`, `seconds`). A second run with the same spec skips.
 4. Play it: `<Sequence from={at} layout="none"><ImageSequence src="/assets/generated/<slug>/3d/<shot>" frames={150} fps={30} /></Sequence>`. Pass `frames` and `fps` from the manifest; the render never fetches it. Past the end the last image holds (`loop` wraps). A transparent shot composites over the film's paper colour; put kit motifs and glyph titles around it as in any scene.
-5. Hold the last two seconds: an `<ImageSequence>` holds by itself; a `<Turntable>` keeps turning, so wrap that scene in `<Freeze frame={hold - 1} active={frame >= hold}>`.
+5. Choose the ending and reading time for the edit. An `<ImageSequence>` holds after its last frame; a `<Turntable>` keeps turning. Use `<Freeze frame={hold - 1} active={frame >= hold}>` only for an intended hold, and report any diagnostic conflict without changing its status.
 
 Determinism: one Blender process per shot, factory settings, camera and subject keyed on every frame from pure functions, sweep level and scan-line scroll set per frame, scatter from a fixed seed, builtin meshes built from fixed fields, fixed samples and seed, no adaptive sampling, stamps and PNG text chunks off, so the same spec gives byte-identical PNGs on the same machine, Cycles denoising and motion blur included (the test proves it). The hex background pixel is asserted by `tests/three-d.test.tsx`.
 
@@ -89,7 +89,7 @@ Poly Haven is CC0, so no credit line is needed; `CREDITS.md` appears only if ano
 
 `npm run blender` stops with `Blender not found: install Blender 4.2+ or set BLENDER_PATH`. Then:
 - If the PNGs already exist (a teammate rendered them, or the spec is unchanged), nothing is needed; the renderer only reads files.
-- Otherwise swap the shot for `<ThreeCanvas>` with a `<Model>` (a Poly Haven model) and `<StudioLights>` (see `examples/samples/three-spin/Spot.tsx`), or, for a head, planet or star with no model at all, the `<Shader>` presets `sliced`, `planet`, `sun` (`docs/reference/generative.md`). Keep 3d.json in place so the shot can be rendered later, and write the substitution in `prompt.md` and your report. Do not fake the sequence with a still.
+- Otherwise choose an available authorized route that can serve the shot, such as live ThreeCanvas, authored illustration or a licensed asset. Inspect the actual substitute before using it; a preset is not automatically equivalent. Preserve the original spec, record the substitution and any unresolved gap. Do not present a still as a rendered motion sequence.
 
 ## Checks
 

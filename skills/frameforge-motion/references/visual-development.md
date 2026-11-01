@@ -8,9 +8,11 @@ Use an accessible reference relevant to the brief. Record the exact page or arti
 
 In `prompt.md`, name the visual thesis and its likely failure: “a courier earns the cape through flight” / “a mascot floating above reward cards would hide the action.” Choose the media for that thesis: authored illustration, licensed photography, local 3D, typography or procedural rendering. No medium, shape count or effect is inherently professional. Record rights, actual available tools, and substitutions. Do not assume an image service or model is available or authorized.
 
+When the whole result is rejected, compare the actual candidate and reference at a useful display size before choosing the next edit. Name the dominant visible gap: for example, identical flat edge treatment across fur, cloth and metal; an unbounded background effect where the reference has an authored focal object; or a diagrammatic world with no foreground/midground separation. A count of micro-fixes does not answer that rejection. Choose a shot-level correction that addresses the gap, and preserve the prior output for comparison. A change of medium, more detail or a longer prompt is not itself evidence of improvement.
+
 ## Build one representative shot
 
-Implement the actual hero, type, light and composition of a demanding shot before duplicating layouts across the film. Use the authorized still or render path and inspect its full-size output and a version at the intended small display size. If the renderer's preflight effects are not authorized, use another permitted observation or mark the result unverified. Do not treat a source-code description as the image.
+Implement the actual hero, type, light and composition of a demanding shot before duplicating layouts across the film. Use the authorized still or render path and inspect its full-size output and a version at the intended small display size. If the renderer's preflight effects are not authorized, use another permitted observation or mark the result unverified. Do not treat a source-code description as the image. A raw asset render may diagnose geometry or light, but inspect its intended type, copy, framing and environment together before calling the representative shot ready. Then test a short consequential sequence before spending on the full timeline.
 
 Look for specific defects:
 
