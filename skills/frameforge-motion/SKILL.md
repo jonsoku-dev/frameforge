@@ -9,6 +9,8 @@ Design the visual language and pace for the brief. Typography, graphics, images 
 
 Read `../frameforge-best-practices/references/bespoke.md` for rendering helpers and the relevant audio or 3D skill when needed. Existing examples and assets can explain APIs; do not copy their visual identity as a substitute for a concept.
 
+For an event or reward, make the goal, condition and reward distinguishable in the actual output, then inspect their smallest intended display size. A character or focal object can guide the eye, but must not conceal the condition. For music-led work, plan each visual change against the track's events and give sections distinct visual roles; inspect whether an element carries across a consequential transition or whether a cut serves the intent. Reusing one layout with only labels swapped can obscure progression. These are decisions to test against the brief, not mandatory shot templates. Downsampled stills and waveform measurements do not establish real-device legibility or perceived sync.
+
 ## Workflow
 
 1. Choose new or revise from the request. For a new film, use `frameforge new <slug>` or the repository template, set the requested duration, dimensions and fps, and fill `brief.md` with the verbatim request, clause-by-clause intent ledger, engine translation and gaps. For a revision, read the existing brief, plan, entry, relevant source and specified saved output first; preserve the original request and history, merge the new requirements and decisions into the existing brief, and preserve user-owned assets without recreating the film. When the user explicitly changes an earlier condition, record the supersession and follow the latest instruction. Run `brief-check` and report unresolved conflicts.

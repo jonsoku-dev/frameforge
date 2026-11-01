@@ -54,19 +54,20 @@ test('snapshot Vite mode serves existing generated assets but never runs their g
         }
         assert.ok(ready, `Vite did not start: ${logs}`);
         assert.equal(await (await get(`/assets/generated/${slug}/existing.svg`)).text(), '<svg xmlns="http://www.w3.org/2000/svg"/>');
-        assert.equal(await (await get(`/audio/generated/${slug}/existing.wav`)).text(), 'existing audio');
+        assert.equal((await get(`/audio/generated/${slug}/existing.wav`)).status, 403, 'shared generated audio is unavailable to outside projects');
         const missingArt = await get(`/assets/generated/${slug}/missing.svg`);
         const missingAudio = await get(`/audio/generated/${slug}/missing.wav`);
         if (snapshot) {
           assert.equal(missingArt.status, 404);
           assert.match(await missingArt.text(), /Snapshot render requires existing asset/);
-          assert.equal(missingAudio.status, 404);
-          assert.match(await missingAudio.text(), /Snapshot render requires existing audio/);
+          assert.equal(missingAudio.status, 403);
+          assert.match(await missingAudio.text(), /External project access to engine-generated audio is disabled/);
           assert.doesNotMatch(logs, /\[(art|score)\]/);
         } else {
-          for (let tries = 0; tries < 40 && (!logs.includes(`[art] ${slug}`) || !logs.includes(`[score] ${slug}`)); tries++) await pause(50);
+          for (let tries = 0; tries < 40 && !logs.includes(`[art] ${slug}`); tries++) await pause(50);
           assert.match(logs, new RegExp(`\\[art\\] ${slug}`));
-          assert.match(logs, new RegExp(`\\[score\\] ${slug}`));
+          assert.equal(missingAudio.status, 403);
+          assert.doesNotMatch(logs, /\[score\]/);
         }
       } finally {
         child.kill('SIGTERM');

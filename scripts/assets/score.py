@@ -6,6 +6,7 @@ Writes public/audio/generated/<slug>/music.wav and <sfx name>.wav. Format and po
 """
 import glob, hashlib, json, os, re, subprocess, sys, tempfile, time, wave, zlib
 import numpy as np
+from audio_guard import require_local_output
 import sfx as sfx_sources
 
 SR = 48000
@@ -1011,6 +1012,7 @@ def validate(s, path):
 
 def generate(path, force):
     global rng
+    require_local_output(ROOT, path)
     began = time.time()
     with open(path, 'rb') as f:
         raw = f.read()
