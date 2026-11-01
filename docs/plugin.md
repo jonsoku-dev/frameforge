@@ -48,7 +48,7 @@ Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugi
 
 | 파일 | 호스트 | 하는 일 |
 | --- | --- | --- |
-| `mcp/server.mjs` | 모두 | 도구 14개와 프롬프트 2개. stdio 기본, `--http --port`는 127.0.0.1의 Streamable HTTP(`/mcp`), Host 검사, `--allow-host`는 터널용(`FRAMEFORGE_MCP_TOKEN` 필수) |
+| `mcp/server.mjs` | 모두 | 도구 15개와 프롬프트 2개. stdio 기본, `--http --port`는 127.0.0.1의 Streamable HTTP(`/mcp`), Host 검사, `--allow-host`는 터널용(`FRAMEFORGE_MCP_TOKEN` 필수) |
 | `.claude-plugin/plugin.json`의 `mcpServers` | Claude Code | `node ${CLAUDE_PLUGIN_ROOT}/bin/frameforge.mjs mcp`, 기본 프로젝트는 `CLAUDE_PROJECT_DIR`. 루트 `.mcp.json`은 두지 않는다(이 저장소를 연 세션이 프로젝트 MCP로 읽음) |
 | `commands/make.md`, `check.md`, `studio.md` | Claude Code | `/frameforge:make`, `/frameforge:check`, `/frameforge:studio` |
 | `agents/frameforge-maker.md` | Claude Code | MCP 도구만으로 작품 하나를 끝까지 만드는 서브에이전트 |
@@ -66,6 +66,12 @@ Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugi
 모션그래픽은 `frameforge-motion`에서 각 사건의 전후 정보, 유지 요소, 주목 대상과 읽기 시간을 계획한다. Claude의 `/frameforge:make`는 실제 렌더와 브리프를 검토하고 근거가 있는 결함을 제작자에게 되돌려 수정·재검토한다. 별도 리뷰어를 썼는지와 실제 재생·청취 여부를 구분해 보고한다. 정지 프레임이나 오디오 파형은 정상 속도 재생과 청취를 대신하지 않으며, 불가능한 평가는 미검증으로 남는다. MCP의 `make_motion_film` 프롬프트와 Codex의 같은 스킬도 이 계획·검토 경로를 따른다. 기술 검사에서 의도한 읽기 구간이 지적되면 실제 상태와 충돌을 보고하고, 경고를 지우기 위한 장식 움직임을 넣지 않는다.
 
 MCP `render`에 `idempotent_frames: [0, 30, 59]`처럼 출력에 포함된 프레임 번호를 지정하면 각 프레임을 두 번 캡처해 비교한다. 성공 시 반환 `summary.idempotentFrames`에 실제 검사한 번호가 나온다. 생략하면 기존과 같이 반복 검사를 실행하지 않는다. 이 검사는 선택한 프레임만 다루며 전체 프레임의 결정성을 보증하지 않는다.
+
+MCP `render`의 `frame_range`는 양 끝을 포함하는 두 개의 0 이상 정수 `[시작, 끝]`이며 시작이 끝보다 클 수 없다. 생략하면 전체 영상을 렌더한다.
+
+MCP `video_frames`는 프로젝트 안의 기존 MP4에서 최대 8개 프레임을 0부터 시작하는 번호로 추출한다. 중복 번호를 제거하고 오름차순으로 반환한다. 원본 경로·SHA-256과 각 프레임의 실제 presentation timestamp(알 수 없으면 `null`)를 이미지와 함께 반환한다. `still`과 `contact_sheet`는 현재 코드를 다시 렌더하므로, 코드 수정 전 이미 저장된 영상을 확인할 때는 `video_frames`를 사용한다. 추출물은 정상 속도 재생이나 청취가 아니다. 원본과 경로의 심볼릭 링크는 허용하지 않는다. Python 3, FFmpeg, ffprobe와 POSIX `openat` 및 `/dev/fd`가 필요하며 Windows는 지원하지 않는다.
+
+프로젝트 루트와 파일의 inode는 열 때와 결과 반환 직전에 확인한다. 두 검사 사이에 경로가 바뀌었다 복원되거나 반환 후 바뀌지 않았음까지 보증하지는 않으므로, SHA-256을 실제 관찰한 파일의 식별자로 사용한다. 경로에 `..` 구성요소가 있으면 정규화하지 않고 거부한다.
 
 MCP `check`의 `pass`는 모든 검사 행이 PASS일 때만 `true`다. `noFailures`는 FAIL 없이 명령이 끝났는지를 나타내므로 WARN이나 SKIP이 있어도 `true`일 수 있다. 예를 들어 `Cuts: none`으로 이음새 검사를 의도적으로 건너뛴 경우 `noFailures: true`, `pass: false`이며 품질 실패를 뜻하지 않는다. WARN·SKIP은 정상 도구 응답이고 실제 FAIL은 도구 오류로 반환된다. 각 행과 관찰 범위를 함께 확인한다.
 

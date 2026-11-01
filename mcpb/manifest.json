@@ -59,6 +59,7 @@
     {"name": "render", "description": "Render a film or frame range to MP4"},
     {"name": "contact_sheet", "description": "Render frames into one PNG sheet, returned as an image"},
     {"name": "still", "description": "Render one frame, returned as an image"},
+    {"name": "video_frames", "description": "Inspect sampled frames from a saved project MP4 (POSIX only)"},
     {"name": "check", "description": "Frame, flash, seam, narration and brief checks on a render"},
     {"name": "studio_start", "description": "Start the studio on 127.0.0.1"},
     {"name": "studio_stop", "description": "Stop the studio"},

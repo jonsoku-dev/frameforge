@@ -10,6 +10,7 @@ import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import {StreamableHTTPServerTransport} from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {z} from 'zod';
+import {inspectVideoFrames} from './video-frames.mjs';
 
 /** The engine checkout: FRAMEFORGE_ENGINE (the Desktop extension sets it) or the folder above this file. */
 export const ENGINE = resolve(process.env.FRAMEFORGE_ENGINE || fileURLToPath(new URL('..', import.meta.url)));
@@ -121,7 +122,7 @@ const WORKFLOW = {
 5. film_files write Spot.tsx as a pure function of useCurrentFrame(), using media and techniques suited to the brief; lint until it has no findings.
 6. Preserve requested audio. Write audio.json and call score when generated sound fits and its sources are authorized.
 7. contact_sheet covering each major state, transition and last frame; critique focus and timing, revise weak scenes and inspect the revision.
-8. render the whole film, then check with the mp4 path and slug. Fix concrete defects and inspect the revised intervals, repeating while evidence and permissions allow. Review flagged holds against their purpose instead of adding motion to clear a diagnostic.
+8. render the whole film, then check with the mp4 path and slug. Use video_frames to inspect the exact saved MP4 when available; otherwise use a permitted host method, or mark saved-render observations NOT VERIFIED if none is available. contact_sheet and still render the current source and do not prove what is in a saved MP4. Fix concrete defects and inspect each revised render, repeating while evidence and permissions allow. Review flagged holds against their purpose instead of adding motion to clear a diagnostic.
 9. Review playback and listen to the final mix when available. Report each must and forbid clause as MET, UNMET or NOT VERIFIED with evidence, actual check statuses, observation method and gaps. Stills and audio measurements do not prove playback or listening.`},
   make_explainer: {skill: 'frameforge-create', title: 'Make an explainer film', steps: `1. read_skill frameforge-create and read_skill frameforge-best-practices; follow them over this list. Read the references they point to with read_skill.
 2. film_new <slug>; film_files read entry.tsx, prompt.md and brief.md.
@@ -209,7 +210,7 @@ export function buildServer(state) {
   };
   const timeoutArg = z.number().int().min(1).max(180).default(60).describe('Minutes before the render is killed');
   tool('render', 'Render a film (or an inclusive frame range) to an MP4 under <project>/renders/. Returns the path and the renderer\'s JSON summary. Sends progress notifications.', {
-    slug: slugArg, frame_range: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional().describe('[from, to] inclusive'),
+    slug: slugArg, frame_range: z.array(z.number().int().min(0)).length(2).optional().describe('[from, to] inclusive'),
     name: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/).optional().describe('Output file stem; default <slug>'), concurrency: z.number().int().min(1).max(8).optional(),
     idempotent_frames: z.array(z.number().int().min(0)).min(1).optional().describe('Output frame numbers to render twice and compare; the summary reports the frames checked'),
     timeout_minutes: timeoutArg, project: projectArg,
@@ -237,6 +238,18 @@ export function buildServer(state) {
     const {run} = await renderTool(p, slug, `${dir}/`, ['--frame-range', `${frame}-${frame}`, '--scale', String(scale)], extra, timeout_minutes);
     const file = join(dir, `${String(frame).padStart(5, '0')}.png`);
     return run.code === 0 && existsSync(file) ? image(file, {frame, scale}) : result(run);
+  });
+  tool('video_frames', 'Inspect selected decoded frames of an existing project-local MP4. Returns source SHA-256 and actual presentation timestamps with PNG images. This samples a saved render; it does not establish normal-speed playback or listening.', {
+    video: z.string().describe('Existing MP4 path inside the project; symlink paths are refused'),
+    frames: z.array(z.number().int().min(0).max(1_000_000)).min(1).max(8).describe('Zero-based decoded frame indices, at most 8'),
+    max_dimension: z.number().int().min(64).max(1280).default(720).describe('Maximum PNG width or height'),
+    project: projectArg,
+  }, ro, async ({video, frames, max_dimension, project}, extra) => {
+    const {source, images} = await inspectVideoFrames(pick(project).root, video, frames, max_dimension, extra?.signal);
+    return {content: [
+      {type: 'text', text: JSON.stringify({source, frames: images.map(({frame, timestampSeconds}) => ({frame, timestampSeconds})), timestampBasis: 'stream presentation timestamp (seconds)', observation: 'sampled stills; not normal-speed playback or listening'}, null, 2)},
+      ...images.map(({data}) => ({type: 'image', data: data.toString('base64'), mimeType: 'image/png'})),
+    ], isError: false};
   });
   tool('check', 'Run frame-check, flash-check, seam-check, narration-check and brief on a rendered video. pass is true only when every row passes; noFailures is true when no check failed. WARN and SKIP are not passes. Video must be inside the project.', {
     video: z.string().describe('Path of the rendered video (absolute, or relative to the project)'), slug: slugArg.optional().describe('The film, for the narration and brief rows'), project: projectArg,

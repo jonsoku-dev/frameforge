@@ -202,6 +202,7 @@ npm run skill:uninstall -- --dry-run       # 지울 링크 목록만 출력, 아
 | `score` | `audio.json`으로 음악과 효과음 생성 |
 | `render` | 전체나 프레임 구간을 `<프로젝트>/renders/`의 MP4로. 경로와 렌더러 JSON 요약을 돌려주고 진행 알림을 보냄. 기본 60분 뒤 중단 |
 | `contact_sheet`, `still` | 여러 프레임 시트, 한 프레임(기본 0.5배)을 PNG 이미지로 돌려줌 |
+| `video_frames` | 프로젝트의 저장된 MP4에서 프레임과 원본 SHA·타임스탬프를 반환(POSIX 전용, 재생·청취는 아님) |
 | `check` | `frameforge check --json`의 표 |
 | `studio_start`, `studio_stop` | 스튜디오를 127.0.0.1에 띄우고 URL을 돌려줌, 끄기 |
 | `read_skill` | 스킬이나 참고 문서(`frameforge-motion`, `frameforge-best-practices/bespoke` 등)를 이름으로 읽기. 이름 없이 부르면 목록 |

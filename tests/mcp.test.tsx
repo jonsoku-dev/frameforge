@@ -17,14 +17,19 @@ test('the MCP server lists tools and prompts, reads skills, writes only inside a
   await client.connect(new StdioClientTransport({command: process.execPath, args: [join(ENGINE, 'bin/frameforge.mjs'), 'mcp'], cwd: scratch, stderr: 'pipe'}));
   try {
     const call = (name: string, args: Record<string, unknown> = {}) => client.callTool({name, arguments: args}) as Promise<Result>;
-    assert.deepEqual((await client.listTools()).tools.map(tool => tool.name).sort(),
-      ['brief_check', 'check', 'contact_sheet', 'film_files', 'film_list', 'film_new', 'lint', 'project_init', 'read_skill', 'render', 'score', 'still', 'studio_start', 'studio_stop']);
+    const toolNames = (await client.listTools()).tools.map(tool => tool.name).sort();
+    assert.deepEqual(toolNames,
+      ['brief_check', 'check', 'contact_sheet', 'film_files', 'film_list', 'film_new', 'lint', 'project_init', 'read_skill', 'render', 'score', 'still', 'studio_start', 'studio_stop', 'video_frames']);
+    const bundle = JSON.parse(readFileSync(join(ENGINE, 'mcpb/manifest.json'), 'utf8')) as {tools: {name: string}[]};
+    assert.deepEqual(bundle.tools.map(tool => tool.name).sort(), toolNames, 'Desktop bundle lists the live MCP tools');
     assert.deepEqual((await client.listPrompts()).prompts.map(prompt => prompt.name).sort(), ['make_explainer', 'make_motion_film']);
     const motionPrompt = JSON.stringify((await client.getPrompt({name: 'make_motion_film', arguments: {request: '10초 아이덴트'}})).messages);
     assert.match(motionPrompt, /10초 아이덴트/);
     assert.match(motionPrompt, /prior and next information, focus, retained elements, transition and settled reading interval/);
     assert.match(motionPrompt, /NOT VERIFIED/);
     assert.match(motionPrompt, /Stills and audio measurements do not prove playback or listening/);
+    assert.match(motionPrompt, /otherwise use a permitted host method, or mark saved-render observations NOT VERIFIED/);
+    assert.match(motionPrompt, /contact_sheet and still render the current source and do not prove what is in a saved MP4/);
     const explainerPrompt = JSON.stringify((await client.getPrompt({name: 'make_explainer', arguments: {request: '무음 제품 사용법'}})).messages);
     assert.match(explainerPrompt, /무음 제품 사용법/);
     assert.match(explainerPrompt, /MET, UNMET or NOT VERIFIED/);
