@@ -61,11 +61,11 @@ cafe-morning이 예다. 장면표의 경계 150, 375프레임이 사양의 5, 12
 | `stinger` | 1.20초 | 짧은 슈퍼소 화음 타격, 킥, 짧은 크래시 | 로고 |
 | `shimmer` | 1.50초 | 고역 노이즈 스윕 | 반짝임 |
 
-배치 규칙. 효과음은 장면마다 주된 사건 하나에만 붙인다. 간격 0.5초 이상, 어느 4초 안에서도 세 개까지(`scripts/render.mjs`의 `sfxFault`가 검사해 어기면 렌더를 거부한다), 음악 `hits`의 앞뒤 한 박 안에는 두지 않는다. 15초 스팟이라면 효과음은 넷 안팎이 맞다. 열두 개를 넣으면 음악이 아무리 매끄러워도 이어 붙인 소리가 난다.
+효과음의 타이밍과 밀도는 사건과 믹스에 맞춰 고른다. 현재 렌더러의 `sfxFault`는 0.5초보다 가까운 효과음과 4초 안의 과밀도를 검사해 어기면 렌더를 거부한다. 검사 통과가 음질이나 지각적 동기화를 보증하지 않으므로 가능한 경우 최종 믹스를 듣는다.
 
 "어울리는 사건" 열은 샘플에서 쓴 예를 모은 것이다. 생성기가 정한 규칙은 아니다. 같은 프리셋을 두 이름으로 적으면 서로 다른 테이크가 나온다.
 
-배치는 움직임에서 받는 것이 기본이다. 움직이는 값을 `useMotionSound`/`<MotionProbe>`로 보고하고 `<MotionSound src role families quiet />`로 파일을 선언하면 엔진이 시작·착지·등장 사건에 소리를 놓는다(`docs/audio-score.md` 움직임에서 나오는 소리). 움직임이 없는 사건(카운트 끝, 체크)만 작품 코드가 직접 놓는다. 사건과 같은 프레임의 `<Sequence from={n} durationInFrames={30} layout="none">` 안에 `<Audio src="/audio/generated/<slug>/<name>.wav" volume={0.8} />`를 둔다. 음악은 루트에 `volume={0.9}`로 하나다. 반복 사건은 배열로 펼쳐 화면과 소리가 같은 프레임 목록을 쓰게 한다. 그래서 타이밍을 고치면 둘이 같이 움직인다.
+배치는 움직임에서 받는 것이 기본이다. 움직이는 값을 `useMotionSound`/`<MotionProbe>`로 보고하고 `<MotionSound src role families quiet />`로 파일을 선언하면 엔진이 시작·착지·등장 사건에 소리를 놓는다(`docs/audio-score.md` 움직임에서 나오는 소리). 작품 코드가 사건을 직접 배치할 수도 있다. 사건과 같은 프레임의 `<Sequence from={n} durationInFrames={30} layout="none">` 안에 `<Audio src="/audio/generated/<slug>/<name>.wav" volume={0.8} />`를 둔다. 음악은 루트에 `volume={0.9}`로 하나다. 반복 사건은 배열로 펼쳐 화면과 소리가 같은 프레임 목록을 쓰게 한다. 그래서 타이밍을 고치면 둘이 같이 움직인다.
 
 ### 음량 정책
 
@@ -77,7 +77,7 @@ LRA에는 주의할 점이 있다. 조용한 훅과 사라지는 꼬리 때문�
 
 ### 생성 시점
 
-세 경로가 있다. 결과는 모두 `public/audio/generated/<slug>/`이며 이 폴더는 `.gitignore`에 있다.
+아래는 엔진 내 샘플의 생성 경로다. 결과는 엔진의 `public/audio/generated/<slug>/`이며 `.gitignore`에 있다. 외부 프로젝트의 자동 score·voice 생성 및 공용 생성 오디오 읽기는 충돌 방지를 위해 임시 차단된다. 외부 프로젝트는 직접 준비한 프로젝트 로컬 음원이나 명시적 전체 믹스 스냅샷을 사용한다.
 
 1. 개발 서버. `vite.config.ts`의 `scoreOnDemand` 미들웨어가 `/audio/generated/<slug>/<file>` 요청에 파일이 없으면 사양을 찾아 생성기를 동기로 돌린다. 서버 로그에 `[score] <slug>: ...`가 남는다.
 2. 렌더. `npm run render`가 Vite를 띄우기 전에 진입 파일 폴더의 `audio.json`을 생성한다. 기본 진입은 `examples/samples/index.tsx`이고 그 폴더에는 `audio.json`이 없으므로 아무것도 생성하지 않는다(`scripts/render.mjs`). 사양은 `examples/samples/<slug>/audio.json`에만 둔다.
@@ -102,46 +102,46 @@ npm run score
 
 어느 쪽이든 넣은 뒤 최종 MP4의 통합 음량과 트루 피크를 다시 잰다. 라이선스와 출처를 그 작품의 `assets.md`에 적는다.
 
-## 2. 아이콘
+## 2. 시각 에셋과 아이콘
 
-주 에셋과 작은 아이콘은 아래 순서로 구한다(`docs/samples/rules.md`의 에셋과 아이콘 절). 한 작품의 선 굵기·모서리·색을 공유하는 그림이 라이브러리 아이콘보다 자연스럽다.
+주인공, 캐릭터와 아이콘은 장면의 목적과 권리에 맞춰 직접 그린 벡터, 허가된 래스터·3D·키트 또는 에셋 해결기 중 고른다. 하나의 형식이나 획 수가 완성도를 보장하지 않는다.
 
-1. **모티프 키트.** `import {Cup, Phone, Pin} from '@/assets'`. `src/assets/`의 46종은 모두 400 viewBox, 8px 그리드, 정면 시점이고 `{size, ink, accent, soft, paper, stroke, radius, draw, parts, style}`를 받는다. 목록과 의도 매칭용 태그는 `src/assets/catalog.ts`의 `CATALOG`, 시트는 `src/assets/Sheet.tsx`의 `AssetSheet`(한 쪽 24개).
-2. **에셋 해결기.** 작품 폴더의 `assets.json`(`{slug, palette: {ink, accent, soft, paper}, assets: [{name, intent, source, recolor, file}]}`)을 `npm run art -- examples/samples/<slug>/assets.json`(`scripts/assets/art.py`)이 해결한다. `source`가 `auto`(기본)면 이 순서로 시도하고, 값을 주면 그 소스만 쓴다.
+1. **모티프 키트(선택).** `import {Cup, Phone, Pin} from '@/assets'`. `src/assets/`의 46종은 모두 400 viewBox, 8px 그리드, 정면 시점이고 `{size, ink, accent, soft, paper, stroke, radius, draw, parts, style}`를 받는다. 목록과 의도 매칭용 태그는 `src/assets/catalog.ts`의 `CATALOG`, 시트는 `src/assets/Sheet.tsx`의 `AssetSheet`(한 쪽 24개).
+2. **에셋 해결기(선택).** 작품 폴더의 `assets.json`(`{slug, palette: {ink, accent, soft, paper}, assets: [{name, intent, source, recolor, file}]}`)을 `npm run art -- examples/samples/<slug>/assets.json`(`scripts/assets/art.py`)이 해결한다. `source`가 `auto`(기본)면 이 순서로 시도하고, 값을 주면 그 소스만 쓴다.
    - `host`: 호스트 에이전트가 자기 이미지 도구로 만들어 `public/assets/generated/<slug>/<name>.svg|.png|.webp`에 둔 파일이나 항목의 `file`. SVG는 원본을 `<slug>/.host/`에 남기고 정리한다. PNG/WebP는 래스터 그대로 쓴다(색 바꾸기 없음).
    - `image-command`: 환경 변수 `FRAMEFORGE_IMAGE_COMMAND`(`{prompt}`와 선택 `{out}`이 든 셸 템플릿). 첫 PNG는 `{out}`이거나 명령이 출력한 JSON `paths`의 첫 항목이다. vtracer가 있으면 SVG로 추적하고, 없으면 PNG로 남긴다.
    - `library`: Openverse 이미지 검색의 CC0 SVG(키 없음, Wikimedia Commons 우선).
    - `kit`: `CATALOG`의 태그로 키트 컴포넌트를 고른다. 파일은 쓰지 않는다.
-   SVG는 모두 스크립트, `foreignObject`, 외부 참조, 이벤트 속성을 지우고 viewBox를 붙인다. `recolor`가 참이면 밝기와 채도로 색을 팔레트 칸(ink, accent, soft, paper)에 옮긴다. 결과는 `public/assets/generated/<slug>/`(커밋하지 않음)와 선택을 해시로 고정한 매니페스트 `assets.json`, 표기가 필요한 출처가 있을 때 `CREDITS.md`다. 실패한 소스는 다음 소스로 넘어가고 매니페스트에 이유가 남는다. 개발 서버는 없는 SVG 요청에 그때 해결하고, `npm run render`는 진입 폴더에 `assets.json`이 있으면 렌더 전에 해결한다. 작품에서는 `<Art src="/assets/generated/<slug>/<name>.svg" size draw ink accent soft paper />`(가져오기 `frameforge`)로 그린다.
-3. **직접 그리기.** 둘 다 맞지 않을 때만 `examples/samples/<slug>/assets.tsx`에 그리고 아래 품질 기준을 통과시킨다. 기준 예는 cafe-morning의 컵(`examples/samples/cafe-morning/Spot.tsx`의 `CUP` 경로와 `Cup` 컴포넌트): `pathLength={1}`과 `strokeDashoffset`으로 그려지며 들어오고, 약속 장면에 같은 컵이 다시 온다.
+   SVG는 모두 스크립트, `foreignObject`, 외부 참조, 이벤트 속성을 지우고 viewBox를 붙인다. `recolor`가 참이면 밝기와 채도로 색을 팔레트 칸(ink, accent, soft, paper)에 옮긴다. 결과는 `public/assets/generated/<slug>/`(커밋하지 않음)와 선택을 해시로 고정한 매니페스트 `assets.json`, 표기가 필요한 출처가 있을 때 `CREDITS.md`다. 실패한 소스는 다음 소스로 넘어가고 매니페스트에 이유가 남는다. 개발 서버는 없는 SVG 요청에 그때 해결하고, `npm run render`는 진입 폴더에 `assets.json`이 있으면 렌더 전에 해결한다. 자동 해결은 외부 접근과 공용 생성 경로에 영향을 줄 수 있으므로 범위와 권한을 먼저 확인한다. 작품에서는 `<Art src="/assets/generated/<slug>/<name>.svg" size draw ink accent soft paper />`(가져오기 `frameforge`)로 그린다.
+3. **직접 그리기.** 컨셉에 적합하면 다른 소스보다 먼저 선택해도 된다. `assets.tsx`의 벡터나 장면 코드, 허가된 래스터·3D를 사용할 수 있다. cafe-morning의 컵은 `pathLength={1}`과 `strokeDashoffset`을 쓰는 구현 예일 뿐 시각 스타일이나 복잡도의 기준이 아니다.
 
-아이콘 라이브러리(`lucide-react`, ISC, 설치됨)는 실제 화면 설명 영상의 콜아웃 마커에만 쓴다. 아래의 lucide 사용법은 그 경우를 위한 것이다.
+아이콘 라이브러리(`lucide-react`, ISC, 설치됨)는 작품의 시각 언어와 사용 권한에 맞을 때 사용할 수 있다. 아래 코드는 한 가지 구현 예다.
 
-주 에셋 품질 기준(2026-10-20, haiku 작품의 에셋이 빈약하다는 판정 뒤). 키트가 이 기준으로 그려졌고, 직접 그리는 에셋도 같은 기준을 따른다. 직접 그린 에셋은 애니메이션과 분리해 `examples/samples/<slug>/assets.tsx`에 두고, 그리는 일은 강한 모델(opus/fable)이, 움직이는 일은 싼 모델(haiku)이 맡는다. 에셋 파일의 기준:
-- 실루엣 테스트: 검정 한 색으로 채워도 무엇인지 알아본다. 원 하나·막대 하나는 에셋이 아니다. 도형 4–9개, 그중 하나는 특징 디테일(컵의 김, 스쿠터의 바구니, 다리의 케이블).
-- 선 시스템: 작품당 선 굵기 하나(짧은 변의 1.3–1.8%), 모서리 반지름 하나, `strokeLinecap`·`strokeLinejoin` round. 채움은 accent/soft 두 가지 안에서 면 분할(앞면·옆면)로 깊이를 낸다.
-- 비례와 그리드: 400×400 viewBox, 8px 그리드에 좌표를 맞춘다. 광학 보정(둥근 형태는 그리드보다 2–3% 크게).
-- 세트 일관성: 한 작품의 에셋 셋은 같은 시점(정면 또는 3/4), 같은 선, 같은 디테일 밀도. 큰 주인공과 작은 아이콘은 같은 그림의 축소·단순화다.
-- 등장 설계: 에셋마다 들어오는 방식을 정한다(그려지기, 면 순서대로 스프링, 조립). 애니메이션 파일은 `assets.tsx`가 export한 `draw`/`parts` 값만 받는다.
-- 금지: 아이콘 라이브러리, 비트맵, 그라데이션, 그림자 흐림, 글자가 든 아이콘.
-- 검사: `assets.tsx`만 렌더한 컨택트 시트(모든 에셋을 한 장에, 정지 상태)를 보고 실루엣 테스트와 선 굵기를 눈으로 확인한 뒤에야 애니메이션에 넘긴다.
+주 에셋은 실루엣, 형태·표정·포즈, 소재와 조명, 시점, 색 대비, 텍스트와의 가림을 장면의 원본 크기와 예상 전달 크기에서 평가한다. 모델을 에셋과 애니메이션에 고정 배정하지 않는다. 사용자가 고급 제작 모델을 요청했다면 허용된 실행 환경에서 기획·연출·구현·수정까지 가능한 모델을 사용하고 실제 설정이 확인되지 않으면 불명으로 보고한다.
+- 실루엣은 의미를 구별하는 데 유용할 때 시험한다. 얼굴·보석·소재의 색과 조명처럼 실루엣만으로 알 수 없는 정보는 실제 장면에서도 관찰한다.
+- 선 굵기·모서리·명암은 소재와 컨셉에 맞춰 설계한다. 400 viewBox나 8px 그리드는 키트의 설계 예이며 모든 에셋의 규칙은 아니다.
+- 원근과 비례를 여러 포즈와 크기에서 살피고, 한 화면에 함께 놓이는 자산의 조명·스타일이 의도에 맞는지 확인한다.
+- 같은 시점이나 디테일 밀도는 일관성에 도움이 될 수 있지만, 장면의 의도에 따라 시점과 재질이 달라도 된다.
+- 등장·변형·표정은 사건과 음악의 역할에 맞춰 설계한다. SVG의 `draw`/`parts`는 선택 가능한 인터페이스이지 유일한 애니메이션 방법이 아니다.
+- 저작권·상표·유료 도구의 사용 조건을 확인한다. 비트맵, 그라데이션, 흐림, 아이콘과 글자도 목적과 권리에 맞으면 쓸 수 있지만 효과나 자산을 추가한 사실만으로 완성도를 주장하지 않는다.
+- 애니메이션 전에 대표 장면을 실제 소재·조명·타이포로 구성해 허용된 수단으로 원본과 전달 크기를 살핀다. 고칠 점을 기록하고 같은 구간의 저장 결과를 재검토한다. 캡처나 실제 재생이 불가하면 해당 판단을 미검증으로 보고한다.
 
-그리는 순서. 1) 주인공을 정한다(컵, 코인, 링). 2) 도형 4–9개(그중 하나는 특징 디테일)로 400×400 viewBox 안에 그린다. 3) 선 굵기(14–20px at 1080)와 모서리 반지름을 상수로 두고 모든 그림이 그 값을 쓴다. 4) 카드 아이콘은 주인공의 축소나 변형(컵 → 컵에 김, 컵에 시계 바늘). 5) 등장은 그려지기(`strokeDashoffset`) 또는 스프링 스케일 중 하나로 통일한다.
+예: 가상 게임 보상의 작은 평면 도형만 보이면 소재와 보상의 관계가 모호할 수 있다. 캐릭터의 포즈와 보상 형태·광원·조건을 장면에 함께 배치하고, 축소 프레임에서 표정과 조건이 실제로 읽히는지 비교한다. 이는 한 가지 수정 가설이며 효과나 세부를 늘리는 것 자체가 품질 증명은 아니다.
 
 ```tsx
 import {Check} from 'lucide-react';
 <Check size={96} strokeWidth={2.5} color={ink} />
 ```
 
-| 항목 | 규칙 |
+| 항목 | 예시와 확인점 |
 | --- | --- |
-| 크기 | 짧은 변의 6% 이상. 1080 기준 65px. `docs/samples/rules.md`의 4%(44px)보다 높인 이 가이드의 기준이다 |
-| 선 굵기 | 2–3. 샘플은 모두 2.4–2.5를 썼다 |
-| 색 | 팔레트 안의 색 하나 |
-| 안의 글자 | 넣지 않는다 |
-| 쓰는 곳 | 라벨 옆, 목록 행, 카드 안의 보조 표시 |
+| 크기 | 1080px의 65px은 샘플 예다. 실제 전달 크기에서 구별되는지 확인한다 |
+| 선 굵기 | 샘플은 2.4–2.5를 썼다. 그림의 스타일과 크기에 맞춰 조절한다 |
+| 색 | 배경과의 대비와 작품의 색 체계를 확인한다 |
+| 안의 글자 | 필요하면 넣고 전달 크기에서 읽히는지 확인한다 |
+| 쓰는 곳 | 목적과 라이선스에 맞게 선택한다 |
 
-장면의 주인공이 되는 큰 형태는 라이브러리를 쓰지 않고 직접 그린다. 다음 장면으로 변신해야 하기 때문이다.
+장면의 주인공은 사용 권한과 표현 목적에 맞게 직접 만들거나 적절한 에셋을 쓸 수 있다. 변형이 필요하면 가능한 레이어나 리깅 구조를 선택한다.
 
 **그려지는 등장.** `strokeDasharray`와 `strokeDashoffset`을 프레임 함수로 돌린다. lucide 컴포넌트는 이 속성을 SVG로 넘긴다.
 
@@ -151,7 +151,7 @@ import {Check} from 'lucide-react';
 
 220은 24단위 viewBox 안의 가장 긴 경로보다 긴 값이다(추정. 아이콘마다 경로 길이가 다르므로 새 아이콘은 키프레임으로 확인한다). 다른 방법은 `pop`으로 스케일을 키우는 것이다.
 
-**라이선스.** 콜아웃 마커에 Lucide 말고 다른 세트를 쓰면 라이선스를 `prompt.md`에 적는다(`docs/samples/rules.md`). 콜아웃 밖에서는 어느 세트도 쓰지 않는다.
+**라이선스.** 사용한 세트·자료의 출처와 해당 배포 범위의 라이선스를 `prompt.md`에 기록한다. 실제 브랜드와 유료 자료는 권리 및 비용 승인을 확인한다.
 
 | 세트 | 라이선스 | 허용 |
 | --- | --- | --- |
@@ -160,8 +160,8 @@ import {Check} from 'lucide-react';
 | Phosphor | MIT | 예 |
 | Tabler | MIT | 예 |
 | Material Symbols | Apache-2.0 | 예 |
-| 유료 세트 | 상용 | 아니오 |
-| 실제 브랜드 로고 아이콘 | 상표 | 아니오 |
+| 유료 세트 | 상용 | 사용 권한 및 별도 비용 승인 확인 |
+| 실제 브랜드 로고 아이콘 | 상표 | 사용 권한 및 맥락 확인 |
 
 ## 3. 글꼴
 
@@ -172,7 +172,7 @@ const display = googleFont('Do Hyeon', {weights: [400], fallback: 'sans-serif'})
 const ui = googleFont('Noto Sans KR', {weights: [500], fallback: 'sans-serif'});
 ```
 
-**한글 포함 여부 확인.** 한글 문자열을 그 글꼴로 쓰기 전에 확인한다. Google Fonts CSS에 한글 음절 영역(U+AC00–D7A3)의 `unicode-range`가 있으면 한글이 있다. 아래 명령은 2026-10-20에 실행했고 Noto Sans KR, Gothic A1, Black Han Sans, Do Hyeon, Gowun Batang, Nanum Myeongjo, IBM Plex Sans KR는 51, Jua는 50, Manrope와 DM Sans는 0을 냈다. 0이면 한글이 없다. 브라우저 User-Agent를 주지 않으면 Google이 다른 형식의 CSS를 돌려줄 수 있다.
+**한글 포함 여부 확인.** 한글 문자열을 그 글꼴로 쓰기 전에 확인한다. Google Fonts CSS에 한글 음절 영역(U+AC00–D7A3)의 `unicode-range`가 있으면 한글이 있다. 외부 접근이 허용된 경우에만 아래 명령으로 확인한다. 이 명령은 2026-10-20에 실행했고 Noto Sans KR, Gothic A1, Black Han Sans, Do Hyeon, Gowun Batang, Nanum Myeongjo, IBM Plex Sans KR는 51, Jua는 50, Manrope와 DM Sans는 0을 냈다. 0이면 한글이 없다. 브라우저 User-Agent를 주지 않으면 Google이 다른 형식의 CSS를 돌려줄 수 있다.
 
 ```sh
 curl -s -A "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36" \
@@ -221,9 +221,9 @@ curl -s -A "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36"
 
 ## 5. 색
 
-**팔레트 규율.** 한 편에 3–4색이다. 배경 둘, 강조 하나, 글자 하나다. 코드 맨 위에 상수로 적고 그 밖의 색은 쓰지 않는다. 깊이가 필요하면 같은 색의 투명도를 쓴다. 샘플은 같은 색이 겹치지 않도록 편마다 다른 팔레트를 받았다. 초록 `#06C755`와 Gothic A1은 첫 작품이 썼던 것이라 샘플에서 금지했다(`examples/samples/cafe-morning/prompt.md`의 "Forbidden for variety"). 그 첫 작품은 실제 브랜드를 써서 저장소에 없다.
+**팔레트.** 컨셉과 소재에 맞게 색을 고르고 강조·정보·배경의 대비를 전달 크기에서 확인한다. 3–4색은 단순한 그래픽에 쓰는 한 방법이지 작품 전체의 필수 제한이 아니다.
 
-**평면색과 그라데이션.** 기본은 평면색이다. 그라데이션은 배경 한 곳까지만 허용된다(`docs/samples/rules.md`). "가운데 제목과 그라데이션"은 AI처럼 보이는 기본값이다. 평면색은 H.264 압축에서 띠가 생기지 않고, 복호 검증에서 값을 바로 비교할 수 있다는 이점도 있다(추정. 띠 현상은 이 저장소에서 측정하지 않았다).
+**평면색과 그라데이션.** 소재와 조명에 맞게 선택한다. 그라데이션·질감의 띠나 압축 손실은 해당 저장 영상에서 확인하며, 기법의 사용만으로 완성도를 판단하지 않는다.
 
 **bt709 파이프라인.** 프레임 PNG는 sRGB다. `scripts/render.mjs`는 bt709 행렬과 TV 범위로 변환하고, 색 태그(primaries, transfer, matrix, range)를 붙여 인코딩한다.
 

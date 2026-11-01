@@ -107,8 +107,8 @@ Frameforge는 Remotion과 제휴하지 않은 독립 구현입니다. 공개 라
 
    `audio.json`의 `"slug"`, `Spot.tsx`의 컴포넌트 이름, `entry.tsx`의 컴포지션 id를 slug에 맞게 바꿉니다. 바꿀 목록은 템플릿의 `prompt.md`에 있습니다.
 
-2. `prompt.md`에 기획을 먼저 씁니다. 목적 한 문장, 색 넷, 글꼴 둘, 절대 프레임 장면표, 소리, 검사 프레임입니다.
-3. 에셋은 모티프 키트(`import {Cup} from '@/assets'`)나 `assets.json` + `npm run art -- examples/samples/<slug>/assets.json`으로 채웁니다.
+2. `prompt.md`에 기획을 먼저 씁니다. 목적 한 문장, 브리프에 맞는 색과 글꼴의 역할, 절대 프레임 장면표, 소리, 검사 프레임입니다. 대표 장면을 실제 에셋으로 먼저 구현하고 전달 크기에서 비평합니다(`skills/frameforge-motion/references/visual-development.md`).
+3. 에셋은 연출에 맞게 직접 제작하거나 사용 권한이 있는 자료를 씁니다. 모티프 키트(`import {Cup} from '@/assets'`)와 `assets.json` + `npm run art -- examples/samples/<slug>/assets.json`도 필요한 경우 선택할 수 있습니다.
 4. `Spot.tsx`를 프레임 함수로 쓰고, `examples/samples/index.tsx`에 import 한 줄과 `<Composition>` 한 줄을 더합니다.
 5. 소리를 만듭니다. `npm run score -- examples/samples/<slug>/audio.json`
 6. 검사합니다.

@@ -4,10 +4,10 @@
 - Frame function: `const frame = useCurrentFrame()` once at the root; write your own timing helpers as pure functions of the frame (an eased 0..1 span from `interpolate` with `Easing`, a `spring`, a decaying kick from `beats.pulse`).
 - Grammar: use a continuous morph, joined scenes, or a deliberate cut when it communicates the change. Continuity can come from a form, position, direction, color or meaning; it need not be the same object.
 - Retargeted values: `springTrack({frame, fps, from, keys: [{at, to}], config})` sums one spring per change, so a value that moves on every beat stays a pure function of the frame. Stretchy indicators: leading and trailing edges on different springs.
-- 60 fps films: `<CameraMotionBlur shutterAngle={180} samples={4}>` around the picture; `MotionProbe`, `Audio` and `MotionSound` outside it (frozen copies report nothing).
+- When motion blur serves the shot, `<CameraMotionBlur shutterAngle={180} samples={4}>` is an option; keep `MotionProbe`, `Audio` and `MotionSound` outside it (frozen copies report nothing).
 - Glyph rise masks: use `blockMask` and `MASK_DROP` from `@/blocks` (0.1em above, 0.4em below, 0.3em beside each glyph, layout height unchanged), spaces as `'\u00A0'`. A clip fails the render with the block's name and the fix.
-- Text never shows a garbled intermediate state: during a reveal every glyph on screen is whole and at full opacity, or absent. Use `GlyphRise` (word by word, rise 8, stagger 1), `Typewriter` (whole words per step) or `ZoomSwap`; no scramble, no half-erased swaps, no long per-glyph staggers (`by="glyph"` only for a single short word).
-- Sizes (1080 short side): headline ≥ 10 %, labels ≥ 3.5 %, icons ≥ 6 %, hero ≥ 35 %; margins 5 %.
+- Preserve meaningful readable text during its reading interval; entrance and exit motion must not obscure that interval. `GlyphRise`, `Typewriter` and `ZoomSwap` are options, not the only allowed choreography. Inspect the actual glyphs and settled words.
+- Use the diagnostic size and margin guidance as a starting point, then inspect at delivery size. Report actual audit findings and any deliberate conflict; do not treat a percentage as proof of legibility or composition quality.
 - Shape the opening for the requested mood and information; inspect it at delivery size.
 - Sparse frames can be intentional. Inspect them against their purpose and actual reading time.
 - Add secondary motion only when it helps the shot. Frame-check fails frozen runs beyond its threshold; inspect the flagged interval and report intentional holds or unresolved conflicts without relabeling the result.
