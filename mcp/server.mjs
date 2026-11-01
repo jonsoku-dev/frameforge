@@ -134,22 +134,22 @@ export function skillNames() {
 
 const WORKFLOW = {
   make_motion_film: {skill: 'frameforge-motion', title: 'Make a motion-graphics film', steps: `1. read_skill frameforge-motion and read_skill frameforge-best-practices/bespoke; follow them over this list.
-2. film_new <slug>, then film_files read entry.tsx and set duration, size and fps to what the request says.
-3. Brief: film_files write brief.md (the request verbatim, one intent-ledger row per clause, engine translation, gaps); brief_check until PASS.
-4. In prompt.md plan the concept and each major event's prior and next information, focus, retained elements, transition and settled reading interval. Source-check factual sequences.
-5. film_files write Spot.tsx as a pure function of useCurrentFrame(), using media and techniques suited to the brief; lint until it has no findings.
-6. Preserve requested audio. Write audio.json and call score when generated sound fits and its sources are authorized.
-7. Within the authorized scope, contact_sheet the relevant states, transitions and last requested frame; critique focus and timing, revise weak scenes and inspect the revision.
-8. Render the authorized range (or whole film if authorized), then check with the mp4 path and slug. If an existing full-mix WAV is explicitly selected for a partial render, audio_snapshot_prepare can create its new manifest on POSIX; it reads the entire WAV and does not verify its provenance or current-source match. Use video_frames to inspect the exact saved MP4 when available; otherwise use a permitted host method, or mark saved-render observations NOT VERIFIED if none is available. contact_sheet and still render the current source and do not prove what is in a saved MP4. Fix concrete defects and inspect each revised render, repeating while evidence and permissions allow. Review flagged holds against their purpose instead of adding motion to clear a diagnostic.
+2. Choose the requested path. For a new film, film_new <slug>, then read entry.tsx and set duration, size and fps. For a revision, use film_list and film_files to read the existing brief.md, prompt.md, entry.tsx and relevant source; retain the selected saved render and reference. Do not call film_new on an existing slug or replace existing files with templates. Merge changes while preserving the original requests, prior records and user-owned assets.
+3. For a new film write brief.md with the request verbatim, one intent-ledger row per clause, engine translation and gaps; for a revision record the new request and identify earlier requirements it explicitly supersedes. Follow the latest explicit instruction. Run brief_check and report unresolved conflicts; it may flag superseded numeric requirements and must not be forced to pass by misrepresenting history.
+4. In prompt.md plan each major event's prior and next information, focus, retained elements, transition and settled reading interval. For factual sequences use a sourced event-state ledger and check visible states and arithmetic, including subject and time. Do not copy factual errors from a reference.
+5. For a new film write Spot.tsx as a pure function of useCurrentFrame(); for a revision change only the relevant existing files required by the request. film_files write replaces the whole file, so read it first and preserve unrelated content. Use media and techniques suited to the brief; lint until it has no findings.
+6. Preserve requested audio. For a revision, read any existing user-owned audio.json and relevant audio inputs first; change only what the request requires and preserve unrelated content. Write audio.json and call score only when generated sound fits and its sources are authorized.
+7. Within the authorized scope inspect the relevant states and last requested frame. Before using contact_sheet or still, check whether their renderer's asset preflight, network or out-of-range effects are authorized; selecting frames alone does not restrict those effects. Use an available permitted observation method or mark the observation NOT VERIFIED. When a reference is supplied and accessible, map corresponding events and times between reference and candidate, not just matching frame numbers. Inspect before, during and after each key transition and settled reading interval; record the observed source, focal hierarchy, retained elements, causal difference and intended correction. Use video_frames for accessible saved MP4s, or a permitted host method; do not move a reference or expand access without authorization. If no observation is possible, mark the comparison NOT VERIFIED. Within the authorized scope critique the weakest consequential difference, revise it and inspect the same interval again. For a partial render, saved MP4 frame 0 corresponds to the requested composition start, not composition frame 0; use recorded ranges and timestamps, or mark the mapping unverified.
+8. After checking the renderer's possible effects and authorization, render the authorized range (or whole film if authorized), then check with the mp4 path and slug. If no authorized render path is available, report the affected result as NOT VERIFIED. If an existing full-mix WAV is explicitly selected for a partial render, audio_snapshot_prepare can create its new manifest on POSIX; it reads the entire WAV and does not verify its provenance or current-source match. Use video_frames to inspect the exact saved MP4 when available; otherwise use a permitted host method, or mark saved-render observations NOT VERIFIED if none is available. contact_sheet and still render the current source and do not prove what is in a saved MP4. Fix concrete defects and inspect each revised render, repeating while evidence and permissions allow. Review flagged holds against their purpose instead of adding motion to clear a diagnostic.
 9. Review playback and listen to the final mix when available. Report each must and forbid clause as MET, UNMET or NOT VERIFIED with evidence, actual check statuses, observation method and gaps. Stills and audio measurements do not prove playback or listening.`},
   make_explainer: {skill: 'frameforge-create', title: 'Make an explainer film', steps: `1. read_skill frameforge-create and read_skill frameforge-best-practices; follow them over this list. Read the references they point to with read_skill.
-2. film_new <slug>; film_files read entry.tsx, prompt.md and brief.md.
-3. Brief: film_files write brief.md (request verbatim, intent ledger, engine translation, gaps); brief_check until PASS.
+2. Choose the requested path: for a new film use film_new <slug>; for a revision use film_list and film_files to read the existing entry.tsx, prompt.md, brief.md and relevant source and retain the specified saved output. Do not call film_new on an existing slug or replace existing files with templates. Merge updates while preserving earlier requests, records and user-owned assets.
+3. For a new film write brief.md (request verbatim, intent ledger, engine translation, gaps); for a revision record the new request and identify earlier conditions explicitly superseded by it. Follow the latest explicit instruction. Run brief_check and report unresolved conflicts; it may flag superseded numeric requirements and must not be forced to pass by misrepresenting history.
 4. Concept and Structure table in prompt.md; use a beat grid when it serves the brief and show the table before writing code.
-5. Code: film_files write Spot.tsx (blocks, kit and bespoke code as the skill allows); lint until clean.
+5. For a new film write Spot.tsx; for a revision change only relevant existing files. film_files write replaces the whole file, so read it first and preserve unrelated content. Lint until clean.
 6. Preserve requested audio or silence. Write audio.json and call score only when generated sound fits the request and its sources are authorized. Outside snapshot mode the renderer generates a score whenever audio.json exists: remove an unused audio.json and import only if they came from the newly copied template, never delete user-owned files. If the available tools cannot do that, report the limitation rather than claim the requested workflow was performed.
-7. Within the authorized scope, contact_sheet the relevant scenes; critique them in prompt.md, revise weak scenes and inspect the revision.
-8. Render the authorized range (or whole film if authorized), then check with the mp4 path and slug. If an existing full-mix WAV is explicitly selected for a partial render, audio_snapshot_prepare can create its new manifest on POSIX; it reads the entire WAV and does not verify its provenance or current-source match. Inspect failures against the brief, fix concrete defects and report actual statuses, including intentional holds.
+7. Within the authorized scope, compare corresponding events in any accessible reference and candidate. Before using contact_sheet or still, check whether their renderer's asset preflight, network or out-of-range effects are authorized; selecting frames alone does not restrict those effects. Use an available permitted observation method or mark the observation NOT VERIFIED. Inspect before, during and after transitions and reading intervals; record sources, time mapping, actual information, focal hierarchy and a concrete causal difference. Cross-check factual values against their sources rather than copying errors. Revise the weakest consequential difference and inspect the same interval again; unavailable comparisons remain NOT VERIFIED. Saved MP4 frame indices start at zero even for a partial render: map them to the recorded composition range and align differing frame rates by time or event.
+8. After checking the renderer's possible effects and authorization, render the authorized range (or whole film if authorized), then check with the mp4 path and slug. If no authorized render path is available, report the affected result as NOT VERIFIED. If an existing full-mix WAV is explicitly selected for a partial render, audio_snapshot_prepare can create its new manifest on POSIX; it reads the entire WAV and does not verify its provenance or current-source match. Inspect failures against the brief, fix concrete defects and report actual statuses, including intentional holds.
 9. Report every must and forbid clause as MET, UNMET or NOT VERIFIED with evidence, the actual check statuses, and what you did not verify.`},
 };
 
@@ -206,7 +206,7 @@ export function buildServer(state) {
     writeFileSync(file, content);
     return text(`wrote ${relative(folder, file)} (${Buffer.byteLength(content)} bytes)`);
   });
-  tool('brief_check', 'Check films/<slug>/brief.md: the verbatim request, the intent ledger, the engine translation and gaps. PASS before writing the concept.', {slug: slugArg, project: projectArg}, ro, async ({slug, project}) => {
+  tool('brief_check', 'Check films/<slug>/brief.md: the verbatim request, intent ledger, engine translation and gaps. Report the actual result; superseded numeric requirements can still produce findings.', {slug: slugArg, project: projectArg}, ro, async ({slug, project}) => {
     const p = pick(project);
     return result(await cli(p, ['brief-check', filmFolder(p, slug)]));
   });
@@ -256,10 +256,10 @@ export function buildServer(state) {
     }
     const out = freeOutput(p, name ?? (frame_range ? `${slug}-${frame_range[0]}-${frame_range[1]}` : slug), '.mp4');
     const {run, summary, audit} = await renderTool(p, slug, out, [...(frame_range ? ['--frame-range', frame_range.join('-')] : []), ...(concurrency ? ['--concurrency', String(concurrency)] : []), ...(idempotent_frames ? ['--check-idempotent', '--idempotent-frames', idempotent_frames.join(',')] : []), ...(audio_snapshot !== undefined ? ['--audio-snapshot', audio_snapshot, '--audio-snapshot-manifest', audio_snapshot_manifest] : [])], extra, timeout_minutes);
-    return run.code === 0 ? text({video: out, summary, ...(audit ? {audit: JSON.parse(audit).audit} : {}), next: `check {video: "${out}", slug: "${slug}"}`}) : result(run);
+    return run.code === 0 ? text({video: out, ...(frame_range ? {requestedFrameRange: frame_range} : {}), summary, ...(audit ? {audit: JSON.parse(audit).audit} : {}), next: `check {video: "${out}", slug: "${slug}"}`}) : result(run);
   });
   const image = (file, info) => ({content: [{type: 'image', data: readFileSync(file).toString('base64'), mimeType: 'image/png'}, {type: 'text', text: JSON.stringify({file, ...info}, null, 1)}]});
-  tool('contact_sheet', 'Render the listed frames and tile them into one PNG (480 px cells, 4 per row), returned as an image so you can look at the film.', {
+  tool('contact_sheet', 'Render the listed frames and tile them into one PNG (480 px cells, 4 per row). Frame selection does not limit asset preflight, network requests or other out-of-range side effects; check authorization first.', {
     slug: slugArg, frames: z.array(z.number().int().min(0)).min(1).max(24).describe('Frame numbers, e.g. one per scene'), timeout_minutes: timeoutArg, project: projectArg,
   }, writes, async ({slug, frames, timeout_minutes, project}, extra) => {
     const p = pick(project);
@@ -267,7 +267,7 @@ export function buildServer(state) {
     const {run, audit} = await renderTool(p, slug, out, ['--frames', frames.join(',')], extra, timeout_minutes);
     return run.code === 0 && existsSync(out) ? image(out, {frames, ...(audit ? {audit: JSON.parse(audit).audit} : {})}) : result(run);
   });
-  tool('still', 'Render one frame as a PNG image (scale 0.5 by default: 960x540 for a 1080p film).', {
+  tool('still', 'Render one frame as a PNG image (scale 0.5 by default: 960x540 for a 1080p film). Frame selection does not limit asset preflight, network requests or other out-of-range side effects; check authorization first.', {
     slug: slugArg, frame: z.number().int().min(0), scale: z.number().min(0.1).max(2).default(0.5), timeout_minutes: timeoutArg, project: projectArg,
   }, writes, async ({slug, frame, scale, timeout_minutes, project}, extra) => {
     const p = pick(project);
@@ -276,7 +276,7 @@ export function buildServer(state) {
     const file = join(dir, `${String(frame).padStart(5, '0')}.png`);
     return run.code === 0 && existsSync(file) ? image(file, {frame, scale}) : result(run);
   });
-  tool('video_frames', 'Inspect selected decoded frames of an existing project-local MP4. Returns source SHA-256 and actual presentation timestamps with PNG images. This samples a saved render; it does not establish normal-speed playback or listening.', {
+  tool('video_frames', 'Inspect selected decoded frames of an existing project-local MP4. Frame indices start at zero in the saved MP4, even for a partial render. Returns source SHA-256 and presentation timestamps with PNG images; it does not establish normal-speed playback or listening.', {
     video: z.string().describe('Existing MP4 path inside the project; symlink paths are refused'),
     frames: z.array(z.number().int().min(0).max(1_000_000)).min(1).max(8).describe('Zero-based decoded frame indices, at most 8'),
     max_dimension: z.number().int().min(64).max(1280).default(720).describe('Maximum PNG width or height'),
@@ -346,7 +346,7 @@ export function buildServer(state) {
   });
 
   for (const [name, {skill, title, steps}] of Object.entries(WORKFLOW)) server.registerPrompt(name, {title, description: `${title} with the Frameforge tools, end to end`, argsSchema: {request: z.string().describe('What the user asked for, verbatim')}}, ({request}) => ({
-    messages: [{role: 'user', content: {type: 'text', text: `Make this film with the Frameforge MCP tools. The user's request, verbatim (keep every clause):\n\n${request}\n\nWorkflow (the ${skill} skill is the authority; read it first):\n${steps}\n\nRules: every value derives from the frame number and seeded random numbers; no network or paid services in the film; never write outside films/<slug>/ (film_files enforces it).`}}],
+    messages: [{role: 'user', content: {type: 'text', text: `Make this film with the Frameforge MCP tools. The user's request, verbatim (keep every clause):\n\n${request}\n\nWorkflow (the ${skill} skill is the authority; read it first):\n${steps}\n\nRules: frame-dependent values derive from the frame number and seeded random numbers. Use external or paid services only when authorized. Edit film source only inside films/<slug>/; tools may create requested outputs elsewhere in the project.`}}],
   }));
   return server;
 }

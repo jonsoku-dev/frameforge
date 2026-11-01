@@ -83,4 +83,4 @@ Give `out` a few frames inside the next scene's wipe so the block is still there
 
 ## Checks
 
-Blocks do not replace the film checks in `frameforge-check`: render the contact sheet of the check frames, `npx tsc --noEmit`, `npm test`, `npm run lint:video`, then the full render with `frame-check` and `flash-check`. The block unit tests are `npx tsx --test tests/blocks-text.test.tsx`.
+Blocks do not replace the film checks in `frameforge-check`. Inspect the authorized frames using a permitted method, run `npx tsc --noEmit`, `npm test` and `npm run lint:video`, and check the requested render with `frame-check` and `flash-check`. Before rendering a contact sheet, still or video, check whether asset generation, network requests and other out-of-range effects are permitted; frame selection alone does not prevent them. If no suitable permitted method exists, report affected observations NOT VERIFIED. A partial check does not establish whole-film status. The block unit tests are `npx tsx --test tests/blocks-text.test.tsx`.

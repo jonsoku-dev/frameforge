@@ -7,4 +7,4 @@ Check this Frameforge render: $ARGUMENTS
 
 1. Call the `frameforge` MCP tool `check` with the video path and, when given, the film slug.
 2. Show the table rows as they come back.
-3. For every FAIL, name the defect in one line and the fix (`read_skill frameforge-check` has what each check measures). Do not call the film done while a row fails.
+3. For every FAIL, identify the measured finding and inspect the interval against its purpose (`read_skill frameforge-check` has what each check measures). Propose a fix for an unintended defect; report an intentional hold or other unresolved conflict with the actual status intact. WARN and SKIP are not passes, and a partial check does not establish whole-film status.
