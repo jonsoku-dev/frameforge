@@ -237,10 +237,17 @@ const run = (command, args, fd) => new Promise((resolveRun, reject) => {
   child.on(fd === undefined ? 'exit' : 'close', (code) => code === 0 && (fd === undefined || !stderr.length) ? resolveRun() : reject(new Error(`${command} exited ${code}: ${stderr}`)));
 });
 
+// A page is not returned until after Chrome has started and connected. Keep
+// the child itself while it is opening as well, so CLI cancellation can stop
+// precisely the browsers this renderer launched before exiting.
+const liveBrowsers = new Set();
+
 /** One headless Chrome with its own profile, connected over DevTools, navigated to the render page and configured with `inputProps`. */
 async function openPage(chrome, url, inputProps, profile) {
   // shortcut: window starts at 1920x1080 because the composition size is only known after configure; the device-metrics override sets the real size.
   const browser = spawn(chrome, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--window-size=1920,1080', '--hide-scrollbars', '--force-device-scale-factor=1', '--disable-background-networking', '--no-first-run', '--enable-blink-features=CanvasDrawElement', 'about:blank'], {stdio: 'ignore'});
+  liveBrowsers.add(browser);
+  browser.once('exit', () => liveBrowsers.delete(browser));
   browser.on('error', () => {});
   let socket;
   const close = async () => {
@@ -584,8 +591,20 @@ Every render prints {"audit": [...]} once with the layout findings (text outside
   const numberOr = (name, fallback) => options[name] === undefined ? fallback : Number(options[name]);
   process.env.VIDEO_ENTRY = resolve(process.cwd(), entry);
   const wantsSnapshot = options['--audio-snapshot'] !== undefined || options['--audio-snapshot-manifest'] !== undefined;
-  let audioSnapshot, scratch, server, cancelSnapshot, scratchState;
+  let audioSnapshot, scratch, server, scratchState;
   const priorGuard = process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE;
+  const cancelRender = () => {
+    // MCP sends SIGTERM to the request's process group. Chrome can survive
+    // SIGTERM after the group leader exits, so stop only our tracked browsers
+    // before this process exits and the active page handles become unreachable.
+    for (const browser of liveBrowsers) {
+      if (browser.exitCode === null && browser.signalCode === null) browser.kill('SIGKILL');
+    }
+    try { if (scratchState) scratchState.clean(); } catch (error) { console.error(`Audio snapshot cancellation cleanup failed: ${error.message}`); }
+    try { if (audioSnapshot) closeSync(audioSnapshot.fd); } catch {}
+    process.exit(143);
+  };
+  process.once('SIGTERM', cancelRender);
   try {
     if (wantsSnapshot) {
       if (!options['--audio-snapshot'] || !options['--audio-snapshot-manifest']) throw new Error('Audio snapshot requires both --audio-snapshot and --audio-snapshot-manifest.');
@@ -604,12 +623,6 @@ Every render prints {"audit": [...]} once with the layout findings (text outside
         scratchState = undefined;
       };
       scratchState.clean = cleanScratch;
-      cancelSnapshot = () => {
-        try { if (scratchState) scratchState.clean(); } catch (error) { console.error(`Audio snapshot cancellation cleanup failed: ${error.message}`); }
-        try { if (audioSnapshot) closeSync(audioSnapshot.fd); } catch {}
-        process.exit(143);
-      };
-      process.once('SIGTERM', cancelSnapshot);
       audioSnapshot = prepareAudioSnapshot(process.env.FRAMEFORGE_PROJECT || process.cwd(), options['--audio-snapshot'], options['--audio-snapshot-manifest'], scratch, id, frameRange, scratchState);
       process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE = '1';
     } else {
@@ -636,7 +649,7 @@ Every render prints {"audit": [...]} once with the layout findings (text outside
     try { if (server) await server.close(); }
     finally {
       try { try { if (scratchState) scratchState.clean(); } finally { if (audioSnapshot) closeSync(audioSnapshot.fd); } }
-      finally { if (cancelSnapshot) process.removeListener('SIGTERM', cancelSnapshot); if (priorGuard === undefined) delete process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE; else process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE = priorGuard; }
+      finally { process.removeListener('SIGTERM', cancelRender); if (priorGuard === undefined) delete process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE; else process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE = priorGuard; }
     }
   }
 }
