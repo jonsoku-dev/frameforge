@@ -44,6 +44,21 @@ SCAN_FILE = os.path.join('frameforge-scans', 'models', 'head', 'head.gltf')  # u
 # Blender's own CC0 studio-light HDRIs (datafiles/studiolights/world); `light.hdri` may name one instead of a file.
 BUNDLED_HDRIS = ('studio', 'city', 'courtyard', 'forest', 'interior', 'night', 'sunrise', 'sunset')
 ENGINES = {'eevee': 'BLENDER_EEVEE', 'cycles': 'CYCLES'}
+
+
+def set_render_engine(render, engine):
+    """EEVEE's RNA identifier differs between supported Blender versions."""
+    if engine == 'cycles':
+        render.engine = 'CYCLES'
+        return
+    if engine != 'eevee':
+        raise ValueError(f'Unknown render engine: {engine}')
+    try:
+        render.engine = 'BLENDER_EEVEE'
+    except TypeError:
+        # Blender 4.2–4.x uses NEXT; do not silently switch to another renderer.
+        render.engine = 'BLENDER_EEVEE_NEXT'
+
 # Shot defaults; blender.py validates the types, this file only fills gaps.
 DEFAULTS = {'engine': 'eevee', 'samples': 32, 'transparent': False, 'background': '#F4F4F1', 'shadowCatcher': False,
             'look': None, 'sweep': None, 'bloom': None, 'dof': None, 'view': 'standard', 'motionBlur': None, 'scatter': None,
@@ -249,6 +264,7 @@ def node(tree, kind, **inputs):
 
 def make_material(spec):
     material = bpy.data.materials.new('frameforge')
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     bsdf = material.node_tree.nodes['Principled BSDF']
     bsdf.inputs['Base Color'].default_value = linear(spec['base'])
     bsdf.inputs['Metallic'].default_value = float(spec['metallic'])
@@ -383,6 +399,7 @@ def make_post(scene, shot):
 def make_world(scene, shot, generated):
     """Camera rays see the background hex (or nothing when transparent); everything else is lit by the preset's environment."""
     world = bpy.data.worlds.new('frameforge')
+    if hasattr(world, 'use_nodes'): world.use_nodes = True
     scene.world = world
     tree = world.node_tree
     output = tree.nodes['World Output']
@@ -488,6 +505,7 @@ def make_shadow_catcher(scene, shot, objects):
         plane.is_shadow_catcher = True
         return
     material = bpy.data.materials.new('shadow-catcher')
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     material.surface_render_method = 'BLENDED'
     tree = material.node_tree
     tree.nodes.remove(tree.nodes['Principled BSDF'])
@@ -517,7 +535,7 @@ def setup(spec_path, shot_name):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     render = scene.render
-    render.engine = ENGINES[shot['engine']]
+    set_render_engine(render, shot['engine'])
     render.resolution_x, render.resolution_y, render.resolution_percentage = int(shot['width']), int(shot['height']), 100
     render.fps, scene.frame_start, scene.frame_end = int(shot['fps']), 0, int(shot['frames']) - 1
     render.film_transparent = bool(shot['transparent']) or shot['background'] == 'transparent'
