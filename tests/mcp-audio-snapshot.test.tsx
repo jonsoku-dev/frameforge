@@ -130,6 +130,7 @@ registerRoot(() => <Composition id="Snapshot" component={Spot} durationInFrames=
     const output = JSON.parse(content[0].text);
     assert.ok(existsSync(output.video));
     assert.equal(output.summary.frames, 3);
+    assert.deepEqual(output.requestedFrameRange, [30, 32]);
     assert.equal(output.summary.audioSnapshot.source, 'snapshots/full.wav');
     assert.equal(output.summary.audioSnapshot.sha256, sha256);
     assert.equal(output.summary.audioSnapshot.from, 30);

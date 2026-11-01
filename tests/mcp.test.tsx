@@ -28,8 +28,18 @@ test('the MCP server lists tools and prompts, reads skills, writes only inside a
     assert.match(motionPrompt, /prior and next information, focus, retained elements, transition and settled reading interval/);
     assert.match(motionPrompt, /NOT VERIFIED/);
     assert.match(motionPrompt, /Stills and audio measurements do not prove playback or listening/);
-    assert.match(motionPrompt, /Render the authorized range \(or whole film if authorized\)/);
+    assert.match(motionPrompt, /render the authorized range \(or whole film if authorized\)/i);
     assert.match(motionPrompt, /last requested frame/);
+    assert.match(motionPrompt, /For a revision, use film_list and film_files/);
+    assert.match(motionPrompt, /Do not call film_new on an existing slug/);
+    assert.match(motionPrompt, /earlier requirements it explicitly supersedes/);
+    assert.match(motionPrompt, /film_files write replaces the whole file/);
+    assert.match(motionPrompt, /read any existing user-owned audio.json and relevant audio inputs first/);
+    assert.match(motionPrompt, /selecting frames alone does not restrict those effects/);
+    assert.doesNotMatch(motionPrompt, /2 goals in a first leg/);
+    assert.match(motionPrompt, /before, during and after each key transition/);
+    assert.match(motionPrompt, /Do not copy factual errors from a reference/);
+    assert.match(motionPrompt, /saved MP4 frame 0 corresponds to the requested composition start/);
     assert.match(motionPrompt, /otherwise use a permitted host method, or mark saved-render observations NOT VERIFIED/);
     assert.match(motionPrompt, /contact_sheet and still render the current source and do not prove what is in a saved MP4/);
     const explainerPrompt = JSON.stringify((await client.getPrompt({name: 'make_explainer', arguments: {request: '무음 제품 사용법'}})).messages);
@@ -37,15 +47,31 @@ test('the MCP server lists tools and prompts, reads skills, writes only inside a
     assert.match(explainerPrompt, /MET, UNMET or NOT VERIFIED/);
     assert.match(explainerPrompt, /actual check statuses/);
     assert.match(explainerPrompt, /Preserve requested audio or silence/);
-    assert.match(explainerPrompt, /Render the authorized range \(or whole film if authorized\)/);
+    assert.match(explainerPrompt, /render the authorized range \(or whole film if authorized\)/i);
+    assert.match(explainerPrompt, /for a revision use film_list and film_files/);
+    assert.match(explainerPrompt, /earlier conditions explicitly superseded/);
+    assert.match(explainerPrompt, /for a revision change only relevant existing files/);
+    assert.match(explainerPrompt, /selecting frames alone does not restrict those effects/);
+    assert.match(explainerPrompt, /align differing frame rates by time or event/);
     assert.match(explainerPrompt, /never delete user-owned files/);
 
     const names = JSON.parse(body(await call('read_skill')));
     assert.ok(names.includes('frameforge-motion') && names.includes('frameforge-best-practices/bespoke'));
-    assert.equal(body(await call('read_skill', {name: 'frameforge-motion'})), readFileSync(join(ENGINE, 'skills/frameforge-motion/SKILL.md'), 'utf8'));
+    const motionSkill = body(await call('read_skill', {name: 'frameforge-motion'}));
+    assert.equal(motionSkill, readFileSync(join(ENGINE, 'skills/frameforge-motion/SKILL.md'), 'utf8'));
+    assert.match(motionSkill, /do not replace `Spot.tsx` by default/);
+    assert.match(motionSkill, /selecting frames alone does not prevent them/);
+    assert.match(motionSkill, /supersession|supersed/i);
     const createSkill = body(await call('read_skill', {name: 'frameforge-create'}));
     assert.equal(createSkill, readFileSync(join(ENGINE, 'skills/frameforge-create/SKILL.md'), 'utf8'));
     assert.match(createSkill, /Preserve requested audio or silence/);
+    assert.match(createSkill, /supersed/i);
+    assert.match(createSkill, /frame selection alone does not prevent them/);
+    for (const name of ['frameforge-check', 'frameforge-blocks', 'frameforge-best-practices/bespoke']) {
+      const guidance = body(await call('read_skill', {name}));
+      assert.match(guidance, /asset generation, network requests and other out-of-range effects are permitted/);
+      assert.match(guidance, /NOT VERIFIED/);
+    }
     assert.match(createSkill, /Never delete user-owned files/);
     assert.equal((await call('read_skill', {name: '../package'})).isError, true, 'a traversal name is rejected');
 
@@ -55,6 +81,18 @@ test('the MCP server lists tools and prompts, reads skills, writes only inside a
     assert.ok(!made.isError, body(made));
     assert.deepEqual(JSON.parse(body(await call('film_list'))).films.map((film: {slug: string; id: string}) => [film.slug, film.id]), [['demo-spot', 'DemoSpot']],
       'project_init made the new project the default');
+
+    const tools = (await client.listTools()).tools;
+    assert.match(tools.find(item => item.name === 'brief_check')?.description ?? '', /superseded numeric requirements can still produce findings/);
+    for (const name of ['still', 'contact_sheet']) {
+      assert.match(tools.find(item => item.name === name)?.description ?? '', /does not limit asset preflight/);
+    }
+    const beforeBrief = body(await call('film_files', {slug: 'demo-spot', action: 'read', path: 'brief.md'}));
+    const beforeSource = body(await call('film_files', {slug: 'demo-spot', action: 'read', path: 'Spot.tsx'}));
+    const mergedBrief = `${beforeBrief}\n## Revision record\nUse the new explicit duration; the prior duration is superseded.\n`;
+    assert.ok(!(await call('film_files', {slug: 'demo-spot', action: 'write', path: 'brief.md', content: mergedBrief})).isError);
+    assert.equal(body(await call('film_files', {slug: 'demo-spot', action: 'read', path: 'brief.md'})), mergedBrief);
+    assert.equal(body(await call('film_files', {slug: 'demo-spot', action: 'read', path: 'Spot.tsx'})), beforeSource, 'merging a revision record does not alter unrelated source');
 
     const files = JSON.parse(body(await call('film_files', {slug: 'demo-spot', action: 'list'})));
     assert.ok(files.includes('Spot.tsx') && files.includes('brief.md'));

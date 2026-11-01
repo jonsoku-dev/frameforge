@@ -33,11 +33,11 @@ Not provided: uploading a canvas as a shader texture. Layer the canvas over the 
 
 ## Fonts
 
-`const display = googleFont('Family Name', {weights: [800]})` at module level returns a CSS family string. Use it in DOM styles and in canvas: `ctx.font = \`800 ${px}px ${display}\``. The renderer waits for every requested Google Font before it captures a frame, and `<Canvas2D>` paints only after they load. Never rely on a system font: a system face differs per machine, so the film does too. Call `googleFont` at module level, not inside a component (a family first requested after the fonts settled is not awaited by the canvas).
+`const display = googleFont('Family Name', {weights: [800]})` at module level returns a CSS family string. Use it in DOM styles and in canvas: `ctx.font = \`800 ${px}px ${display}\``. The renderer waits for every requested Google Font before it captures a frame, and `<Canvas2D>` paints only after they load. Google Fonts can access the network; use them only when authorized. A licensed local font can avoid that request. A system face can differ per machine, so report variability or substitutions. Call `googleFont` at module level, not inside a component (a family first requested after the fonts settled is not awaited by the canvas).
 
 ## Text the audit cannot see
 
-- Text painted on a canvas or in a shader is not DOM text: the render audit does not measure it. Check its size (headline at least 10 % of the short side, labels 3.5 %), its margin (5 %) and its contrast on the contact sheet, frame by frame, and say so in the report.
+- Text painted on a canvas or in a shader is not DOM text: the render audit does not measure it. Inspect its size (headline at least 10 % of the short side, labels 3.5 %), margin (5 %) and contrast using an authorized observation method. Before rendering a contact sheet or still, check whether asset generation, network requests and other out-of-range effects are permitted; frame selection alone does not prevent them. Report the observed scope and mark observations NOT VERIFIED if no suitable permitted method is available.
 - A chromatic split or echo of DOM type (offset copies of the same word in other colours) marks the copies `aria-hidden="true"` or `data-fx="ghost"`: the audit then ignores them, and identical copies never count as overlapping text.
 - Letters that slam across the safe margin for under 0.3 s are motion, not a fault; a word that sits outside the margin for 0.3 s in one run is reported.
 
@@ -47,5 +47,5 @@ Hold the frame while something loads with `const h = delayRender('why')` and `co
 
 ## The end and the poster
 
-- The end is a live lockup: the name has arrived within the last 1.5 s and the frame keeps moving (the world still turning, light still sweeping, particles still flowing). frame-check fails a final 2 s whose motion share is under 0.5. A loop instead ends where it began (`--hold 0`).
-- A poster or thumbnail is a still render of one frame (`npm run render -- <entry.tsx> <Id> poster.png --frames <n>`), never a held end of the film.
+- Choose an ending that serves the brief; a settled lockup, deliberate hold, or live motion can all work. Frame-check can flag low motion in its final 2 s; assess the interval against its purpose and report the actual result and any conflict. A loop may end where it began (`--hold 0`).
+- A poster or thumbnail can be a still render of one authorized frame (`npm run render -- <entry.tsx> <Id> poster.png --frames <n>`); a held end may also serve when it fits the brief.

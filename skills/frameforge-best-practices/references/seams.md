@@ -1,19 +1,19 @@
 # Seams
 
-A film built from independently animated scenes looks like a slide deck: the eye's momentum dies at every cut. A seam is the cut treated as one motion that both scenes share. `src/packages/seams.tsx` (exported from `frameforge`) gives the curves and a `<Seam>` component; `scripts/seam-check.mjs` reads the motion dump a render writes (`<output>.motion.json`) and fails the film when a cut breaks the rules below.
+A shared motion across a cut can preserve the eye's momentum; a deliberate cut or settled state can also serve the story. `src/packages/seams.tsx` (exported from `frameforge`) gives curves and a `<Seam>` component. `scripts/seam-check.mjs` reads a render's motion dump (`<output>.motion.json`) and measures the vector criteria below. A diagnostic failure is not itself an artistic verdict: examine the interval and report the actual result even when the difference is intentional.
 
-## The vector law
+## Shared-vector pattern
 
-How scene A exits decides how scene B enters.
+When a continuous shared vector serves the transition, compare scene A's exit with scene B's entry:
 
 - **Same axis.** x stays x, y stays y, Z stays Z.
-- **Same direction.** Never mirrored. On Z the direction is the sign of d(scale)/dt: growing is a push, shrinking is a pull. A receding exit (shrinking) answered by an entry that grows from small is the classic violation: the eye was travelling backward and is thrown forward.
+- **Same direction.** A reversal changes perceived momentum; use it deliberately when it serves the subject. On Z the direction is the sign of d(scale)/dt: growing is a push, shrinking is a pull. A receding exit followed by an entry growing from small reverses that motion.
 - **Matched speed.** The entry's first speed equals the exit's last speed. The exit eases in (power 4), the entry eases out (power 4), over the same distance and the same number of frames, so the two curves mirror at the cut. The incoming side is already at full speed when it appears; it never starts from rest.
-- **Phase.** The cut lands mid-motion on both sides. A scene that settles before the cut, or starts from rest after it, is a dead beat.
+- **Phase.** For this continuous pattern the cut lands mid-motion on both sides. A settled state before or after a cut may instead serve reading or emphasis; the check can still flag it as a dead beat.
 
 ## The current
 
-One dominant direction per film, leftward by default. Every other vector is reserved and means something:
+One possible approach is to assign directions consistently to meanings; choose the mapping for the film rather than assuming a default:
 
 | Vector | Meaning | Function |
 | --- | --- | --- |
@@ -23,19 +23,19 @@ One dominant direction per film, leftward by default. Every other vector is rese
 | Z backward (both sides shrink) | something bigger arrives | `inverseZoom` |
 | scale burst | leaving a world | `zoomThrough` with `travel` ≥ 0.4 |
 
-Consecutive seams never oppose each other: ping-pong reads as an error. A direction change needs a visible cause (a carrier object turns, a chapter card) or a chapter boundary.
+Opposing consecutive seams can create unintended ping-pong; compare them with the intended focus and rhythm. A direction change can also communicate a new event or a chapter boundary.
 
-## Motion performs, it never idles
+## In-scene motion and holds
 
-- No wobble between entry and exit. Once a scene has arrived it holds or does one deliberate in-scene move (`nudge`), then exits.
-- Stillness before a climax: the only pause in a film sits right before the name or the payoff.
+- Choose in-scene movement for its purpose, for example a `nudge` that moves attention to the next piece of information; repeated state changes can be appropriate.
+- Holds can create emphasis or provide reading time anywhere in a film. Compare each interval's length and information against its purpose instead of adding movement to satisfy a diagnostic.
 - A carrier element can ride across a seam: it lives on the stage above both scenes, moves in the current, and lands inside the next scene (the coin in `examples/samples/seam-reel`).
 
 ## Blur and travel
 
-- Blur the wrapper, never the children. Text-scale subjects peak at 10 px (`subject: 'text'`), full-frame surfaces at 18 px (`subject: 'surface'`, the default); both sides carry the same peak at the swap frame.
-- Seams move about 12 % of the frame (230 px on x, 130 px on y, 0.12 on scale), never a full-frame slide. The displaced picture must not show the stage as a border (frame borders are banned): give `<Seam>` each scene's background (`fromBackground`, `toBackground`) and it paints that colour past the frame edge by the travel distance (on Z by 12 % of each side), so the surface extends and only the content moves.
-- Z seams keep an opacity floor of 0.35 at the cut so the stage shows through and the two texts are never both readable.
+- The provided helper applies blur to a wrapper: its text preset peaks at 10 px (`subject: 'text'`) and its surface preset at 18 px (`subject: 'surface'`, the default). Choose a treatment that preserves needed text readability.
+- The examples use about 12 % frame travel (230 px on x, 130 px on y, 0.12 on scale); another distance or a full-frame move may fit a different transition. For `<Seam>`, supply each scene's background (`fromBackground`, `toBackground`) when the displaced picture should extend beyond the frame.
+- The helper's Z seam uses an opacity floor of 0.35 at the cut. Check that overlapping text remains legible for the chosen design.
 
 ## Catalogue
 

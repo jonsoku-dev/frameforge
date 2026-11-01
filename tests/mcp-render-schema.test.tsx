@@ -47,10 +47,11 @@ registerRoot(() => <Composition id="Range" component={Spot} durationInFrames={3}
       assert.equal(result.isError, true, `reject ${JSON.stringify(invalid)}: ${body(result)}`);
     }
     assert.equal(existsSync(join(project, 'renders')), false, 'invalid ranges do not start rendering');
-    const valid = await call('render', {slug: 'range', frame_range: [0, 2]});
+    const valid = await call('render', {slug: 'range', frame_range: [1, 2]});
     assert.ok(!valid.isError, body(valid));
-    const output = JSON.parse(body(valid)) as {video: string; summary: {frames: number}};
-    assert.equal(output.summary.frames, 3);
+    const output = JSON.parse(body(valid)) as {video: string; requestedFrameRange: number[]; summary: {frames: number}};
+    assert.equal(output.summary.frames, 2);
+    assert.deepEqual(output.requestedFrameRange, [1, 2], 'saved frame 0 maps to composition frame 1');
     assert.ok(existsSync(output.video));
   } finally {
     await client.close();
