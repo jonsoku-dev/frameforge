@@ -203,7 +203,7 @@ export function findLayoutFaults(root: Element, {width, height, rootColor = pars
     if (!(smaller > 0 && shared / smaller > OVERLAP) || a.element.textContent === b.element.textContent) continue;
     const x = (Math.max(a.rect.x, b.rect.x) + Math.min(a.rect.x + a.rect.width, b.rect.x + b.rect.width)) / 2, y = (Math.max(a.rect.y, b.rect.y) + Math.min(a.rect.y + a.rect.height, b.rect.y + b.rect.height)) / 2;
     if (coveredAt(a.element, x, y, root) || coveredAt(b.element, x, y, root)) continue;  // one text is behind an opaque layer the other sits on
-    faults.push({code: 'text_overlap', text: `${a.text} / ${b.text}`, rect: a.rect, message: `"${a.text}" and "${b.text}" overlap by ${Math.round(shared / smaller * 100)}% of the smaller`, fix: 'Separate the two texts in time or space; stacked words read as a mistake.'});
+    faults.push({code: 'text_overlap', text: `${a.text} / ${b.text}`, rect: a.rect, message: `Layout boxes for "${a.text}" and "${b.text}" overlap by ${Math.round(shared / smaller * 100)}% of the smaller; glyph occlusion is not measured`, fix: 'Inspect the saved interval at delivery size. Separate actual glyph collisions in time or space; if only font/layout bounds overlap, retain the finding and record the visible clearance.'});
   }
   return faults;
 }
