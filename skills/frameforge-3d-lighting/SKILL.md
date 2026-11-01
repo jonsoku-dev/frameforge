@@ -1,11 +1,11 @@
 ---
 name: frameforge-3d-lighting
-description: Light Frameforge Blender shots like a studio: light presets (three-point, product, rim, studio, sunset, hdri), key:fill:rim ratios by what the subject is made of (light.ratio), the procedural soft-box world and its rotation and tint, bloom and exposure choices. Use when a 3D render looks flat, washed out, too dark, has no separation from the background, or glass loses its tint.
+description: "Light Frameforge Blender shots like a studio: light presets (three-point, product, rim, studio, sunset, hdri), key:fill:rim ratios by what the subject is made of (light.ratio), the procedural soft-box world and its rotation and tint, bloom and exposure choices. Use when a 3D render looks flat, washed out, too dark, has no separation from the background, or glass loses its tint."
 ---
 
 # Frameforge 3D lighting
 
-Light gives the shape and the material their read. Fix shape and material first; then change light one variable at a time. Field reference: `docs/reference/three-d.md`.
+Light gives the shape and the material their read. Inspect shape, material and lighting together. Isolate a variable to diagnose a technical cause; make a documented coordinated change when the observed picture requires it. Field reference: `docs/reference/three-d.md`.
 
 ## When to use
 
@@ -26,15 +26,15 @@ Light gives the shape and the material their read. Fix shape and material first;
 
 ## Quality bar
 
-- A visible light side, shadow side and edge on every hero subject; the subject separates from the background along its whole silhouette.
-- Highlights are shaped (a soft box, a strip), not a single clipped blob; bloom stays a halo, not a fog.
-- Glass shows tint and edge lines at the same time; skin, stone and clay keep detail in the shadow side.
+- The intended subject and action read through chosen light, contrast or silhouette. Full edge separation and a three-point look are options, not requirements for every scene.
+- For a shaped studio look, inspect reflection shapes and unwanted highlight clipping. Deliberate glow or stylized light may differ; it must still serve the subject and information.
+- Check the material cues the shot needs (for example glass tint and edges, or clay detail in shadow) instead of requiring every surface to share one lighting treatment.
 
 ## Self-review loop
 
-Render one frame, Read the PNG, judge light side, shadow side and edge separately, change one thing (preset, one ratio number, rotate, strength, bloom), render again. Look at the `--review` sheet too: a rig that flatters the front can leave the back black during an orbit.
+Render one frame, Read the PNG, judge light side, shadow side and edge separately, change one thing (preset, one ratio number, rotate, strength, bloom), render again. Inspect the actual used camera angles too; the spec route offers `--review`, while a separately authored scene needs its own saved-frame evidence.
 
 ## Constraints
 
-- Lights aim at the camera target; the subject is normalised to about 2–2.4 units, so energies are tuned for that size. Scale the subject, not the energies.
-- Keep the background hex exact with `view: standard`; light changes never change the background.
+- The bundled rig energies are tuned for its normalized 2–2.4-unit subjects. A custom world scale may require different light placement and energy; judge its output.
+- Use `view: standard` when exact background hex is required. Choose color management for the shot otherwise; preserve any reported mismatch.
