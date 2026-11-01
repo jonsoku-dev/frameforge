@@ -45,3 +45,34 @@ with patch.object(blender.subprocess, 'run', return_value=SimpleNamespace(return
 `], {encoding: 'utf8'});
   assert.equal(run.status, 0, run.stderr);
 });
+
+test('OpenVDB loading accepts both package names without hiding broken dependencies', () => {
+  const run = spawnSync('python3', ['-c', `
+import sys, types
+from unittest.mock import patch
+sys.path.insert(0, 'scripts/assets')
+sys.modules['bpy'] = types.ModuleType('bpy')
+sys.modules['bmesh'] = types.ModuleType('bmesh')
+import blender_builtins as b
+binding = object()
+with patch.object(b, 'import_module', return_value=binding) as load:
+    assert b.load_openvdb() is binding
+    load.assert_called_once_with('openvdb')
+missing = ModuleNotFoundError("No module named 'openvdb'", name='openvdb')
+with patch.object(b, 'import_module', side_effect=[missing, binding]) as load:
+    assert b.load_openvdb() is binding
+    assert [c.args[0] for c in load.call_args_list] == ['openvdb', 'pyopenvdb']
+for problem in [ModuleNotFoundError('missing dependency', name='numpy'), ImportError('ABI mismatch')]:
+    with patch.object(b, 'import_module', side_effect=problem) as load:
+        try: b.load_openvdb()
+        except ImportError as e: assert e is problem
+        else: raise AssertionError('broken imports must fail')
+        assert load.call_count == 1
+last = ModuleNotFoundError("No module named 'pyopenvdb'", name='pyopenvdb')
+with patch.object(b, 'import_module', side_effect=[missing, last]):
+    try: b.load_openvdb()
+    except ModuleNotFoundError as e: assert e is last
+    else: raise AssertionError('missing bindings must fail')
+`], {encoding: 'utf8'});
+  assert.equal(run.status, 0, run.stderr);
+});

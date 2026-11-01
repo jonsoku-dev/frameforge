@@ -6,6 +6,8 @@
 
 ### Fixed
 
+- OpenVDB Python 바인딩의 `openvdb`/`pyopenvdb` 이름을 모두 지원하고, 의존성·ABI 오류는 그대로 전달합니다.
+
 - Blender 4.2–4.x EEVEE 식별자 및 재질·월드 노드 초기화 호환 처리. Python 실행 오류를 0 종료/프레임 없음으로 숨기지 않고 실패 코드와 stderr로 전달합니다.
 
 ### 제거
