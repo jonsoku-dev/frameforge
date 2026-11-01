@@ -48,7 +48,7 @@ Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugi
 
 | 파일 | 호스트 | 하는 일 |
 | --- | --- | --- |
-| `mcp/server.mjs` | 모두 | 도구 15개와 프롬프트 2개. stdio 기본, `--http --port`는 127.0.0.1의 Streamable HTTP(`/mcp`), Host 검사, `--allow-host`는 터널용(`FRAMEFORGE_MCP_TOKEN` 필수) |
+| `mcp/server.mjs` | 모두 | 도구 16개와 프롬프트 2개. stdio 기본, `--http --port`는 127.0.0.1의 Streamable HTTP(`/mcp`), Host 검사, `--allow-host`는 터널용(`FRAMEFORGE_MCP_TOKEN` 필수) |
 | `.claude-plugin/plugin.json`의 `mcpServers` | Claude Code | `node ${CLAUDE_PLUGIN_ROOT}/bin/frameforge.mjs mcp`, 기본 프로젝트는 `CLAUDE_PROJECT_DIR`. 루트 `.mcp.json`은 두지 않는다(이 저장소를 연 세션이 프로젝트 MCP로 읽음) |
 | `commands/make.md`, `check.md`, `studio.md` | Claude Code | `/frameforge:make`, `/frameforge:check`, `/frameforge:studio` |
 | `agents/frameforge-maker.md` | Claude Code | MCP 도구만으로 작품 하나를 끝까지 만드는 서브에이전트 |
@@ -68,6 +68,10 @@ Cursor: `git clone https://github.com/jonsoku-dev/frameforge.git ~/.cursor/plugi
 MCP `render`에 `idempotent_frames: [0, 30, 59]`처럼 출력에 포함된 프레임 번호를 지정하면 각 프레임을 두 번 캡처해 비교한다. 성공 시 반환 `summary.idempotentFrames`에 실제 검사한 번호가 나온다. 생략하면 기존과 같이 반복 검사를 실행하지 않는다. 이 검사는 선택한 프레임만 다루며 전체 프레임의 결정성을 보증하지 않는다.
 
 MCP `render`의 `frame_range`는 양 끝을 포함하는 두 개의 0 이상 정수 `[시작, 끝]`이며 시작이 끝보다 클 수 없다. 생략하면 전체 영상을 렌더한다.
+
+POSIX 환경의 부분 렌더에서 사용자가 선택한 프로젝트 상대경로 WAV와 버전 1 매니페스트(composition, fps, durationInFrames, sha256)를 `audio_snapshot`, `audio_snapshot_manifest`로 함께 지정할 수 있다. 두 인자는 모두 부분 `frame_range`와 함께 필요하며 무음이나 시트 출력과 결합할 수 없다. 최신 스냅샷을 자동 선택하지 않는다. 반환된 summary의 실제 음원과 범위를 보고한다. 스냅샷 사용만으로 현재 소스와의 일치, 실제 청취, 완전한 오프라인 실행이나 범위 밖 바이트 미접근이 증명되지는 않는다.
+
+`audio_snapshot_prepare`는 명시한 프로젝트 상대경로 WAV 전체를 읽고, 지정된 composition·fps·duration과 SHA-256으로 새 매니페스트를 만든다. 기존 파일은 덮어쓰지 않는다. 호출자가 제공한 메타데이터와 WAV 출처, 현재 소스와의 일치는 검증하지 않는다.
 
 MCP `video_frames`는 프로젝트 안의 기존 MP4에서 최대 8개 프레임을 0부터 시작하는 번호로 추출한다. 중복 번호를 제거하고 오름차순으로 반환한다. 원본 경로·SHA-256과 각 프레임의 실제 presentation timestamp(알 수 없으면 `null`)를 이미지와 함께 반환한다. `still`과 `contact_sheet`는 현재 코드를 다시 렌더하므로, 코드 수정 전 이미 저장된 영상을 확인할 때는 `video_frames`를 사용한다. 추출물은 정상 속도 재생이나 청취가 아니다. 원본과 경로의 심볼릭 링크는 허용하지 않는다. Python 3, FFmpeg, ffprobe와 POSIX `openat` 및 `/dev/fd`가 필요하며 Windows는 지원하지 않는다.
 

@@ -200,6 +200,7 @@ npm run skill:uninstall -- --dry-run       # 지울 링크 목록만 출력, 아
 | `film_files` | `films/<slug>/` 안의 파일 목록·읽기·쓰기. 절대 경로, `..`, 심볼릭 링크는 거부 |
 | `brief_check`, `lint` | 브리프 검사, 결정성 린트 |
 | `score` | `audio.json`으로 음악과 효과음 생성 |
+| `audio_snapshot_prepare` | 지정된 프로젝트 WAV 전체를 읽어 명시한 새 매니페스트를 만듦(POSIX 전용, 출처와 현재 소스 일치는 미검증) |
 | `render` | 전체나 프레임 구간을 `<프로젝트>/renders/`의 MP4로. 경로와 렌더러 JSON 요약을 돌려주고 진행 알림을 보냄. 기본 60분 뒤 중단 |
 | `contact_sheet`, `still` | 여러 프레임 시트, 한 프레임(기본 0.5배)을 PNG 이미지로 돌려줌 |
 | `video_frames` | 프로젝트의 저장된 MP4에서 프레임과 원본 SHA·타임스탬프를 반환(POSIX 전용, 재생·청취는 아님) |
