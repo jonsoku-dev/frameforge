@@ -48,6 +48,8 @@ for index, face_count in used.items():
 
 Compare those names with the intended surface regions; a non-empty but wrong material also needs correction. Then render the actual shot to judge its appearance.
 
+Check markings on deforming surfaces after the surface's modifiers too. A cloth emblem positioned from an unsmoothed analytic mesh can sink into the subdivided cloth even when both use the same pose function. For a printed or woven mark, a material mask in the cloth's own UV coordinates keeps it on the surface; a raised badge or decal may instead need placement against the evaluated surface and an intentional offset. Choose for the intended material, then inspect the whole mark across the relevant motion. Increasing an arbitrary offset until one still looks right can leave it floating in another pose.
+
 ## Self-review loop
 
 Render, Read the PNG, change one variable (IOR, absorption, frost, view, look), render again. Use `frameforge-3d-lighting` when the reflection environment is the cause. Isolate variables for diagnosis, but allow a documented coordinated material/light change when the intended appearance requires it. For glass compare an EEVEE preview with one Cycles frame before you commit to an engine.
