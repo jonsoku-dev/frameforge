@@ -49,6 +49,7 @@
 
 ### 바뀜
 
+- **프레임 검사 무결성** 잘못된 FPS나 비교할 프레임을 두 장 미만 남기는 명시적 hold, FFmpeg가 감지한 디코딩 오류를 통과로 보고하지 않습니다. 기본 hold가 영상보다 긴 짧은 영상은 전체 프레임을 분석합니다.
 - **경계 검사 상태** `frameforge check`는 측정되지 않은 경계를 PASS로 묶지 않고 WARN 또는 SKIP과 이유를 표시합니다. 실제 측정 오류는 FAIL이며 기존 frame-check 기준은 바꾸지 않습니다. MCP `check`의 `pass`는 모든 행이 PASS일 때만 true이고, 오류가 없는 WARN·SKIP을 포함한 실행은 `noFailures: true`로 구분합니다.
 - **frame-check** 기본 끝 정지가 2초에서 1초로 줄었습니다(`--hold`). 0.5초 전 프레임과 비교해 얼어붙은 구간이 1초를 넘으면 실패하고, `motion share`를 출력합니다. 옛 정지 지표(앞 프레임과 비교, 4초 기준 실패)는 출력만 합니다. 예전 규칙으로 만든 샘플 렌더는 이 기준에서 실패합니다(`docs/research/benchmark-loop.md`).
 - **글자 블록** `GlyphRise` 기본이 단어 단위(`by="word"`, `stagger` 1, `rise` 8), `Typewriter` 기본이 단어 단위(`by="word"`, `speed` 4)입니다. 글자 단위는 `by="glyph"`.
