@@ -33,12 +33,35 @@ export const sentences = text => text.split(/(?<=[.!?。！？])\s+|\n+/).map(s 
 
 const empty = cell => !cell || /^(todo|tbd|n\/a)\b|^[-—]+$/i.test(cell);
 
+// Only interpret ranges with a duration unit at the end. A unit on the first
+// endpoint is optional (10–15s, 10s–15s); "between ... and ..." is explicit.
+const SECOND_UNIT = '(?:(?:seconds?|secs?|s)(?![\\p{L}])|초)';
+const VALUE = '(\\d+(?:\\.\\d+)?)';
+const durationRange = new RegExp(`(?<![\\d.\\-–—~～])(?:\\bbetween\\s+${VALUE}\\s+and\\s+${VALUE}|${VALUE}(?:\\s*${SECOND_UNIT})?\\s*(?:[-–—~～]|\\bto\\b|에서|부터)\\s*${VALUE})[\\s-]*${SECOND_UNIT}`, 'iu');
+const durationValue = new RegExp(`${VALUE}[\\s-]*${SECOND_UNIT}`, 'iu');
+const durationChoice = new RegExp(`${VALUE}\\s*(?:or|또는|혹은|/)\\s*${VALUE}[\\s-]*${SECOND_UNIT}`, 'iu');
+// Do not silently treat the seconds component of a mixed minute/second
+// expression as the complete film duration.
+const minuteValue = /\d+(?:\.\d+)?\s*(?:(?:minutes?|mins?|m)(?![\p{L}])|분)/iu;
+
 /** Numbers a must clause states, compared with the registered composition {durationInFrames, fps, width, height}. */
 export function numberFindings(clause, composition) {
   const out = [];
   const {durationInFrames, fps, width, height} = composition;
-  const seconds = /(\d+(?:\.\d+)?)[\s-]*(?:s|secs?|seconds?|초)(?![\p{L}])/iu.exec(clause);
-  if (seconds && durationInFrames && fps && Math.abs(durationInFrames / fps - Number(seconds[1])) >= 0.5)
+  const range = durationRange.exec(clause);
+  const seconds = durationValue.exec(clause);
+  if (range && durationInFrames && fps) {
+    const lo = Number(range[1] ?? range[3]), hi = Number(range[2] ?? range[4]);
+    const actual = durationInFrames / fps;
+    if (!(Number.isFinite(lo) && Number.isFinite(hi) && lo > 0 && lo <= hi))
+      out.push({code: 'duration_range_invalid', message: `"${clause}" has an invalid duration range ${range[0]}`, fix: 'State an ordered, positive duration range in seconds.'});
+    else if (minuteValue.test(clause) || durationValue.test(clause.slice(0, range.index)) || durationValue.test(clause.slice(range.index + range[0].length)))
+      out.push({code: 'duration_ambiguous', message: `"${clause}" contains a duration range and another duration`, fix: 'Separate the total duration from other timing requirements into unambiguous ledger clauses and verify each in context.'});
+    else if (actual < lo || actual > hi)
+      out.push({code: 'duration_mismatch', message: `"${clause}" says ${lo}–${hi} s but the composition runs ${durationInFrames}/${fps} = ${actual.toFixed(2)} s`, fix: `Set durationInFrames to a whole-frame duration between ${lo} and ${hi} seconds in entry.tsx and the films index.`});
+  } else if (seconds && durationInFrames && fps && (minuteValue.test(clause) || durationChoice.test(clause) || [...clause.matchAll(new RegExp(durationValue.source, 'giu'))].length > 1))
+    out.push({code: 'duration_ambiguous', message: `"${clause}" contains multiple durations without an explicit range`, fix: 'Separate the total duration from other timing requirements into unambiguous ledger clauses and verify each in context.'});
+  else if (seconds && durationInFrames && fps && Math.abs(durationInFrames / fps - Number(seconds[1])) >= 0.5)
     out.push({code: 'duration_mismatch', message: `"${clause}" says ${seconds[1]} s but the composition runs ${durationInFrames}/${fps} = ${(durationInFrames / fps).toFixed(2)} s`, fix: `Set durationInFrames to ${Math.round(Number(seconds[1]) * fps)} in entry.tsx and the films index.`});
   const size = /(\d{3,4})\s*[x×]\s*(\d{3,4})/.exec(clause);
   if (size && width && (Number(size[1]) !== width || Number(size[2]) !== height))
