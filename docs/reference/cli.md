@@ -2,6 +2,8 @@
 
 `bin/frameforge.mjs` 레퍼런스입니다. 설치는 [../install.md](../install.md), 지우는 법은 [../uninstall.md](../uninstall.md)에 있습니다. 전체 명령은 `frameforge help`로 봅니다.
 
+기존 전체 믹스를 부분 렌더에 쓰는 스냅샷의 준비 조건과 제한은 [rendering.md](rendering.md#기존-전체-믹스로-부분-렌더하기)를 참고하세요.
+
 ## 저장소 밖 프로젝트에서 쓰기
 
 `bin/frameforge.mjs`가 엔진 저장소 밖 폴더에서 영상을 만들게 해 준다. 엔진 저장소에서 `npm link`를 한 번 하면 `frameforge`가 PATH에 올라가고, 아니면 `node <엔진>/bin/frameforge.mjs`로 부른다.
@@ -12,6 +14,8 @@ frameforge new demo-spot                         # films/demo-spot, 컴포지션
 frameforge score demo-spot                       # 음악과 효과음
 frameforge studio --port 4330                    # 스튜디오, 파일 열기 링크는 이 프로젝트 경로를 가리킨다
 frameforge render demo-spot DemoSpot out.mp4 --frame-range 0-59
+frameforge audio-snapshot-prepare snapshots/full.wav DemoSpot 30 300 --output snapshots/full.json
+frameforge render demo-spot DemoSpot part.mov --frame-range 30-59 --audio-snapshot snapshots/full.wav --audio-snapshot-manifest snapshots/full.json
 frameforge render demo-spot DemoSpot checked.mp4 --check-idempotent --idempotent-frames 0,30,59 # 지정한 전환 프레임 반복 캡처
 frameforge render demo-spot DemoSpot out.webm --transparent     # .webm/.mov/.gif/폴더/ 는 rendering.md "출력 형식"
 frameforge check out.mp4 --film demo-spot        # frame-check, flash-check, seam-check, narration-check를 한 표로

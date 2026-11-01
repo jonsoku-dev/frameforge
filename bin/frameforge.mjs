@@ -12,6 +12,9 @@ const USAGE = `frameforge <command>
   studio [--port 4317]             스튜디오를 연다
   render <slug|entry.tsx> <Id> <out.mp4|.webm|.mov|.gif|folder/> [props-json] [--frame-range 0-59] [--frames ..] [--concurrency N] [--pipe] [--check-idempotent] [--idempotent-frames 0,30,59]
                                    [--codec ..] [--audio-codec ..] [--muted] [--crf N] [--transparent] [--scale S] [--gif-fps N] [--strict-audit]
+                                   [--audio-snapshot <wav> --audio-snapshot-manifest <manifest.json>]
+  audio-snapshot-prepare <wav> <Id> <fps> <frames> --output <manifest.json>
+                                   기존 전체 음향의 매니페스트를 새로 만든다
   score <slug>                     audio.json으로 음악과 효과음을 만든다
   art <slug>                       assets.json으로 에셋을 해결한다
   voice <slug>                     narration.json으로 음성과 narration.timing.json을 만든다
@@ -225,6 +228,10 @@ export function main(argv) {
       // the output is the third positional; resolve it against the caller's folder because the renderer runs in the engine (a trailing / means a PNG sequence)
       if (rest[1] !== undefined) rest[1] = resolve(cwd, rest[1]) + (rest[1].endsWith('/') ? '/' : '');
       return run(node, [join(ENGINE, 'scripts/render.mjs'), ...entry, ...rest, ...flags], project);
+    }
+    case 'audio-snapshot-prepare': {
+      if (positional.length !== 4 || flags.length !== 2 || flags[0] !== '--output' || !flags[1] || flags[1].startsWith('--')) throw new Error('audio-snapshot-prepare requires <wav> <Id> <fps> <frames> --output <manifest.json>.');
+      return run('python3', [join(ENGINE, 'scripts/audio-snapshot.py'), 'prepare', project?.root ?? ENGINE, ...positional, ...flags], project);
     }
     case 'score': return run('python3', [join(ENGINE, 'scripts/assets/score.py'), filmFile(project, positional[0], 'audio.json')], project);
     case 'art': return run('python3', [join(ENGINE, 'scripts/assets/art.py'), filmFile(project, positional[0], 'assets.json')], project);

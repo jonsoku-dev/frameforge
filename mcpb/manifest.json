@@ -4,7 +4,7 @@
   "display_name": "Frameforge",
   "version": "0.1.0",
   "description": "Make deterministic motion-graphics and explainer videos with a local Frameforge engine.",
-  "long_description": "Drives a local Frameforge checkout: create films, write their code, generate music, render MP4s, contact sheets and stills (returned as images), run the quality checks and open the studio on 127.0.0.1. Needs a clone of the engine with npm ci, Chrome, ffmpeg and Python with numpy. Nothing leaves your machine.",
+  "long_description": "Drives a local Frameforge checkout: create films, write their code, generate music, render MP4s, contact sheets and stills (returned as images), run the quality checks and open the studio on 127.0.0.1. Needs a clone of the engine with npm ci, Chrome, ffmpeg and Python with numpy. Some assets and user code may access external sources.",
   "author": {
     "name": "Frameforge"
   },
@@ -56,6 +56,7 @@
     {"name": "brief_check", "description": "Check a film's brief and intent ledger"},
     {"name": "lint", "description": "Determinism lint"},
     {"name": "score", "description": "Generate music and sound effects"},
+    {"name": "audio_snapshot_prepare", "description": "Create a manifest for an explicit project-local WAV (POSIX only)"},
     {"name": "render", "description": "Render a film or frame range to MP4"},
     {"name": "contact_sheet", "description": "Render frames into one PNG sheet, returned as an image"},
     {"name": "still", "description": "Render one frame, returned as an image"},

@@ -1,4 +1,4 @@
-import {existsSync, constants} from 'node:fs';
+import {existsSync, constants, openSync, closeSync, readSync, fstatSync, mkdtempSync} from 'node:fs';
 import {mkdir, mkdtemp, rm, link, copyFile, readdir, readFile, writeFile} from 'node:fs/promises';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {once} from 'node:events';
@@ -162,12 +162,75 @@ export function probeMotionSoundDuration(file) {
   if (!Number.isFinite(seconds) || seconds <= 0) throw new Error(`Invalid MotionSound duration for ${file}: ${result.stdout.trim() || '(empty)'}`);
   return seconds;
 }
-const run = (command, args) => new Promise((resolveRun, reject) => {
-  const child = spawn(command, args, {stdio: ['ignore', 'ignore', 'pipe']});
+
+// Only the CLI can construct a prepared snapshot, after private staging and metadata validation.
+const preparedSnapshots = new WeakSet();
+const fdExec = 'import os,sys; os.lseek(3,0,os.SEEK_SET); os.set_inheritable(3,True); os.execvp(sys.argv[1],sys.argv[1:])';
+
+function snapshotDigest(fd) {
+  const before = fstatSync(fd, {bigint: true});
+  if (!before.isFile()) throw new Error('Audio snapshot is not a regular file.');
+  if (before.size > 512n * 1024n * 1024n) throw new Error('Audio snapshot exceeds the 512 MiB limit.');
+  const hash = createHash('sha256'), buffer = Buffer.allocUnsafe(1024 * 1024);
+  let offset = 0;
+  while (BigInt(offset) < before.size) {
+    const count = readSync(fd, buffer, 0, Math.min(buffer.length, Number(before.size) - offset), offset);
+    if (!count) break;
+    hash.update(buffer.subarray(0, count));
+    offset += count;
+  }
+  const after = fstatSync(fd, {bigint: true});
+  if (before.dev !== after.dev || before.ino !== after.ino || before.size !== after.size || before.mtimeNs !== after.mtimeNs || before.ctimeNs !== after.ctimeNs || BigInt(offset) !== after.size) throw new Error('Audio snapshot changed during verification.');
+  return hash.digest('hex');
+}
+
+function prepareAudioSnapshot(root, snapshot, manifest, scratch, id, frameRange, scratchState) {
+  if (!frameRange || frameRange.length !== 2 || !frameRange.every(Number.isSafeInteger) || frameRange[0] < 0 || frameRange[0] > frameRange[1]) throw new Error('Audio snapshot requires an inclusive --frame-range.');
+  if (process.platform === 'win32' || !existsSync('/dev/fd')) throw new Error('Audio snapshots require POSIX openat and /dev/fd support.');
+  const stage = spawnSync('python3', [join(project, 'scripts', 'audio-snapshot.py'), 'stage', root, snapshot, manifest, scratch, '--scratch-fd'], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe', scratchState.fd], timeout: 120000, maxBuffer: 1024 * 1024});
+  if (stage.error || stage.status !== 0) throw new Error(`Audio snapshot staging failed: ${stage.error?.message || stage.stderr?.trim() || `exit ${stage.status}`}`);
+  const result = JSON.parse(stage.stdout);
+  scratchState.fileDev = result.snapshotDev;
+  scratchState.fileIno = result.snapshotIno;
+  if (result.composition !== id) throw new Error('Audio snapshot composition does not match the selected composition.');
+  if (frameRange[1] >= result.durationInFrames || (frameRange[0] === 0 && frameRange[1] === result.durationInFrames - 1)) throw new Error('Audio snapshot requires a partial range inside the manifest duration.');
+  const fd = openSync(result.snapshot, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const actual = fstatSync(fd, {bigint: true});
+    if (String(actual.dev) !== result.snapshotDev || String(actual.ino) !== result.snapshotIno) throw new Error('Audio snapshot staged file changed identity.');
+    if (snapshotDigest(fd) !== result.sha256) throw new Error('Audio snapshot changed after staging.');
+    const probe = spawnSync('python3', ['-c', fdExec, process.env.FFPROBE_PATH || 'ffprobe', '-v', 'error', '-protocol_whitelist', 'file,pipe', '-f', 'wav', '-show_entries', 'format=duration:stream=codec_type,codec_name,sample_rate,channels', '-of', 'json', '/dev/fd/3'], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe', fd], timeout: 30000, maxBuffer: 1024 * 1024});
+    if (probe.error || probe.status !== 0 || probe.stderr?.length) throw new Error(`Audio snapshot WAV probe failed: ${probe.error?.message || probe.stderr?.trim() || `exit ${probe.status}`}`);
+    let metadata;
+    try { metadata = JSON.parse(probe.stdout); } catch { throw new Error('Audio snapshot WAV probe returned invalid JSON.'); }
+    const streams = metadata.streams;
+    if (!Array.isArray(streams) || streams.length !== 1 || streams[0].codec_type !== 'audio' || !/^pcm_[a-z0-9]+$/.test(streams[0].codec_name ?? '')) throw new Error('Audio snapshot must contain one PCM WAV stream.');
+    const sampleRate = Number(streams[0].sample_rate), channels = Number(streams[0].channels), duration = Number(metadata.format?.duration);
+    if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0 || !Number.isSafeInteger(channels) || channels <= 0 || !Number.isFinite(duration) || duration <= 0) throw new Error('Audio snapshot WAV metadata is invalid.');
+    const expected = result.durationInFrames / result.fps;
+    if (!Number.isFinite(expected) || Math.abs(duration - expected) > 1 / sampleRate + 0.000001) throw new Error('Audio snapshot WAV duration does not match the manifest.');
+    const prepared = Object.freeze({...result, fd, sampleRate, channels, source: snapshot, manifest});
+    preparedSnapshots.add(prepared);
+    return prepared;
+  } catch (error) { closeSync(fd); throw error; }
+}
+
+function encodeSnapshotArgs(video, encode, fps, count, snapshot, output, offset, audio) {
+  // The numbered input already contains exactly count frames. Limiting video packets can
+  // stop ffmpeg before it drains the resampled audio at fractional frame rates.
+  const framesAt = encode.indexOf('-frames:v');
+  const snapshotEncode = framesAt < 0 ? encode : [...encode.slice(0, framesAt), ...encode.slice(framesAt + 2)];
+  return ['-v', 'error', '-xerror', '-n', ...video, '-ss', (offset / fps).toFixed(9), '-protocol_whitelist', 'file,pipe', '-f', 'wav', '-i', '/dev/fd/3',
+    '-map', '0:v:0', '-map', '1:a:0', ...snapshotEncode, ...audio, '-ar', '48000', '-ac', '2', '-t', (count / fps).toFixed(9), output];
+}
+const run = (command, args, fd) => new Promise((resolveRun, reject) => {
+  const child = fd === undefined
+    ? spawn(command, args, {stdio: ['ignore', 'ignore', 'pipe']})
+    : spawn('python3', ['-c', fdExec, command, ...args], {stdio: ['ignore', 'ignore', 'pipe', fd]});
   let stderr = '';
   child.stderr.on('data', (part) => { stderr = (stderr + part).slice(-8000); });
   child.on('error', reject);
-  child.on('exit', (code) => code === 0 ? resolveRun() : reject(new Error(`${command} exited ${code}: ${stderr}`)));
+  child.on(fd === undefined ? 'exit' : 'close', (code) => code === 0 && (fd === undefined || !stderr.length) ? resolveRun() : reject(new Error(`${command} exited ${code}: ${stderr}`)));
 });
 
 /** One headless Chrome with its own profile, connected over DevTools, navigated to the render page and configured with `inputProps`. */
@@ -304,7 +367,8 @@ function pipeEncoder(fps, encode, output) {
  * `idempotentFrames` optionally chooses the frames to check; they must be included in the rendered output.
  * The container follows the output extension (see outputFormat); `codec`, `audioCodec`, `crf`, `gifFps` override its defaults; `transparent`
  * captures over a clear page and encodes alpha; `scale` multiplies the output size (device scale factor); `strictAudit` fails on any layout finding. */
-export async function renderMedia({serveUrl, composition, outputLocation, inputProps = {}, codec, audioCodec, crf, gifFps, transparent = false, scale = 1, strictAudit = false, frames, frameRange, concurrency = 1, pipe = false, checkIdempotent = false, idempotentFrames, onProgress}) {
+export async function renderMedia({serveUrl, composition, outputLocation, inputProps = {}, codec, audioCodec, crf, gifFps, transparent = false, scale = 1, strictAudit = false, frames, frameRange, concurrency = 1, pipe = false, checkIdempotent = false, idempotentFrames, audioSnapshot, onProgress}) {
+  if (audioSnapshot !== undefined && !preparedSnapshots.has(audioSnapshot)) throw new Error('Audio snapshots must be prepared through the snapshot CLI.');
   if (frames && (!frames.length || frames.some(frame => !Number.isInteger(frame) || frame < 0))) throw new Error('frames must be a non-empty list of non-negative integers.');
   if (frames && frameRange) throw new Error('frames and frameRange cannot be combined.');
   if (frameRange && !(Array.isArray(frameRange) && frameRange.length === 2 && frameRange.every(Number.isInteger) && 0 <= frameRange[0] && frameRange[0] <= frameRange[1])) throw new Error('frameRange must be [from, to] with 0 <= from <= to integers.');
@@ -336,11 +400,15 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
     const id = typeof composition === 'string' ? composition : composition?.id;
     const selected = lead.registry.compositions.find(item => item.id === id);
     if (!selected) throw new Error(`Unknown composition ${id}. Available: ${lead.registry.compositions.map(item => item.id).join(', ')}`);
+    if (audioSnapshot && (selected.id !== audioSnapshot.composition || selected.fps !== audioSnapshot.fps || selected.durationInFrames !== audioSnapshot.durationInFrames)) throw new Error('Audio snapshot manifest does not match the selected composition metadata.');
     const size = {width: selected.width * scale, height: selected.height * scale};
     if (!Number.isInteger(size.width) || !Number.isInteger(size.height)) throw new Error(`scale ${scale} makes a fractional output size ${size.width}x${size.height}.`);
     if (format && ['yuv420p', 'yuva420p'].includes(format.pixFmt) && (size.width % 2 || size.height % 2)) throw new Error(`${format.codec} output requires even width and height (got ${size.width}x${size.height}).`);
     const [from, to] = frameRange ?? [0, selected.durationInFrames - 1];
     if (to >= selected.durationInFrames) throw new Error(`frameRange ends at ${to} but ${id} has ${selected.durationInFrames} frames.`);
+    const audioContext = !audioSnapshot && format && format.audio !== 'none' && (from > 0 || to < selected.durationInFrames - 1)
+      ? {status: 'NOT_VERIFIED', reason: 'Partial render does not analyze frames outside the selected range.'}
+      : undefined;
     const wanted = frames ?? Array.from({length: to - from + 1}, (_, index) => from + index);
     const wantedSet = idempotentFrames && new Set(wanted);
     if (idempotentFrames?.some(frame => !wantedSet.has(frame))) throw new Error('idempotentFrames must be included in the rendered frames.');
@@ -405,13 +473,13 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
     const sizes = new Set(results.map(item => item.frameSize));
     if (sizes.size > 1) throw new Error(`Composition error: chunks capture different sizes (${[...sizes].join(', ')}); Experimental.Clipper must clip every rendered frame to one size.`);
     const segments = mergeSegments(results.map(item => item.segments));
-    const dense = frames ? null : sfxFault(segments.filter(({clip}) => clip.startFrame > 0).map(({first}) => first), selected.fps);
+    const dense = frames || audioSnapshot ? null : sfxFault(segments.filter(({clip}) => clip.startFrame > 0).map(({first}) => first), selected.fps);
     if (dense) throw new Error(`Composition error: ${dense}`);
     // Sounds the engine derived from motion: each plays its whole file, panned, and yields to any authored effect within half a second.
     if (!frames) {
       // Motion sounds come from the whole frame sequence on one page, so the first page walks the other chunks' frames without capturing.
       for (const frame of wanted.slice(chunks[0].end - from + 1)) await renderFrame(lead, id, frame, inputProps);
-      const derived = await lead.evaluate(`window.__FRAMEFORGE__.soundClips(${selected.fps})`) ?? [];
+      const derived = audioSnapshot ? [] : await lead.evaluate(`window.__FRAMEFORGE__.soundClips(${selected.fps})`) ?? [];
       const authored = segments.filter(({clip}) => clip.startFrame > 0).map(({first}) => first);
       const lengths = new Map();
       // Silent outputs retain motion evidence but do not need audio files or duration probes.
@@ -426,7 +494,7 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
       }
       // Motion dump for scripts/seam-check.mjs: every probe sample of the whole sequence, written next to the output (inside a sequence folder).
       await mkdir(outDir, {recursive: true});
-      await writeFile(sequencePattern ? join(outDir, 'motion.json') : `${resolve(outputLocation)}.motion.json`, JSON.stringify({composition: id, fps: selected.fps, from, to, samples: await lead.evaluate('window.__FRAMEFORGE__.motion()') ?? [], sounds: derived}));
+      await writeFile(sequencePattern ? join(outDir, 'motion.json') : `${resolve(outputLocation)}.motion.json`, JSON.stringify({composition: id, fps: selected.fps, from, to, samples: await lead.evaluate('window.__FRAMEFORGE__.motion()') ?? [], sounds: derived, ...(audioContext ? {audioContext} : {}), ...(audioSnapshot ? {audioSnapshot: {source: audioSnapshot.source, sha256: audioSnapshot.sha256, from, to, semanticMatch: 'NOT_VERIFIED'}} : {})}));
       if (derived.length) console.log(JSON.stringify({motionSounds: derived.map(clip => ({frame: clip.startFrame, role: clip.role, intensity: Math.round(clip.intensity * 100) / 100, pan: clip.pan, file: clip.src.split('/').pop()}))}));
     }
     const findings = persistentFindings(audit, {fps: selected.fps, total: wanted.length, sheet: !!frames});
@@ -447,19 +515,21 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
         // shortcut: the scratch PNGs are copied as captured (scale applies, nothing is re-encoded); the staging folder is unused.
         for (const [index, frame] of wanted.entries()) await copyFile(join(results[0].scratch, `${String(index).padStart(8, '0')}.png`), resolve(sequenceFile(frame)), constants.COPYFILE_EXCL);
       } else if (!chunked) {
-        await run(ffmpegPath(), encodeArgs(['-framerate', String(fps), '-i', join(results[0].scratch, '%08d.png')], [...encode(count), ...hls], fps, count, mixed, staged, from, AUDIO[format.audio]));
+        const video = ['-framerate', String(fps), '-i', join(results[0].scratch, '%08d.png')];
+        await run(ffmpegPath(), audioSnapshot ? encodeSnapshotArgs(video, [...encode(count), ...hls], fps, count, audioSnapshot, staged, from, AUDIO[format.audio]) : encodeArgs(video, [...encode(count), ...hls], fps, count, mixed, staged, from, AUDIO[format.audio]), audioSnapshot?.fd);
       } else {
         // Chunks share codec settings, so the concat demuxer joins them without re-encoding; audio is mixed once over the whole range.
         const listFile = join(directory, 'chunks.txt');
         await writeFile(listFile, results.map(item => `file '${item.video}'\n`).join(''));
         const video = results.length === 1 ? ['-i', results[0].video] : ['-f', 'concat', '-safe', '0', '-i', listFile];
-        await run(ffmpegPath(), encodeArgs(video, ['-c:v', 'copy', ...format.mux], fps, count, mixed, staged, from, AUDIO[format.audio]));
+        await run(ffmpegPath(), audioSnapshot ? encodeSnapshotArgs(video, ['-c:v', 'copy', ...format.mux], fps, count, audioSnapshot, staged, from, AUDIO[format.audio]) : encodeArgs(video, ['-c:v', 'copy', ...format.mux], fps, count, mixed, staged, from, AUDIO[format.audio]), audioSnapshot?.fd);
       }
+      if (audioSnapshot && snapshotDigest(audioSnapshot.fd) !== audioSnapshot.sha256) throw new Error('Audio snapshot changed during encoding.');
       // Same-filesystem hard links publish complete files atomically and refuse overwrite; HLS segments land before the playlist that names them.
       if (!sequencePattern) for (const file of (await readdir(staging)).sort((a, b) => Number(a === basename(staged)) - Number(b === basename(staged)))) await link(join(staging, file), join(outDir, file));
     } finally { await rm(staging, {recursive: true, force: true}); }
     const identicalFrames = results.reduce((sum, item) => sum + item.identical, 0);
-    return {outputLocation: resolve(sequencePattern ?? outputLocation), composition: selected, frames: wanted.length, chunks: chunks.length, identicalFrames, identicalShare: Math.round(identicalFrames / wanted.length * 1000) / 1000, ...(format ? {format: {container: format.container, codec: format.codec, pixFmt: format.pixFmt, audio: format.audio, width: size.width, height: size.height}} : {}), auditFindings: findings.length, ...(checkIdempotent ? {idempotent: true, idempotentFrames: probe} : {})};
+    return {outputLocation: resolve(sequencePattern ?? outputLocation), composition: selected, frames: wanted.length, chunks: chunks.length, identicalFrames, identicalShare: Math.round(identicalFrames / wanted.length * 1000) / 1000, ...(format ? {format: {container: format.container, codec: format.codec, pixFmt: format.pixFmt, audio: format.audio, width: size.width, height: size.height}} : {}), auditFindings: findings.length, ...(audioContext ? {audioContext} : {}), ...(checkIdempotent ? {idempotent: true, idempotentFrames: probe} : {}), ...(audioSnapshot ? {audioSnapshot: {source: audioSnapshot.source, sha256: audioSnapshot.sha256, composition: audioSnapshot.composition, fps: audioSnapshot.fps, durationInFrames: audioSnapshot.durationInFrames, from, to, semanticMatch: 'NOT_VERIFIED'}} : {})};
   } finally {
     for (const encoder of encoders) encoder.kill();
     await Promise.all(pages.map(page => page.close()));
@@ -476,6 +546,11 @@ async function main() {
       if (typeof value !== 'string' || !/^\d+(,\d+)*$/.test(value)) throw new Error('--idempotent-frames requires a comma-separated list of non-negative integers.');
       options[arg] = value;
     }
+    else if (arg === '--audio-snapshot' || arg === '--audio-snapshot-manifest') {
+      const value = process.argv[++index];
+      if (!value || value.startsWith('--') || options[arg] !== undefined) throw new Error(`${arg} requires exactly one project-relative path.`);
+      options[arg] = value;
+    }
     else if (['--frames', '--concurrency', '--frame-range', '--codec', '--audio-codec', '--crf', '--scale', '--gif-fps'].includes(arg)) options[arg] = process.argv[++index];
     else if (['--pipe', '--check-idempotent', '--transparent', '--muted', '--strict-audit'].includes(arg)) options[arg] = true;
     else positional.push(arg);
@@ -486,11 +561,13 @@ async function main() {
   const [entry = 'examples/samples/index.tsx', id = 'KitLaunch', output = 'renders/kit-launch.mp4', propsJson = '{}'] = positional;
   if (entry === '--help') {
     console.log(`npm run render -- [entry.tsx] [composition-id] [output] [input-props-json] [--frames 30,120,240] [--frame-range 0-299] [--concurrency 3] [--pipe] [--check-idempotent] [--idempotent-frames 0,30,120]
+                 [--audio-snapshot project-relative.wav --audio-snapshot-manifest project-relative.json]
                  [--codec h264|vp9|prores|gif|png] [--audio-codec aac|opus|pcm|none] [--muted] [--crf N] [--transparent] [--scale S] [--gif-fps N] [--strict-audit]
 Requires local Chrome and FFmpeg. calculateMetadata runs before encoding. <Audio> and <Video> sound from public/ or a downloaded https:// URL is mixed in (volume, trim, playbackRate via atempo, pan for motion sounds); Video frames come from ffmpeg extraction.
 Output format by extension: .mp4 h264 + aac (default), .webm vp9 (libvpx-vp9, -b:v 0 -crf 32) + opus, .mov prores_ks 4444 + pcm_s16le, .gif (palettegen/paletteuse, --gif-fps caps the rate, no sound), .m3u8 HLS (h264 + aac in 4 s .ts segments named <name>_%03d.ts beside the playlist, one chunk, no --transparent), a PNG sequence when the output ends with / or holds %05d (numbered by frame, nothing encoded). --codec overrides the codec, --audio-codec the sound codec (--muted skips the mix), --crf the quality.
 --transparent renders over a clear page and keeps alpha (webm yuva420p, mov yuva444p10le, gif palette, png rgba; an error for h264). --scale S multiplies the output size (device scale factor; width and height must stay integers, even for h264 and vp9).
 --frames writes a PNG contact sheet of those frames instead of a video. --frame-range renders an inclusive range; --concurrency N splits it across N Chromes (chunks of at least 2 s; gif, m3u8 and PNG sequences render in one chunk); --pipe streams frames to ffmpeg instead of writing PNGs; --check-idempotent compares two captures of the first, middle and last output frames. --idempotent-frames selects output frames to check instead and requires --check-idempotent. The result lists the tested frames; untested frames are not checked.
+--audio-snapshot and --audio-snapshot-manifest use a project-local PCM WAV full mix in a partial --frame-range; they require audio output and disable automatic asset generation. The source's semantic match to the current composition is not verified.
 Every render prints {"audit": [...]} once with the layout findings (text outside the 5% safe area, overlapping text, low contrast, small labels, a data-subject element cropped by the frame or covering text) seen for 0.3 s or more (text outside the safe area for 0.3 s in one run), and corner_hud for small text in a frame corner over more than half the frames (opt in with data-hud="allow"); --strict-audit turns them into a failure. A video render also writes <output>.motion.json for seam-check. FRAMEFORGE_PORT changes the Vite port (default 4318).`);
     return;
   }
@@ -500,25 +577,61 @@ Every render prints {"audit": [...]} once with the layout findings (text outside
   const concurrency = options['--concurrency'] === undefined ? 1 : Number(options['--concurrency']);
   const numberOr = (name, fallback) => options[name] === undefined ? fallback : Number(options[name]);
   process.env.VIDEO_ENTRY = resolve(process.cwd(), entry);
-  // Generated audio is not committed; build this composition's score first so the mix never misses a file.
-  const spec = [join(dirname(process.env.VIDEO_ENTRY), 'audio.json')].find(existsSync);
-  if (spec && spawnSync('python3', [join(project, 'scripts', 'assets', 'score.py'), spec], {cwd: project, stdio: 'inherit'}).status !== 0) throw new Error(`Audio generation failed for ${spec}`);
-  const narration = [join(dirname(process.env.VIDEO_ENTRY), 'narration.json')].find(existsSync);
-  if (narration && spawnSync('python3', [join(project, 'scripts', 'assets', 'voice.py'), narration], {cwd: project, stdio: 'inherit'}).status !== 0) throw new Error(`Voice generation failed for ${narration}`);
-  const art = join(dirname(process.env.VIDEO_ENTRY), 'assets.json');
-  if (existsSync(art) && spawnSync('python3', [join(project, 'scripts', 'assets', 'art.py'), art], {cwd: project, stdio: 'inherit'}).status !== 0) throw new Error(`Asset resolution failed for ${art}`);
-  const {createServer} = await import('vite');
-  const port = Number(process.env.FRAMEFORGE_PORT) || 4318;
-  // Each render port keeps its own dependency cache so two renders (or a render and the studio) never re-optimize into one folder.
-  const server = await createServer({root: project, configFile: join(project, 'vite.config.ts'), cacheDir: join(project, 'node_modules', `.vite-render-${port}`), server: {host: '127.0.0.1', port, strictPort: true, hmr: false}});
-  const began = performance.now();
+  const wantsSnapshot = options['--audio-snapshot'] !== undefined || options['--audio-snapshot-manifest'] !== undefined;
+  let audioSnapshot, scratch, server, cancelSnapshot, scratchState;
+  const priorGuard = process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE;
   try {
+    if (wantsSnapshot) {
+      if (!options['--audio-snapshot'] || !options['--audio-snapshot-manifest']) throw new Error('Audio snapshot requires both --audio-snapshot and --audio-snapshot-manifest.');
+      if (frames || !/^\d+-\d+$/.test(options['--frame-range'] ?? '')) throw new Error('Audio snapshot requires a partial --frame-range and cannot be used with --frames.');
+      const snapshotFormat = outputFormat(output, {codec: options['--codec'], audioCodec: options['--muted'] ? 'none' : options['--audio-codec'], transparent: !!options['--transparent'], crf: numberOr('--crf', undefined), gifFps: numberOr('--gif-fps', undefined)});
+      if (snapshotFormat.audio === 'none') throw new Error('Audio snapshot requires an output with audio; --muted and silent formats are unsupported.');
+      if (existsSync(resolve(output))) throw new Error(`Output already exists: ${output}`);
+      // Synchronous creation and listener registration leave no event-loop gap in
+      // which a completed scratch directory can be orphaned by SIGTERM.
+      scratch = mkdtempSync(join(tmpdir(), 'frameforge-snapshot-'));
+      scratchState = {fd: openSync(scratch, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW)};
+      const cleanScratch = () => {
+        const result = spawnSync('python3', [join(project, 'scripts', 'audio-snapshot.py'), 'cleanup', scratch, scratchState.fileDev ?? '', scratchState.fileIno ?? ''], {stdio: ['ignore', 'pipe', 'pipe', scratchState.fd], encoding: 'utf8', timeout: 10000});
+        if (result.error || result.status !== 0) console.error(`Audio snapshot scratch retained: ${result.error?.message || result.stderr?.trim() || `exit ${result.status}`}`);
+        closeSync(scratchState.fd);
+        scratchState = undefined;
+      };
+      scratchState.clean = cleanScratch;
+      cancelSnapshot = () => {
+        try { if (scratchState) scratchState.clean(); } catch (error) { console.error(`Audio snapshot cancellation cleanup failed: ${error.message}`); }
+        try { if (audioSnapshot) closeSync(audioSnapshot.fd); } catch {}
+        process.exit(143);
+      };
+      process.once('SIGTERM', cancelSnapshot);
+      audioSnapshot = prepareAudioSnapshot(process.env.FRAMEFORGE_PROJECT || process.cwd(), options['--audio-snapshot'], options['--audio-snapshot-manifest'], scratch, id, frameRange, scratchState);
+      process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE = '1';
+    } else {
+      // Generated audio is not committed; build this composition's score first so the mix never misses a file.
+      const spec = [join(dirname(process.env.VIDEO_ENTRY), 'audio.json')].find(existsSync);
+      if (spec && spawnSync('python3', [join(project, 'scripts', 'assets', 'score.py'), spec], {cwd: project, stdio: 'inherit'}).status !== 0) throw new Error(`Audio generation failed for ${spec}`);
+      const narration = [join(dirname(process.env.VIDEO_ENTRY), 'narration.json')].find(existsSync);
+      if (narration && spawnSync('python3', [join(project, 'scripts', 'assets', 'voice.py'), narration], {cwd: project, stdio: 'inherit'}).status !== 0) throw new Error(`Voice generation failed for ${narration}`);
+      const art = join(dirname(process.env.VIDEO_ENTRY), 'assets.json');
+      if (existsSync(art) && spawnSync('python3', [join(project, 'scripts', 'assets', 'art.py'), art], {cwd: project, stdio: 'inherit'}).status !== 0) throw new Error(`Asset resolution failed for ${art}`);
+    }
+    const {createServer} = await import('vite');
+    const port = Number(process.env.FRAMEFORGE_PORT) || 4318;
+    // Each render port keeps its own dependency cache so two renders never re-optimize into one folder.
+    server = await createServer({root: project, configFile: join(project, 'vite.config.ts'), cacheDir: join(project, 'node_modules', `.vite-render-${port}`), server: {host: '127.0.0.1', port, strictPort: true, hmr: false}});
+    const began = performance.now();
     await server.listen();
-    const result = await renderMedia({serveUrl: `http://127.0.0.1:${port}`, composition: id, outputLocation: output, inputProps, frames, frameRange, concurrency, pipe: !!options['--pipe'], checkIdempotent: !!options['--check-idempotent'], idempotentFrames,
+    const result = await renderMedia({serveUrl: `http://127.0.0.1:${port}`, composition: id, outputLocation: output, inputProps, frames, frameRange, concurrency, pipe: !!options['--pipe'], checkIdempotent: !!options['--check-idempotent'], idempotentFrames, audioSnapshot,
       codec: options['--codec'], audioCodec: options['--muted'] ? 'none' : options['--audio-codec'], crf: numberOr('--crf', undefined), gifFps: numberOr('--gif-fps', undefined), scale: numberOr('--scale', 1), transparent: !!options['--transparent'], strictAudit: !!options['--strict-audit'], onProgress: ({renderedFrames, totalFrames}) => {
       if (renderedFrames % 30 === 0 || renderedFrames === totalFrames) console.log(`${renderedFrames}/${totalFrames} frames`);
     }});
     console.log(JSON.stringify({...result, seconds: (performance.now() - began) / 1000}, null, 2));
-  } finally { await server.close(); }
+  } finally {
+    try { if (server) await server.close(); }
+    finally {
+      try { try { if (scratchState) scratchState.clean(); } finally { if (audioSnapshot) closeSync(audioSnapshot.fd); } }
+      finally { if (cancelSnapshot) process.removeListener('SIGTERM', cancelSnapshot); if (priorGuard === undefined) delete process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE; else process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE = priorGuard; }
+    }
+  }
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(error => {console.error(error.message); process.exitCode = 1;});

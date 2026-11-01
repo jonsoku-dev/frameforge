@@ -76,12 +76,29 @@ export function lastJson(stdout) {
 /** Runs the CLI in the project; reports `n/m frames` lines as progress; kills the child on timeout or cancel. */
 function cli(project, args, {timeout = 10 * MINUTE, extra, env = {}} = {}) {
   return new Promise(done => {
-    const child = spawn(process.execPath, [CLI, ...args], {cwd: project.root, stdio: ['ignore', 'pipe', 'pipe'], env: {...process.env, ...env}});
+    const grouped = process.platform !== 'win32';
+    const child = spawn(process.execPath, [CLI, ...args], {cwd: project.root, stdio: ['ignore', 'pipe', 'pipe'], env: {...process.env, ...env}, detached: grouped});
     let stdout = '', stderr = '', killed = '';
-    const kill = why => { killed = why; child.kill('SIGTERM'); setTimeout(() => child.kill('SIGKILL'), 5000).unref(); };
+    let escalation;
+    const signal = name => {
+      // Never target a process group after its leader has exited: its id could later be reused.
+      if (child.exitCode !== null || child.signalCode !== null) return;
+      if (grouped && child.pid) {
+        try { process.kill(-child.pid, name); return; } catch { /* process may already have exited */ }
+      }
+      child.kill(name);
+    };
+    const kill = why => {
+      if (killed) return;
+      killed = why;
+      signal('SIGTERM');
+      escalation = setTimeout(() => signal('SIGKILL'), 5000);
+      escalation.unref();
+    };
     const timer = setTimeout(() => kill(`timed out after ${Math.round(timeout / 1000)} s`), timeout);
     const onAbort = () => kill('cancelled');
     extra?.signal?.addEventListener('abort', onAbort);
+    if (extra?.signal?.aborted) onAbort();
     const token = extra?._meta?.progressToken;
     const progress = text => {
       if (token === undefined) return;
@@ -92,6 +109,7 @@ function cli(project, args, {timeout = 10 * MINUTE, extra, env = {}} = {}) {
     child.on('error', error => { stderr += String(error); });
     child.on('close', code => {
       clearTimeout(timer);
+      clearTimeout(escalation);
       extra?.signal?.removeEventListener('abort', onAbort);
       done({code: killed ? -1 : code ?? 1, stdout, stderr: killed ? `${stderr}\n${killed}` : stderr});
     });
@@ -121,17 +139,17 @@ const WORKFLOW = {
 4. In prompt.md plan the concept and each major event's prior and next information, focus, retained elements, transition and settled reading interval. Source-check factual sequences.
 5. film_files write Spot.tsx as a pure function of useCurrentFrame(), using media and techniques suited to the brief; lint until it has no findings.
 6. Preserve requested audio. Write audio.json and call score when generated sound fits and its sources are authorized.
-7. contact_sheet covering each major state, transition and last frame; critique focus and timing, revise weak scenes and inspect the revision.
-8. render the whole film, then check with the mp4 path and slug. Use video_frames to inspect the exact saved MP4 when available; otherwise use a permitted host method, or mark saved-render observations NOT VERIFIED if none is available. contact_sheet and still render the current source and do not prove what is in a saved MP4. Fix concrete defects and inspect each revised render, repeating while evidence and permissions allow. Review flagged holds against their purpose instead of adding motion to clear a diagnostic.
+7. Within the authorized scope, contact_sheet the relevant states, transitions and last requested frame; critique focus and timing, revise weak scenes and inspect the revision.
+8. Render the authorized range (or whole film if authorized), then check with the mp4 path and slug. If an existing full-mix WAV is explicitly selected for a partial render, audio_snapshot_prepare can create its new manifest on POSIX; it reads the entire WAV and does not verify its provenance or current-source match. Use video_frames to inspect the exact saved MP4 when available; otherwise use a permitted host method, or mark saved-render observations NOT VERIFIED if none is available. contact_sheet and still render the current source and do not prove what is in a saved MP4. Fix concrete defects and inspect each revised render, repeating while evidence and permissions allow. Review flagged holds against their purpose instead of adding motion to clear a diagnostic.
 9. Review playback and listen to the final mix when available. Report each must and forbid clause as MET, UNMET or NOT VERIFIED with evidence, actual check statuses, observation method and gaps. Stills and audio measurements do not prove playback or listening.`},
   make_explainer: {skill: 'frameforge-create', title: 'Make an explainer film', steps: `1. read_skill frameforge-create and read_skill frameforge-best-practices; follow them over this list. Read the references they point to with read_skill.
 2. film_new <slug>; film_files read entry.tsx, prompt.md and brief.md.
 3. Brief: film_files write brief.md (request verbatim, intent ledger, engine translation, gaps); brief_check until PASS.
 4. Concept and Structure table in prompt.md; use a beat grid when it serves the brief and show the table before writing code.
 5. Code: film_files write Spot.tsx (blocks, kit and bespoke code as the skill allows); lint until clean.
-6. Preserve requested audio or silence. Write audio.json and call score only when generated sound fits the request and its sources are authorized. The renderer generates a score whenever audio.json exists: remove an unused audio.json and import only if they came from the newly copied template, never delete user-owned files. If the available tools cannot do that, report the limitation rather than claim the requested workflow was performed.
-7. contact_sheet with one cell per scene; critique each cell in prompt.md (Second pass), remake the two weakest scenes, sheet again.
-8. render the whole film, then check with the mp4 path and the slug; fix every FAIL.
+6. Preserve requested audio or silence. Write audio.json and call score only when generated sound fits the request and its sources are authorized. Outside snapshot mode the renderer generates a score whenever audio.json exists: remove an unused audio.json and import only if they came from the newly copied template, never delete user-owned files. If the available tools cannot do that, report the limitation rather than claim the requested workflow was performed.
+7. Within the authorized scope, contact_sheet the relevant scenes; critique them in prompt.md, revise weak scenes and inspect the revision.
+8. Render the authorized range (or whole film if authorized), then check with the mp4 path and slug. If an existing full-mix WAV is explicitly selected for a partial render, audio_snapshot_prepare can create its new manifest on POSIX; it reads the entire WAV and does not verify its provenance or current-source match. Inspect failures against the brief, fix concrete defects and report actual statuses, including intentional holds.
 9. Report every must and forbid clause as MET, UNMET or NOT VERIFIED with evidence, the actual check statuses, and what you did not verify.`},
 };
 
@@ -196,11 +214,23 @@ export function buildServer(state) {
     const p = pick(project);
     return result(await cli(p, ['lint', join(filmFolder(p, slug), 'entry.tsx')]));
   });
-  tool('score', 'Generate the film\'s music and sound effects from films/<slug>/audio.json (keyless, local).', {slug: slugArg, project: projectArg}, writes, async ({slug, project}, extra) => {
+  tool('score', 'Generate the film\'s music and sound effects from films/<slug>/audio.json; library effects can use external sources.', {slug: slugArg, project: projectArg}, writes, async ({slug, project}, extra) => {
     const p = pick(project);
     const spec = join(filmFolder(p, slug), 'audio.json');
     if (!existsSync(spec)) throw new Error(`${slug} has no audio.json; write it with film_files first.`);
     return result(await cli(p, ['score', spec], {timeout: 15 * MINUTE, extra}));
+  });
+
+  tool('audio_snapshot_prepare', 'POSIX only: read the entire selected project-local WAV and create the explicitly named new project-local manifest without overwriting. The hash identifies bytes; supplied composition metadata and source provenance are not verified.', {
+    snapshot: z.string().min(1).describe('Existing project-relative WAV path; the entire file is read'),
+    manifest: z.string().min(1).describe('New project-relative .json path; existing files are not overwritten'),
+    composition: z.string().min(1).max(256).describe('Composition identifier supplied by the caller'),
+    fps: z.number().positive().describe('Composition frames per second supplied by the caller'),
+    duration_in_frames: z.number().int().positive().describe('Composition duration supplied by the caller'),
+    project: projectArg,
+  }, writes, async ({snapshot, manifest, composition, fps, duration_in_frames, project}, extra) => {
+    const run = await cli(pick(project), ['audio-snapshot-prepare', snapshot, composition, String(fps), String(duration_in_frames), '--output', manifest], {extra});
+    return run.code === 0 ? text({manifest, metadata: JSON.parse(run.stdout), provenance: 'NOT_VERIFIED', currentSourceMatch: 'NOT_VERIFIED'}) : result(run);
   });
 
   const renderTool = async (p, slug, out, flags, extra, timeoutMinutes) => {
@@ -213,12 +243,19 @@ export function buildServer(state) {
     slug: slugArg, frame_range: z.array(z.number().int().min(0)).length(2).optional().describe('[from, to] inclusive'),
     name: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/).optional().describe('Output file stem; default <slug>'), concurrency: z.number().int().min(1).max(8).optional(),
     idempotent_frames: z.array(z.number().int().min(0)).min(1).optional().describe('Output frame numbers to render twice and compare; the summary reports the frames checked'),
+    audio_snapshot: z.string().min(1).optional().describe('POSIX only: explicit project-relative WAV snapshot for a partial render; requires frame_range and audio_snapshot_manifest'),
+    audio_snapshot_manifest: z.string().min(1).optional().describe('Explicit project-relative version 1 manifest for audio_snapshot; current-source equivalence and listening remain NOT VERIFIED without separate evidence'),
     timeout_minutes: timeoutArg, project: projectArg,
-  }, writes, async ({slug, frame_range, name, concurrency, idempotent_frames, timeout_minutes, project}, extra) => {
+  }, writes, async ({slug, frame_range, name, concurrency, idempotent_frames, audio_snapshot, audio_snapshot_manifest, timeout_minutes, project}, extra) => {
     const p = pick(project);
     if (frame_range && frame_range[0] > frame_range[1]) throw new Error('frame_range must be [from, to] with from <= to.');
+    if ((audio_snapshot === undefined) !== (audio_snapshot_manifest === undefined)) throw new Error('audio_snapshot and audio_snapshot_manifest must be supplied together.');
+    if (audio_snapshot !== undefined && !frame_range) throw new Error('audio_snapshot requires frame_range.');
+    for (const [label, path, extension] of [['audio_snapshot', audio_snapshot, '.wav'], ['audio_snapshot_manifest', audio_snapshot_manifest, '.json']]) {
+      if (path !== undefined && (isAbsolute(path) || path.includes('\0') || path.includes('\\') || /^[A-Za-z][A-Za-z0-9+.-]*:/.test(path) || path.split('/').includes('..') || !path.toLowerCase().endsWith(extension))) throw new Error(`${label} must be a project-relative ${extension} path without .. components.`);
+    }
     const out = freeOutput(p, name ?? (frame_range ? `${slug}-${frame_range[0]}-${frame_range[1]}` : slug), '.mp4');
-    const {run, summary, audit} = await renderTool(p, slug, out, [...(frame_range ? ['--frame-range', frame_range.join('-')] : []), ...(concurrency ? ['--concurrency', String(concurrency)] : []), ...(idempotent_frames ? ['--check-idempotent', '--idempotent-frames', idempotent_frames.join(',')] : [])], extra, timeout_minutes);
+    const {run, summary, audit} = await renderTool(p, slug, out, [...(frame_range ? ['--frame-range', frame_range.join('-')] : []), ...(concurrency ? ['--concurrency', String(concurrency)] : []), ...(idempotent_frames ? ['--check-idempotent', '--idempotent-frames', idempotent_frames.join(',')] : []), ...(audio_snapshot !== undefined ? ['--audio-snapshot', audio_snapshot, '--audio-snapshot-manifest', audio_snapshot_manifest] : [])], extra, timeout_minutes);
     return run.code === 0 ? text({video: out, summary, ...(audit ? {audit: JSON.parse(audit).audit} : {}), next: `check {video: "${out}", slug: "${slug}"}`}) : result(run);
   });
   const image = (file, info) => ({content: [{type: 'image', data: readFileSync(file).toString('base64'), mimeType: 'image/png'}, {type: 'text', text: JSON.stringify({file, ...info}, null, 1)}]});

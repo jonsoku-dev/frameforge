@@ -16,6 +16,7 @@ const films = project ? resolve(project, (JSON.parse(readFileSync(resolve(projec
 
 /** Resolves a composition's assets from its assets.json the first time one of its SVGs is requested. */
 function artOnDemand(): Plugin {
+  const noGenerate = process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE === '1';
   return {
     name: 'art-on-demand',
     configureServer(server) {
@@ -25,6 +26,7 @@ function artOnDemand(): Plugin {
         const [, slug = '', file = ''] = match;
         const target = resolve(directory, 'public/assets/generated', slug, file);
         if (existsSync(target)) return next();
+        if (noGenerate) { res.statusCode = 404; res.end(`Snapshot render requires existing asset: ${slug}/${file}`); return; }
         const spec = resolve(films, slug, 'assets.json');
         if (!existsSync(spec)) return next();
         const result = spawnSync('python3', [resolve(directory, 'scripts/assets/art.py'), spec], {cwd: directory, encoding: 'utf8'});
@@ -40,6 +42,7 @@ function artOnDemand(): Plugin {
 
 /** Generates a composition's score from its audio spec the first time one of its files is requested. */
 function scoreOnDemand(): Plugin {
+  const noGenerate = process.env.FRAMEFORGE_SNAPSHOT_NO_GENERATE === '1';
   return {
     name: 'score-on-demand',
     configureServer(server) {
@@ -49,6 +52,7 @@ function scoreOnDemand(): Plugin {
         const [, slug = '', file = ''] = match;
         const target = resolve(directory, 'public/audio/generated', slug, file);
         if (existsSync(target)) return next();
+        if (noGenerate) { res.statusCode = 404; res.end(`Snapshot render requires existing audio: ${slug}/${file}`); return; }
         // voice.wav comes from narration.json through voice.py; every other wav from audio.json through score.py.
         const generator = file === 'voice.wav' ? ['voice.py', 'narration.json'] : ['score.py', 'audio.json'];
         const spec = [resolve(films, slug, generator[1])].find(existsSync);
