@@ -3,6 +3,7 @@
 import {existsSync, readFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {externalProject} from './audio-guard.mjs';
 
 export const RATES = {ko: 8, en: 4, ja: 7};
 const UNIT = {ko: 'syllables', en: 'words', ja: 'characters'};
@@ -27,7 +28,7 @@ export function checkNarration({timing, language, durationInFrames = null, fps =
     if (line.embed && next?.embed) findings.push({code: 'embed_adjacent', line: next.id, message: `'${line.id}' and '${next.id}' both promote a word (${line.embed}, ${next.embed})`, fix: 'Keep embeds at least one line apart: remove embed from one of them.'});
     for (const scene of scenes) if (scene > line.startFrame && scene < line.endFrame) findings.push({code: 'scene_inside_line', scene, line: line.id, message: `a scene starts at frame ${scene} while '${line.id}' speaks (frames ${line.startFrame}–${line.endFrame})`, fix: `Start the scene at frame ${line.startFrame} (useNarration().at('${line.id}')) or at the next line, and hold the picture while a line is speaking.`});
   }
-  if (!voiceExists && lines.some(line => !line.estimated)) findings.push({code: 'voice_missing', message: `public/audio/generated/${timing.slug}/voice.wav is missing while the timing is measured`, fix: `Run npm run voice -- examples/samples/${timing.slug}/narration.json before rendering.`});
+  if (!voiceExists && lines.some(line => !line.estimated)) findings.push({code: 'voice_missing', message: `public/audio/generated/${timing.slug}/voice.wav is missing or unavailable for verification while the timing is measured`, fix: `Provide verifiable narration audio before rendering.`});
   return findings;
 }
 
@@ -58,7 +59,7 @@ function main(argv) {
   const scenes = flag('--scenes') ? flag('--scenes').split(',').map(Number) : prompt ? scenesFromPrompt(readFileSync(resolve(folder, prompt), 'utf8')) : [];
   const rates = {...RATES};
   for (const language of Object.keys(RATES)) if (flag(`--rate-${language}`)) rates[language] = Number(flag(`--rate-${language}`));
-  const findings = checkNarration({timing, language, durationInFrames: duration ? Number(duration[1]) : null, fps: Number(flag('--fps') ?? 30), scenes, rates, voiceExists: existsSync(join(root, 'public', 'audio', 'generated', timing.slug, 'voice.wav'))});
+  const findings = checkNarration({timing, language, durationInFrames: duration ? Number(duration[1]) : null, fps: Number(flag('--fps') ?? 30), scenes, rates, voiceExists: !externalProject(root) && existsSync(join(root, 'public', 'audio', 'generated', timing.slug, 'voice.wav'))});
   if (argv.includes('--json')) console.log(JSON.stringify({ok: findings.length === 0, language, lines: timing.lines.length, totalMs: timing.totalMs, scenes, findings}, null, 1));
   else {
     for (const f of findings) console.log(`FAIL ${f.code}: ${f.message}\n  fix: ${f.fix}`);

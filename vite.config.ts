@@ -2,17 +2,73 @@ import {defineConfig, type Plugin} from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import {spawnSync} from 'node:child_process';
 import {createReadStream, existsSync, readFileSync, readdirSync, realpathSync, statSync} from 'node:fs';
-import {extname, relative, resolve, sep} from 'node:path';
+import {extname, posix, relative, resolve, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {studioApi} from './src/studio/server/studioApi.ts';
 import {createHash} from 'node:crypto';
 import {downloadRemote, extractVideoFrames} from './scripts/video-frames.mjs';
 import {mediaMetadata, optionalPeers} from './src/packages/dev-server.ts';
+import {externalProject, PROJECT_MEDIA_TYPES, projectPublicMedia, rejectSharedAudio, viteFsPath} from './scripts/audio-guard.mjs';
 
 const directory = fileURLToPath(new URL('.', import.meta.url));
 /** A project outside this checkout (`frameforge init`), realpath'd because Vite compares real paths; its films folder comes from frameforge.json. */
 const project = process.env.FRAMEFORGE_PROJECT ? realpathSync(process.env.FRAMEFORGE_PROJECT) : null;
 const films = project ? resolve(project, (JSON.parse(readFileSync(resolve(project, 'frameforge.json'), 'utf8')) as {films?: string}).films ?? 'films') : resolve(directory, 'examples/samples');
+
+/** Never fall through to Vite's engine public directory for another project's generated audio. */
+function sharedAudioGuard(): Plugin {
+  return {name: 'shared-audio-guard', configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if (!externalProject(directory)) return next();
+      try {
+        let path = new URL(req.url ?? '/', 'http://local').pathname;
+        for (let i = 0; i < 3; i++) { const decoded = decodeURIComponent(path); if (decoded === path) break; path = decoded; }
+        path = posix.normalize(path.replaceAll('\\', '/'));
+        const candidate = path.startsWith('/@fs/') ? resolve(viteFsPath(path)) : resolve(directory, 'public', '.' + path);
+        rejectSharedAudio(directory, candidate);
+        return next();
+      } catch (error) { res.statusCode = 403; res.end(String(error instanceof Error ? error.message : error)); }
+    });
+  }};
+}
+
+/** Serve explicitly named project-local media before falling back to engine public. */
+function projectMedia(): Plugin {
+  return {name: 'project-public-media', configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if (!externalProject(directory) || !['GET', 'HEAD'].includes(req.method ?? '')) return next();
+      try {
+        const path = new URL(req.url ?? '/', 'http://local').pathname;
+        const mime = PROJECT_MEDIA_TYPES[extname(decodeURIComponent(path)).toLowerCase()];
+        if (!mime && !['audio', 'video'].includes(String(req.headers['sec-fetch-dest'] ?? ''))) return next();
+        const file = projectPublicMedia(directory, path);
+        if (!file) return next();
+        if (!mime) { res.statusCode = 415; res.end('Unsupported project media format.'); return; }
+        const size = statSync(file).size;
+        const range = req.headers.range;
+        let start = 0, end = size - 1;
+        if (range) {
+          const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+          if (!match || (!match[1] && !match[2])) { res.statusCode = 416; res.setHeader('content-range', `bytes */${size}`); res.end(); return; }
+          if (!match[1]) start = Math.max(0, size - Number(match[2]));
+          else { start = Number(match[1]); if (match[2]) end = Math.min(end, Number(match[2])); }
+          if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= size) { res.statusCode = 416; res.setHeader('content-range', `bytes */${size}`); res.end(); return; }
+          res.statusCode = 206; res.setHeader('content-range', `bytes ${start}-${end}/${size}`);
+        }
+        res.setHeader('accept-ranges', 'bytes'); res.setHeader('content-type', mime); res.setHeader('content-length', String(size ? end - start + 1 : 0));
+        if (req.method === 'HEAD' || !size) { res.end(); return; }
+        const stream = createReadStream(file, {start, end});
+        stream.on('error', () => {
+          if (res.headersSent) { res.destroy(); return; }
+          res.removeHeader('content-length'); res.removeHeader('content-range');
+          res.statusCode = 500; res.setHeader('content-type', 'text/plain'); res.end('Project media read failed.');
+        });
+        res.once('close', () => stream.destroy());
+        stream.pipe(res);
+      } catch (error) { res.statusCode = 403; res.end(String(error instanceof Error ? error.message : error)); }
+    });
+  }};
+}
 
 /** Resolves a composition's assets from its assets.json the first time one of its SVGs is requested. */
 function artOnDemand(): Plugin {
@@ -76,7 +132,7 @@ function staticFiles(): Plugin {
     configureServer(server) {
       server.middlewares.use('/__frameforge/static-files', (_req, res) => {
         const publicDirectory = resolve(directory, 'public');
-        const files = existsSync(publicDirectory) ? readdirSync(publicDirectory, {recursive: true, encoding: 'utf8'}).map(entry => resolve(publicDirectory, entry)).filter(file => statSync(file).isFile()).slice(0, 10000).map(file => {
+        const files = existsSync(publicDirectory) ? readdirSync(publicDirectory, {recursive: true, encoding: 'utf8'}).map(entry => resolve(publicDirectory, entry)).filter(file => { try { rejectSharedAudio(directory, file); return statSync(file).isFile(); } catch { return false; } }).slice(0, 10000).map(file => {
           const name = relative(publicDirectory, file).split(sep).join('/');
           const stats = statSync(file); // follows symlinks, so a link reports its target's size
           return {name, src: '/' + name.split('/').map(encodeURIComponent).join('/'), sizeInBytes: stats.size, lastModified: Math.round(stats.mtimeMs)};
@@ -97,8 +153,11 @@ function videoFrames(): Plugin {
   const publicDirectory = resolve(directory, 'public');
   const sourceFile = async (src: string | null) => {
     if (/^https:\/\//i.test(src ?? '')) return downloadRemote(directory, src!);
-    const file = src?.startsWith('/') ? resolve(publicDirectory, '.' + decodeURIComponent(src.split('?')[0] ?? '')) : '';
-    if (!file.startsWith(publicDirectory + sep) || !existsSync(file) || !statSync(file).isFile()) throw new Error(`Video src must name a file under public/ or an https:// URL: ${src}`);
+    const engineFile = src?.startsWith('/') ? resolve(publicDirectory, '.' + decodeURIComponent(src.split('?')[0] ?? '')) : '';
+    rejectSharedAudio(directory, engineFile);
+    const projectFile = src && projectPublicMedia(directory, src);
+    const file = projectFile || engineFile;
+    if ((!projectFile && !file.startsWith(publicDirectory + sep)) || !existsSync(file) || !statSync(file).isFile()) throw new Error(`Video src must name a file under public/ or an https:// URL: ${src}`);
     return file;
   };
   return {
@@ -145,7 +204,7 @@ function videoFrames(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [tailwindcss(), studioApi(project ?? directory.replace(/\/$/, ''), process.env.VIDEO_ENTRY || 'examples/samples/index.tsx'), scoreOnDemand(), artOnDemand(), staticFiles(), videoFrames(), mediaMetadata(directory), optionalPeers(['three', '@react-three/fiber'], directory)],
+  plugins: [tailwindcss(), sharedAudioGuard(), projectMedia(), studioApi(project ?? directory.replace(/\/$/, ''), process.env.VIDEO_ENTRY || 'examples/samples/index.tsx'), scoreOnDemand(), artOnDemand(), staticFiles(), videoFrames(), mediaMetadata(directory), optionalPeers(['three', '@react-three/fiber'], directory)],
   define: {__VIDEO_ENTRY__: JSON.stringify(process.env.VIDEO_ENTRY || 'examples/samples/index.tsx')},
   // dedupe: films in an outside project have no node_modules, so React resolves from the engine.
   resolve: {alias: {frameforge: resolve(directory, 'src/core/index.tsx'), '@video-entry': resolve(directory, process.env.VIDEO_ENTRY || 'examples/samples/index.tsx'), '@': resolve(directory, 'src')}, dedupe: ['react', 'react-dom']},

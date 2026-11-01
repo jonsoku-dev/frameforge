@@ -169,7 +169,7 @@ frameforge check out.mp4                                # 빈 화면, 정지, �
 
 \`frameforge\`가 PATH에 없으면 \`node <engine>/bin/frameforge.mjs\`로 부른다. 엔진 저장소에서 \`npm link\`를 한 번 하면 PATH에 올라간다.
 
-생성된 음악(\`public/audio/generated/<slug>\`), 에셋(\`public/assets/generated/<slug>\`), 캐시(\`.cache\`)는 엔진 저장소에 쌓인다. 그래서 slug는 엔진의 예제와 다른 프로젝트의 영상 사이에서도 겹치지 않게 짓는다.
+외부 프로젝트의 생성 오디오는 공용 파일 덮어쓰기와 오인을 막기 위해 임시로 차단한다. 오디오 사양이 있으면 일반 렌더의 자동 생성도 실패한다. 생성 이미지와 3D 자산은 엔진 경로를 공유하며 아직 격리되지 않았다.
 `;
 
 const INDEX = `import {Composition, registerRoot} from 'frameforge';

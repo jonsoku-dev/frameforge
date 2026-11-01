@@ -75,7 +75,7 @@ frameforge render demo-spot DemoSpot out.mp4 --frame-range 0-59
 frameforge check out.mp4          # frame-check와 flash-check
 ```
 
-생성된 음악, 에셋, 캐시는 프로젝트가 아니라 엔진 저장소의 `public/audio/generated/<slug>`, `public/assets/generated/<slug>`, `.cache`에 쌓입니다. 그래서 slug는 엔진 예제와 다른 프로젝트 사이에서도 겹치지 않게 짓습니다. 자세한 동작은 [docs/reference/cli.md](docs/reference/cli.md)에 있습니다.
+생성 에셋과 캐시는 엔진 저장소의 `public/assets/generated/<slug>`, `.cache`를 공유합니다. 외부 프로젝트의 생성 오디오는 공용 경로에서 다른 프로젝트 파일을 덮어쓰거나 잘못 읽을 수 있어 생성·공용 음원 읽기를 임시로 차단합니다. 오디오 사양이 있으면 일반 렌더·시트의 자동 생성도 실패합니다. 사용자가 직접 준비한 프로젝트의 `public/music.wav`는 `<Audio src="/music.wav" />`로 사용할 수 있습니다. 생성 이미지·3D 등의 공용 경로는 아직 격리되지 않았으므로 다른 프로젝트와 slug를 겹치지 않게 하고 사용자 파일을 확인하세요. 자세한 동작은 [docs/reference/cli.md](docs/reference/cli.md)에 있습니다.
 
 ### 3. 에이전트 플러그인으로
 

@@ -9,6 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {spawn, spawnSync} from 'node:child_process';
 import {writeArtifacts} from './artifacts.mjs';
 import {atempoChain, remoteCachePath} from './video-frames.mjs';
+import {projectPublicMedia, rejectSharedAudio} from './audio-guard.mjs';
 
 const project = fileURLToPath(new URL('../', import.meta.url));
 const ffmpegPath = () => process.env.FFMPEG_PATH || 'ffmpeg';
@@ -73,8 +74,11 @@ export function encodeArgs(video, encode, fps, count, segments, output, offset =
   for (const [index, {clip, first, last}] of segments.entries()) {
     // A clip from an https:// Video was downloaded once into .cache/remote by the frame server; everything else lives under public/.
     const remote = /^https:\/\//i.test(clip.src);
-    const file = remote ? remoteCachePath(project, clip.src) : resolve(publicDirectory, '.' + decodeURIComponent(clip.src));
-    if ((!remote && !file.startsWith(publicDirectory + sep)) || !existsSync(file)) throw new Error(`Audio src must name a file under public/ or a downloaded https:// URL: ${clip.src}`);
+    const engineFile = remote ? '' : resolve(publicDirectory, '.' + decodeURIComponent(clip.src));
+    if (!remote) rejectSharedAudio(project, engineFile);
+    const projectFile = !remote && projectPublicMedia(project, clip.src);
+    const file = remote ? remoteCachePath(project, clip.src) : projectFile || engineFile;
+    if ((!remote && !projectFile && !file.startsWith(publicDirectory + sep)) || !existsSync(file)) throw new Error(`Audio src must name a file under public/ or a downloaded https:// URL: ${clip.src}`);
     const seconds = frame => (frame / fps).toFixed(6);
     const rate = clip.playbackRate ?? 1;
     inputs.push('-ss', seconds(clip.trimBefore + (first - clip.startFrame) * rate), '-t', seconds((last - first + 1) * rate), '-i', file);
@@ -485,7 +489,9 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
       // Silent outputs retain motion evidence but do not need audio files or duration probes.
       for (const clip of format.audio === 'none' ? [] : derived) {
         if (authored.some(first => Math.abs(first - clip.startFrame) < selected.fps / 2)) continue;
-        const file = resolve(join(project, 'public'), '.' + decodeURIComponent(clip.src));
+        const engineFile = resolve(join(project, 'public'), '.' + decodeURIComponent(clip.src));
+        rejectSharedAudio(project, engineFile);
+        const file = projectPublicMedia(project, clip.src) || engineFile;
         if (!existsSync(file)) throw new Error(`MotionSound src must name a file under public/: ${clip.src}`);
         if (!lengths.has(file)) lengths.set(file, probeMotionSoundDuration(file));
         const last = Math.min(to, clip.startFrame + Math.ceil(lengths.get(file) * selected.fps) - 1);

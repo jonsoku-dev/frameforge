@@ -4,7 +4,7 @@ import {spawnSync} from 'node:child_process';
 import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {checkBrief, compositionOf, sentences} from '../scripts/brief-check.mjs';
+import {checkBrief, compositionOf, numberFindings, sentences} from '../scripts/brief-check.mjs';
 import {ENGINE} from '../bin/frameforge.mjs';
 
 const brief = readFileSync('tests/fixtures/brief/brief.md', 'utf8');
@@ -47,6 +47,43 @@ test('brief-check compares seconds, size and fps in must clauses with the compos
   const sized = brief.replace(row('"make'), `${row('"make')}\n| "1080x1920 at 30 fps" | must | format | entry.tsx |`);
   assert.deepEqual(codes(sized).filter(c => c.endsWith('mismatch')), ['size_mismatch', 'fps_mismatch']);
   assert.ok(!codes(brief.replace('| must | 1920x1080', '| taste | 1920x1080'), {...composition, durationInFrames: 1200}).length, 'only must clauses are compared');
+});
+
+test('brief-check compares explicit duration ranges inclusively, not the last endpoint as an exact duration', () => {
+  const findings = (clause: string, seconds: number) => numberFindings(clause, {...composition, fps: 30, durationInFrames: seconds * 30}).map(f => f.code);
+  for (const clause of ['a 10–15-second video', '10-15 seconds', '10 to 15 sec', 'between 10 and 15 seconds', '10s–15s', '10~15초짜리 영상', '10초에서 15초까지', '10초부터 15초까지']) {
+    assert.deepEqual(findings(clause, 12), [], clause);
+    assert.deepEqual(findings(clause, 10), [], `${clause}: lower bound`);
+    assert.deepEqual(findings(clause, 15), [], `${clause}: upper bound`);
+    assert.deepEqual(findings(clause, 9), ['duration_mismatch'], `${clause}: too short`);
+    assert.deepEqual(findings(clause, 16), ['duration_mismatch'], `${clause}: too long`);
+  }
+  assert.deepEqual(findings('15–10 seconds', 12), ['duration_range_invalid']);
+  assert.deepEqual(findings('0–10 seconds', 5), ['duration_range_invalid']);
+  assert.deepEqual(findings('10–15 seconds and 20 seconds', 12), ['duration_ambiguous']);
+  assert.deepEqual(findings('10 or 15 seconds', 15), ['duration_ambiguous']);
+  assert.deepEqual(findings('10초 또는 15초', 10), ['duration_ambiguous']);
+  assert.deepEqual(findings('10 seconds or 15 seconds', 10), ['duration_ambiguous']);
+  assert.deepEqual(findings('1분 10–15초짜리 영상', 12), ['duration_ambiguous']);
+  assert.deepEqual(findings('1 minute 10–15 seconds long', 12), ['duration_ambiguous']);
+  assert.deepEqual(findings('1분 12초짜리 영상', 12), ['duration_ambiguous']);
+  assert.deepEqual(findings('1 min 12 seconds', 12), ['duration_ambiguous']);
+  assert.deepEqual(findings('12초짜리 영상', 12), []);
+  assert.deepEqual(findings('12초짜리 영상', 14), ['duration_mismatch']);
+  assert.deepEqual(findings('10 seconds', 12), ['duration_mismatch'], 'exact durations still fail');
+});
+
+test('brief-check CLI accepts an explicit duration range in a must row', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ff-brief-range-'));
+  const request = 'Make a 10–15-second vertical film.';
+  const rangeBrief = `## Request\n\n${request}\n\n## Intent ledger\n\n| Clause | Kind | Means | Verify |\n| --- | --- | --- | --- |\n| ${request} | must | 360 frames | entry.tsx |\n\n## Engine translation\n\nUse frames.\n\n## Gaps\n\nNone.\n`;
+  try {
+    writeFileSync(join(dir, 'brief.md'), rangeBrief);
+    writeFileSync(join(dir, 'entry.tsx'), '<Composition durationInFrames={360} fps={30} width={1080} height={1920} />');
+    const checked = spawnSync(process.execPath, [join(ENGINE, 'scripts/brief-check.mjs'), dir, '--json'], {encoding: 'utf8'});
+    assert.equal(checked.status, 0, checked.stdout + checked.stderr);
+    assert.deepEqual(JSON.parse(checked.stdout).findings, []);
+  } finally { rmSync(dir, {recursive: true, force: true}); }
 });
 
 test('frameforge brief-check runs the script and check SKIPs a film without brief.md', () => {

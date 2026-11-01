@@ -13,6 +13,7 @@ Providers, in `auto` order (a spec's voice.provider pins one):
 import hashlib, json, os, re, shutil, subprocess, sys, tempfile, time, wave
 import numpy as np
 import score, sfx
+from audio_guard import require_local_output
 
 ROOT, SR, OUT = score.ROOT, score.SR, score.OUT
 FFPROBE = os.environ.get('FFPROBE_PATH') or os.environ.get('FFPROBE', 'ffprobe')
@@ -135,6 +136,7 @@ def line_hash(provider, voice, language, rate, text):
 
 
 def generate(path, force, out_root=OUT):
+    require_local_output(ROOT, path, os.path.realpath(out_root) == os.path.realpath(OUT))
     began = time.time()
     with open(path, 'rb') as f:
         try:

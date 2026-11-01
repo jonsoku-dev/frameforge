@@ -214,7 +214,7 @@ export function buildServer(state) {
     const p = pick(project);
     return result(await cli(p, ['lint', join(filmFolder(p, slug), 'entry.tsx')]));
   });
-  tool('score', 'Generate the film\'s music and sound effects from films/<slug>/audio.json; library effects can use external sources.', {slug: slugArg, project: projectArg}, writes, async ({slug, project}, extra) => {
+  tool('score', 'Generate music and sound effects from films/<slug>/audio.json. External-project generation is temporarily blocked because the output path is shared; library effects can use external sources.', {slug: slugArg, project: projectArg}, writes, async ({slug, project}, extra) => {
     const p = pick(project);
     const spec = join(filmFolder(p, slug), 'audio.json');
     if (!existsSync(spec)) throw new Error(`${slug} has no audio.json; write it with film_files first.`);
@@ -239,7 +239,7 @@ export function buildServer(state) {
     return {run, summary: run.code === 0 ? lastJson(run.stdout) : null, audit: /^\{"audit":.*$/m.exec(run.stdout)?.[0]};
   };
   const timeoutArg = z.number().int().min(1).max(180).default(60).describe('Minutes before the render is killed');
-  tool('render', 'Render a film (or an inclusive frame range) to an MP4 under <project>/renders/. Returns the path and the renderer\'s JSON summary. Sends progress notifications.', {
+  tool('render', 'Render a film (or an inclusive frame range) to an MP4 under <project>/renders/. External-project audio.json or narration.json preflight fails because generated audio is shared; an explicitly selected snapshot skips that preflight. Returns the path and renderer summary.', {
     slug: slugArg, frame_range: z.array(z.number().int().min(0)).length(2).optional().describe('[from, to] inclusive'),
     name: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/).optional().describe('Output file stem; default <slug>'), concurrency: z.number().int().min(1).max(8).optional(),
     idempotent_frames: z.array(z.number().int().min(0)).min(1).optional().describe('Output frame numbers to render twice and compare; the summary reports the frames checked'),

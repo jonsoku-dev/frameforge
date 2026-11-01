@@ -2,6 +2,7 @@ import {execFile} from 'node:child_process';
 import {existsSync, statSync} from 'node:fs';
 import {dirname, resolve, sep} from 'node:path';
 import {downloadRemote} from '../../scripts/video-frames.mjs';
+import {projectPublicMedia, rejectSharedAudio} from '../../scripts/audio-guard.mjs';
 import type {Plugin} from 'vite';
 
 type Probe = {streams?: {codec_type?: string; width?: number; height?: number; duration?: string; tags?: {rotate?: string}; side_data_list?: {rotation?: number}[]}[]; format?: {duration?: string}};
@@ -17,7 +18,12 @@ export async function readMediaMetadata(publicDirectory: string, src: string): P
     let path: string;
     try { path = decodeURIComponent(src.split(/[?#]/)[0]!); } catch { return {error: `malformed src ${src}`, status: 400}; }
     target = resolve(publicDirectory, '.' + path);
-    if (!target.startsWith(resolve(publicDirectory) + sep)) return {error: `src ${src} escapes public/`, status: 400};
+    try {
+      rejectSharedAudio(dirname(resolve(publicDirectory)), target);
+      const projectFile = projectPublicMedia(dirname(resolve(publicDirectory)), src);
+      if (projectFile) target = projectFile;
+      else if (!target.startsWith(resolve(publicDirectory) + sep)) return {error: `src ${src} escapes public/`, status: 400};
+    } catch (error) { return {error: String(error instanceof Error ? error.message : error), status: 403}; }
     if (!existsSync(target) || !statSync(target).isFile()) return {error: `no file public${path}`, status: 404};
   } else return {error: 'src must be a public path starting with "/" or an https:// URL', status: 400};
   const output = await new Promise<string>((done, fail) => execFile(process.env.FFPROBE_PATH || 'ffprobe', ['-v', 'error', '-print_format', 'json', '-show_format', '-show_streams', target], {timeout: 20000, maxBuffer: 8 << 20}, (error, stdout, stderr) => error ? fail(new Error(stderr.trim() || error.message)) : done(stdout))).catch((error: Error) => error);

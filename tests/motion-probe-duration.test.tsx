@@ -3,7 +3,7 @@ import test from 'node:test';
 import {spawnSync} from 'node:child_process';
 import {chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {basename, join, resolve} from 'node:path';
+import {join, resolve} from 'node:path';
 // @ts-expect-error the renderer is plain ESM without types
 import {probeMotionSoundDuration} from '../scripts/render.mjs';
 
@@ -71,10 +71,7 @@ test('motion sound probing rejects real damaged audio even when ffprobe returns 
 
 test('custom probe preserves a motion cue tail beyond one second in a partial render', {timeout: 120000, skip: process.platform === 'win32' ? 'probe fixtures require a POSIX shell and a project symlink' : false}, () => {
   const dir = mkdtempSync(join(tmpdir(), 'frameforge-long-cue-'));
-  const generated = join(engine, 'public', 'audio', 'generated');
-  mkdirSync(generated, {recursive: true});
-  const sounds = mkdtempSync(join(generated, 'long-cue-test-'));
-  const slug = basename(sounds);
+  const sounds = join(dir, 'public');
   const port = String(25000 + process.pid % 10000);
   const ffmpeg = process.env.FFMPEG_PATH || 'ffmpeg';
   const command = (program: string, args: string[], extra: Record<string, string> = {}) => {
@@ -83,7 +80,7 @@ test('custom probe preserves a motion cue tail beyond one second in a partial re
     return result.stdout;
   };
   try {
-    mkdirSync(join(dir, 'public'));
+  mkdirSync(sounds);
     writeFileSync(join(dir, 'frameforge.json'), JSON.stringify({engine, films: 'films'}));
     symlinkSync(join(engine, 'node_modules'), join(dir, 'node_modules'), 'dir');
     command(ffmpeg, ['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=3', '-ac', '2', join(sounds, 'cue.wav')]);
@@ -94,7 +91,7 @@ function Film() {
   const f = useCurrentFrame();
   return <AbsoluteFill style={{background:'#333'}}>
     <MotionProbe id="test" value={Math.max(0,Math.min(1,(f-35)/10))} family="shape" axis="y" />
-    <MotionSound src="/audio/generated/${slug}/cue.wav" role="move" volume={0.8} />
+    <MotionSound src="/cue.wav" role="move" volume={0.8} />
   </AbsoluteFill>;
 }
 registerRoot(() => <Composition id="LongCue" component={Film} durationInFrames={150} fps={30} width={160} height={90} />);
@@ -155,6 +152,5 @@ registerRoot(() => <Composition id="LongCue" component={Film} durationInFrames={
     }
   } finally {
     rmSync(dir, {recursive: true, force: true});
-    rmSync(sounds, {recursive: true, force: true});
   }
 });
