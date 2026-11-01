@@ -3,7 +3,7 @@ import {dirname, extname, isAbsolute, relative, resolve, sep} from 'node:path';
 
 const canonical = path => existsSync(path) ? realpathSync(path) : resolve(path);
 export const viteFsPath = path => { const rest = path.slice('/@fs/'.length); return /^[A-Za-z]:\//.test(rest) ? rest : `/${rest}`; };
-export const PROJECT_MEDIA_TYPES = Object.freeze({'.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.ogg': 'audio/ogg', '.oga': 'audio/ogg', '.flac': 'audio/flac', '.aac': 'audio/aac', '.opus': 'audio/ogg', '.aif': 'audio/aiff', '.aiff': 'audio/aiff', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.m4v': 'video/mp4', '.mkv': 'video/x-matroska'});
+export const PROJECT_MEDIA_TYPES = Object.freeze({'.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.ogg': 'audio/ogg', '.oga': 'audio/ogg', '.flac': 'audio/flac', '.aac': 'audio/aac', '.opus': 'audio/ogg', '.aif': 'audio/aiff', '.aiff': 'audio/aiff', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.m4v': 'video/mp4', '.mkv': 'video/x-matroska', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.avif': 'image/avif'});
 export const externalProject = engine => {
   const root = canonical(engine);
   if (process.env.FRAMEFORGE_PROJECT && canonical(process.env.FRAMEFORGE_PROJECT) !== root) return true;

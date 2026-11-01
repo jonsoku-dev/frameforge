@@ -8,7 +8,7 @@ import {basename, join, resolve} from 'node:path';
 import test from 'node:test';
 // @ts-expect-error the renderer is plain ESM without types
 import {encodeArgs} from '../scripts/render.mjs';
-import {viteFsPath} from '../scripts/audio-guard.mjs';
+import {projectPublicMedia, viteFsPath} from '../scripts/audio-guard.mjs';
 
 const engine = resolve(import.meta.dirname, '..');
 const pause = (ms: number) => new Promise(done => setTimeout(done, ms));
@@ -76,6 +76,10 @@ test('outside project Vite cannot fall through to shared generated audio', {time
   mkdirSync(join(temp, 'public')); writeFileSync(join(temp, 'public', 'music.wav'), 'project-local-audio');
   const mediaName = `${slug}.flac`, engineMedia = join(engine, 'public', mediaName);
   writeFileSync(engineMedia, 'engine music'); writeFileSync(join(temp, 'public', mediaName), 'project music');
+  const imageName = `${slug}.png`, engineImage = join(engine, 'public', imageName);
+  const projectImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==', 'base64');
+  writeFileSync(engineImage, 'engine image'); writeFileSync(join(temp, 'public', imageName), projectImage);
+  symlinkSync(engineImage, join(temp, 'public', 'image-alias.png'));
   writeFileSync(join(temp, 'public', 'unsupported.unknown'), 'project unsupported');
   writeFileSync(join(temp, 'public', 'read-error.wav'), 'present before opening');
   writeFileSync(join(temp, 'public', 'partial-error.wav'), 'present before opening');
@@ -113,6 +117,12 @@ syncBuiltinESMExports();`);
     const flac = await fetch(`${base}/${mediaName}`);
     assert.equal(flac.headers.get('content-type'), 'audio/flac'); assert.equal(await flac.text(), 'project music');
     assert.equal(readFileSync(engineMedia, 'utf8'), 'engine music', 'the same-name engine file is unchanged');
+    const image = await fetch(`${base}/${imageName}`);
+    assert.equal(image.status, 200); assert.equal(image.headers.get('content-type'), 'image/png');
+    assert.deepEqual(Buffer.from(await image.arrayBuffer()), projectImage);
+    assert.equal(readFileSync(engineImage, 'utf8'), 'engine image', 'project image serving preserves the same-name engine asset');
+    assert.equal((await fetch(`${base}/${imageName}`, {method: 'HEAD'})).headers.get('content-length'), String(projectImage.length));
+    assert.equal((await fetch(`${base}/image-alias.png`)).status, 403, 'image aliases cannot escape the project public boundary');
     const unsupported = await fetch(`${base}/unsupported.unknown`, {headers: {'sec-fetch-dest': 'audio'}});
     assert.equal(unsupported.status, 403); assert.match(await unsupported.text(), /Unsupported project media format/);
     const bad = await fetch(`${base}/read-error.wav`); assert.equal(bad.status, 500); assert.match(await bad.text(), /Project media read failed/);
@@ -123,17 +133,19 @@ syncBuiltinESMExports();`);
     const priorProject = process.env.FRAMEFORGE_PROJECT;
     try {
       process.env.FRAMEFORGE_PROJECT = temp;
+      assert.throws(() => projectPublicMedia(engine, '/%2e%2e/outside.png'), /must stay within public/);
+      assert.throws(() => projectPublicMedia(engine, '/sub%5c..%5coutside.png'), /must stay within public/);
       const clip = (src: string) => [{clip: {src, trimBefore: 0, startFrame: 0, volume: 1}, first: 0, last: 0}];
       assert.ok(encodeArgs([], [], 30, 1, clip(`/${mediaName}`), 'out.mp4').includes(realpathSync(join(temp, 'public', mediaName))));
       assert.throws(() => encodeArgs([], [], 30, 1, clip('/unsupported.unknown'), 'out.mp4'), /Unsupported project media format/);
     } finally { if (priorProject === undefined) delete process.env.FRAMEFORGE_PROJECT; else process.env.FRAMEFORGE_PROJECT = priorProject; }
   } finally {
     child.kill('SIGTERM'); await new Promise<void>(done => child.once('exit', () => done()));
-    rmSync(alias, {force: true}); rmSync(engineMedia, {force: true}); rmSync(shared, {recursive: true, force: true}); rmSync(temp, {recursive: true, force: true});
+    rmSync(alias, {force: true}); rmSync(engineMedia, {force: true}); rmSync(engineImage, {force: true}); rmSync(shared, {recursive: true, force: true}); rmSync(temp, {recursive: true, force: true});
   }
 });
 
-test('a project-local authored WAV is actually mixed into its render', {timeout: 120000}, async () => {
+test('project-local PNG and authored WAV both appear in the saved render', {timeout: 120000}, async () => {
   const temp = mkdtempSync(join(tmpdir(), 'ff-project-wav-'));
   const project = join(temp, 'project'); mkdirSync(project); mkdirSync(join(project, 'public'));
   writeFileSync(join(project, 'frameforge.json'), JSON.stringify({films: 'films'}));
@@ -142,9 +154,12 @@ test('a project-local authored WAV is actually mixed into its render', {timeout:
   const ffmpeg = process.env.FFMPEG_PATH || 'ffmpeg';
   const made = spawnSync(ffmpeg, ['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=1', '-c:a', 'pcm_s16le', wav], {encoding: 'utf8'});
   assert.equal(made.status, 0, made.stderr);
+  const png = join(project, 'public', 'hero.png');
+  const picture = spawnSync(ffmpeg, ['-v', 'error', '-f', 'lavfi', '-i', 'color=c=red:s=128x128', '-frames:v', '1', png], {encoding: 'utf8'});
+  assert.equal(picture.status, 0, picture.stderr);
   const entry = join(project, 'entry.tsx');
-  writeFileSync(entry, `import {AbsoluteFill, Audio, Composition, registerRoot} from 'frameforge';
-function Film(){return <AbsoluteFill style={{background:'#345'}}><Audio src="/music.wav" /></AbsoluteFill>}
+  writeFileSync(entry, `import {AbsoluteFill, Audio, Img, Composition, registerRoot} from 'frameforge';
+function Film(){return <AbsoluteFill style={{background:'#345'}}><Img src="/hero.png" style={{width:'100%',height:'100%'}}/><Audio src="/music.wav" /></AbsoluteFill>}
 registerRoot(() => <Composition id="OwnMusic" component={Film} fps={30} durationInFrames={30} width={128} height={128}/>);`);
   const socket = createServer(); await new Promise<void>(done => socket.listen(0, '127.0.0.1', done));
   const address = socket.address(); assert.ok(address && typeof address !== 'string'); const port = address.port;
@@ -154,6 +169,9 @@ registerRoot(() => <Composition id="OwnMusic" component={Film} fps={30} duration
   try {
     const render = spawnSync(process.execPath, [join(engine, 'scripts/render.mjs'), entry, 'OwnMusic', output], {cwd: engine, env, encoding: 'utf8', timeout: 100000});
     assert.equal(render.status, 0, `${render.stdout}\n${render.stderr}`);
+    const pixel = spawnSync(ffmpeg, ['-v', 'error', '-i', output, '-frames:v', '1', '-vf', 'crop=2:2:64:64', '-pix_fmt', 'rgb24', '-f', 'rawvideo', '-']);
+    assert.equal(pixel.status, 0, pixel.stderr.toString());
+    assert.ok(pixel.stdout[0]! > 240 && pixel.stdout[1]! < 15 && pixel.stdout[2]! < 15, 'the saved MP4 contains the red project image, not the blue fallback');
     const decoded = spawnSync(ffmpeg, ['-v', 'error', '-i', output, '-map', '0:a:0', '-f', 's16le', '-'], {maxBuffer: 4 << 20});
     assert.equal(decoded.status, 0, decoded.stderr.toString());
     assert.ok(decoded.stdout.some(byte => byte !== 0), 'the output contains the locally authored sound');
