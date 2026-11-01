@@ -57,6 +57,9 @@ test('the MCP server lists tools and prompts, reads skills, writes only inside a
 
     const names = JSON.parse(body(await call('read_skill')));
     assert.ok(names.includes('frameforge-motion') && names.includes('frameforge-best-practices/bespoke'));
+    assert.ok(names.includes('frameforge-motion/visual-development'));
+    const visualDevelopment = body(await call('read_skill', {name: 'frameforge-motion/visual-development'}));
+    assert.equal(visualDevelopment, readFileSync(join(ENGINE, 'skills/frameforge-motion/references/visual-development.md'), 'utf8'));
     const motionSkill = body(await call('read_skill', {name: 'frameforge-motion'}));
     assert.equal(motionSkill, readFileSync(join(ENGINE, 'skills/frameforge-motion/SKILL.md'), 'utf8'));
     assert.match(motionSkill, /do not replace `Spot.tsx` by default/);

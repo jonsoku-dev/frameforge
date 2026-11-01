@@ -9,6 +9,8 @@ Design the visual language and pace for the brief. Typography, graphics, images 
 
 Read `../frameforge-best-practices/references/bespoke.md` for rendering helpers and the relevant audio or 3D skill when needed. Existing examples and assets can explain APIs; do not copy their visual identity as a substitute for a concept.
 
+Read `references/visual-development.md` before implementing the full timeline. Build and inspect a representative shot with the actual assets, type and lighting, revise its largest visual weakness, then test the consequential action before extending the film. When the user requests a capable production model, use the available authorized model for direction, implementation and revision; record the requested setting and any uncertainty about runtime identity. Rendering and technical checks are separate from creative model work.
+
 For an event or reward, make the goal, condition and reward distinguishable in the actual output, then inspect their smallest intended display size. A character or focal object can guide the eye, but must not conceal the condition. For music-led work, plan each visual change against the track's events and give sections distinct visual roles; inspect whether an element carries across a consequential transition or whether a cut serves the intent. Reusing one layout with only labels swapped can obscure progression. These are decisions to test against the brief, not mandatory shot templates. Downsampled stills and waveform measurements do not establish real-device legibility or perceived sync.
 
 ## Workflow
