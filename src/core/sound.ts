@@ -18,14 +18,17 @@ const clamp = (value: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, value
 function eventsOf(key: string, samples: MotionSample[]): SoundEvent[] {
   const series = [...samples].sort((a, b) => a.frame - b.frame);
   const values = series.map(sample => sample.value);
-  const range = Math.max(...values) - Math.min(...values);
+  let min = Infinity, max = -Infinity;
+  for (const value of values) { min = Math.min(min, value); max = Math.max(max, value); }
+  const range = max - min;
   if (!(range > 0) || series.length < 2) return [];
   const {family, axis} = series[0]!;
   const eps = range * JITTER;
   const out: SoundEvent[] = [];
   if (axis === 'progress' && family !== 'wipe') {
     // A reveal: one event where the progress passes halfway, as loud as the distance it travels.
-    const index = values.findIndex((value, i) => i > 0 && values[i - 1]! <= 0.5 * range + Math.min(...values) && value > 0.5 * range + Math.min(...values));
+    const halfway = 0.5 * range + min;
+    const index = values.findIndex((value, i) => i > 0 && values[i - 1]! <= halfway && value > halfway);
     if (index > 0) out.push({key, frame: series[index]!.frame, role: 'appear', intensity: clamp(range > 0 ? 1 : 0), pan: 0, family, frames: 1});
     return out;
   }
