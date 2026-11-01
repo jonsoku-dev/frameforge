@@ -19,7 +19,7 @@ A must clause that states seconds, WxH or fps is compared with entry.tsx. -->
 
 ## Engine translation
 
-<!-- The optimized brief, in engine vocabulary: concept (one idea), world, hero subject, palette derived from the concept (four colours by role, never a default), the rendering layers and techniques you will write (shader, canvas, three.js, DOM type) or, for a calm explainer, the utilities, duration / size / fps, audio direction (bpm, sections, hits). It may add specificity; it never contradicts, weakens or drops a must or forbid row. When the request is open ("you pick"), commit to bold choices and label them "Decision:" so they never read as the user's intent. prompt.md's Concept paragraph and Structure table follow this. -->
+<!-- The optimized brief, in engine vocabulary: concept (one idea), world, hero subject, palette derived from the concept (colours by role appropriate to the concept, never a copied default), the rendering layers and techniques you will write (shader, canvas, three.js, DOM type) or, for a calm explainer, the utilities, duration / size / fps, audio direction (bpm, sections, hits). It may add specificity; it never contradicts, weakens or drops a must or forbid row. When the request is open ("you pick"), commit to bold choices and label them "Decision:" so they never read as the user's intent. prompt.md's Concept paragraph and Structure table follow this. -->
 
 ## Gaps
 
