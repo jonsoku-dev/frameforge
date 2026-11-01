@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Blender 4.2–4.x EEVEE 식별자 및 재질·월드 노드 초기화 호환 처리. Python 실행 오류를 0 종료/프레임 없음으로 숨기지 않고 실패 코드와 stderr로 전달합니다.
+
 ### 제거
 
 - 유료·키가 필요한 외부 서비스: ElevenLabs(효과음 생성, 음성), Recraft(벡터 그림), Suno(음악 스텁)와 환경 변수 `ELEVENLABS_API_KEY`, `RECRAFT_API_KEY`, `SUNO_API_KEY`. 효과음은 Openverse CC0 → 합성, 그림은 호스트 파일 → `FRAMEFORGE_IMAGE_COMMAND` → Openverse CC0 SVG → 키트, 음성은 kokoro → say → 무음 순입니다. 무료 서비스(Openverse, Google Fonts, Poly Haven, Natural Earth, whisper 모델)는 그대로입니다.

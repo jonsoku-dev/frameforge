@@ -10,6 +10,8 @@ Frameforge의 3D는 소켓도 서버도 없는 파일 파이프라인이다. 작
 
 Blender 4.2 이상이 필요하다(`blender`가 PATH에 있거나 `BLENDER_PATH`). 5.2 LTS로 검증했다. 없으면 `npm run blender`가 `Blender not found`로 멈추고, 이미 렌더된 PNG가 있으면 그대로 쓴다. Poly Haven API에는 키가 필요 없다.
 
+Blender 4.x의 EEVEE 식별자(`BLENDER_EEVEE_NEXT`)와 이후 버전의 식별자를 실행 시 선택한다. 재질과 월드는 노드 사용을 명시적으로 활성화한다. 필드 기반 builtin 메시에는 Blender의 Python 환경에서 `openvdb` 모듈을 import할 수 있어야 한다. 시스템의 OpenVDB 공유 라이브러리만 있는 것은 Python 바인딩 설치의 증거가 아니다. Python 오류는 nonzero 종료와 traceback으로 보고하며, 프레임 생성 여부와 전체 샷 검증을 별도로 확인한다.
+
 ## 3d.json
 
 ```json

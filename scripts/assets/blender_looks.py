@@ -126,6 +126,7 @@ def look_glass(tree, c, context):
 def liquid_material(colours, context):
     """The liquid in a bottle: water-like transmission (IOR 1.33) coloured like look_glass's tint, denser."""
     material = bpy.data.materials.new('liquid')
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     tree = material.node_tree
     tree.nodes.remove(tree.nodes['Principled BSDF'])
     cycles = context.get('engine') == 'cycles'
@@ -259,6 +260,7 @@ def body_material(name, look, colours, context, sweep=None):
     """A material showing `look`; with `sweep` {to, low, high} it shows `to` below a level that blender_scene moves per
     frame (a Value node registered in context) and `look` above, with a bright seam in the accent colour on the boundary."""
     material = bpy.data.materials.new(name)
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     tree = material.node_tree
     tree.nodes.remove(tree.nodes['Principled BSDF'])
     out = tree.nodes['Material Output']
@@ -284,6 +286,7 @@ def body_material(name, look, colours, context, sweep=None):
 
 def plain_material(name, **inputs):
     material = bpy.data.materials.new(name)
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     bsdf = material.node_tree.nodes['Principled BSDF']
     for key, value in inputs.items():
         bsdf.inputs[key].default_value = value
@@ -293,6 +296,7 @@ def plain_material(name, **inputs):
 def toon_outline(obj, colours, size):
     """Inverted hull: a solidified shell with flipped normals and back faces culled draws an ink line round the form."""
     material = bpy.data.materials.new('toon-outline')
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     material.use_backface_culling = True
     tree = material.node_tree
     tree.nodes.remove(tree.nodes['Principled BSDF'])
@@ -317,6 +321,7 @@ def wire_cage(obj, colours, size, context, side=None):
     wire = cage.modifiers.new('wire', 'WIREFRAME')
     wire.thickness, wire.use_even_offset, wire.offset = 0.006 * size, True, 1.0
     material = bpy.data.materials.new('wire')
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     tree = material.node_tree
     tree.nodes.remove(tree.nodes['Principled BSDF'])
     glow = emission(tree, colours['accent'], colours['glow']).outputs[0]
