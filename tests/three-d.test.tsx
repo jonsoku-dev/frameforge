@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {existsSync, readdirSync, readFileSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {inflateSync} from 'node:zlib';
 import {FrameProvider, ImageSequence, StudioLights, Turntable, sequenceFile, sequenceIndex} from '../src/core/index';
+import {preserveRendererMismatchEvidence} from './renderer-test-evidence';
 
 const root = join(import.meta.dirname, '..');
 const config = {id: 'ThreeD', width: 320, height: 180, fps: 30, durationInFrames: 300};
@@ -113,7 +115,21 @@ test('blender.py renders the fixture deterministically with the colours as writt
     const again = python('scripts/assets/blender.py', 'tests/fixtures/three-d/3d.json', '--force');
     assert.equal(again.status, 0, again.stderr);
     assert.doesNotMatch(again.stdout, /skipped/);
-    names.forEach((name, index) => assert.ok(readFileSync(join(folder, name)).equals(before[index]), `${name} must be byte-identical on a second render`));
+    const after = names.map(name => readFileSync(join(folder, name)));
+    preserveRendererMismatchEvidence(names.map((filename, index) => ({filename, before: before[index], after: after[index]})), join(root, 'renders/tests'), () => {
+      const fixture = 'tests/fixtures/three-d/3d.json';
+      const sources = ['tests/three-d.test.tsx', 'tests/renderer-test-evidence.ts',
+        ...readdirSync(join(root, 'scripts/assets')).filter(name => /^blender.*\.py$/.test(name)).map(name => `scripts/assets/${name}`),
+        ...readdirSync(join(root, 'tests/fixtures/three-d')).filter(name => name.endsWith('.py')).map(name => `tests/fixtures/three-d/${name}`)];
+      const runMetadata = (run: ReturnType<typeof python>) => ({status: run.status, signal: run.signal, stdout: run.stdout, stderr: run.stderr});
+      return {
+        fixture: {filename: fixture, content: readFileSync(join(root, fixture), 'utf8')},
+        sourceSha256: Object.fromEntries([fixture, ...sources].map(name => [name, createHash('sha256').update(readFileSync(join(root, name))).digest('hex')])),
+        blender: manifest.blender,
+        runs: {first: runMetadata(first), skip: runMetadata(skip), again: runMetadata(again)},
+      };
+    });
+    names.forEach((name, index) => assert.ok(after[index].equals(before[index]), `${name} must be byte-identical on a second render`));
     const partial = python('scripts/assets/blender.py', 'tests/fixtures/three-d/3d.json', '--shot', 'hero', '--frames', '1', '--force');
     assert.equal(partial.status, 0, partial.stderr);
     assert.ok(readFileSync(join(hero, '0001.png')).equals(before[1]), 'a frame rendered alone equals the same frame of the full run');
