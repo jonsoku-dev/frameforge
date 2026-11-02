@@ -546,7 +546,9 @@ export async function renderMedia({serveUrl, composition, outputLocation, inputP
   } finally {
     for (const encoder of encoders) encoder.kill();
     await Promise.all(pages.map(page => page.close()));
-    await rm(directory, {recursive: true, force: true});
+    // Chrome profile writers may briefly outlive browser exit. Retry transient
+    // filesystem errors only within this render's scratch tree; still reject on exhaustion.
+    await rm(directory, {recursive: true, force: true, maxRetries: 5, retryDelay: 100});
   }
 }
 
