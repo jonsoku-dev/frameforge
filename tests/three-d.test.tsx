@@ -137,6 +137,15 @@ test('blender.py renders the fixture deterministically with the colours as writt
     assert.equal(sweep.status, 0, sweep.stderr);
     assert.ok(readFileSync(join(folder, 'builtin', '0001.png')).equals(before[4]), 'the sweep level and camera are pure functions of the frame');
     assert.equal(existsSync(join(hero, '0000.png')), true);
+    const studio = python('scripts/assets/blender.py', 'tests/fixtures/three-d/3d.json', '--shot', 'studio', '--frames', '1', '--force');
+    assert.equal(studio.status, 0, studio.stderr);
+    const studioBefore = before[names.indexOf('studio/0001.png')];
+    const studioAfter = readFileSync(join(folder, 'studio', '0001.png'));
+    preserveRendererMismatchEvidence([{filename: 'studio/0001.png', before: studioBefore, after: studioAfter}], join(root, 'renders/tests'), () => ({
+      operation: 'studio frame 1 alone versus full sequence',
+      run: {status: studio.status, stdout: studio.stdout, stderr: studio.stderr},
+    }));
+    assert.ok(studioAfter.equals(studioBefore), 'studio frame 1 rendered alone equals the same frame of the full run');
   } finally {
     rmSync(join(root, 'public/assets/generated/three-d-fixture'), {recursive: true, force: true});
   }

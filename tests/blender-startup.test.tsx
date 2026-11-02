@@ -46,6 +46,46 @@ with patch.object(blender.subprocess, 'run', return_value=SimpleNamespace(return
   assert.equal(run.status, 0, run.stderr);
 });
 
+test('Blender defaults Mesa workers only in the child and keys the cache by the effective setting', () => {
+  const run = spawnSync('python3', ['-c', `
+import os, sys, json, hashlib
+from types import SimpleNamespace
+from unittest.mock import patch
+sys.path.insert(0, 'scripts/assets')
+import blender
+with patch.dict(os.environ, {'FRAMEFORGE_TEST_INHERIT': 'present'}):
+    os.environ.pop('LP_NUM_THREADS', None)
+    parent = dict(os.environ)
+    with patch.object(blender.subprocess, 'run', return_value=SimpleNamespace(returncode=0)) as mocked:
+        blender.run_blender('blender', 'fixture.json', {'name':'hero'}, '/tmp/test', 0, 0)
+        child = mocked.call_args.kwargs['env']
+        assert child == {**parent, 'LP_NUM_THREADS': '1'}
+        assert dict(os.environ) == parent, 'the caller environment must not change'
+        expected_args = ['blender', '-b', '--factory-startup', '--python-exit-code', '1', '--python',
+            os.path.abspath('scripts/assets/blender_scene.py'), '--', os.path.abspath('fixture.json'), 'hero', '/tmp/test', '0', '0', 'render']
+        assert mocked.call_args.args[0] == expected_args, 'do not change Blender arguments or CPU thread options'
+        assert 'OMP_NUM_THREADS' not in child or child['OMP_NUM_THREADS'] == parent['OMP_NUM_THREADS']
+        default_hash = blender.spec_hash({'name':'hero'}, [])
+        legacy_digest = hashlib.sha256((json.dumps({'name':'hero'}, sort_keys=True) + blender.GENERATION).encode())
+        for part in ('scene', 'builtins', 'looks', 'studio'):
+            with open('scripts/assets/blender_' + part + '.py', 'rb') as source: legacy_digest.update(source.read())
+        assert default_hash != legacy_digest.hexdigest()[:16], 'invalidate existing manifests from before the worker default'
+        os.environ['LP_NUM_THREADS'] = '1'
+        assert blender.spec_hash({'name':'hero'}, []) == default_hash
+        hashes = {default_hash}
+        for explicit in ('0', '3'):
+            os.environ['LP_NUM_THREADS'] = explicit
+            expected_parent = dict(os.environ)
+            blender.run_blender('blender', 'fixture.json', {'name':'hero'}, '/tmp/test', 0, 0)
+            assert mocked.call_args.kwargs['env'] == expected_parent, 'preserve explicit values and all other environment'
+            assert mocked.call_args.args[0] == expected_args
+            assert dict(os.environ) == expected_parent
+            hashes.add(blender.spec_hash({'name':'hero'}, []))
+        assert len(hashes) == 3, 'cache keys must separate default, explicit zero and explicit multiple workers'
+`], {encoding: 'utf8'});
+  assert.equal(run.status, 0, run.stderr);
+});
+
 test('OpenVDB loading accepts both package names without hiding broken dependencies', () => {
   const run = spawnSync('python3', ['-c', `
 import sys, types

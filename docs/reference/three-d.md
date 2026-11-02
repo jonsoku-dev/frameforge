@@ -133,10 +133,11 @@ Apple M 시리즈 Mac, EEVEE, 32 샘플, 1080p 기준: 스윕·피사계 심도�
 - 샷마다 Blender 프로세스 하나, `--factory-startup`, `read_factory_settings(use_empty=True)`. 사용자 설정이 섞이지 않는다.
 - 카메라와 피사체는 `camera_pose`·`subject_pose`라는 프레임 번호의 순수 함수에서 계산해 모든 프레임에 키프레임으로 넣는다(사이는 선형). 스윕 높이(`sweep_level`)와 스캔라인 흐름, 피사계 심도 초점은 매 프레임 넣는다. scatter는 고정 시드다. 블룸은 결정적인 컴포지터 노드다. `--frames 5`만 렌더한 5번 프레임은 전체 렌더의 5번 프레임과 같은 바이트다(테스트가 확인한다).
 - EEVEE: `taa_render_samples = samples`, 모션 블러는 `motionBlur`가 있을 때만. Cycles: `samples`, `seed`, `use_animated_seed = False`, `use_adaptive_sampling = False`, 디노이즈는 `denoise`일 때만, `device = 'CPU'`.
+- Blender 자식 환경의 `LP_NUM_THREADS` 기본값은 `1`이다. 클라우드의 Blender 4.3.2 / Mesa llvmpipe 25.0.7 / LLVM 19.1.7 기본설정에서 병렬 소프트웨어 GL 실행에 따라 EEVEE 픽셀이 달랐고, worker 하나로 제한한 진단에서는 같았다. 유리·모션 블러·ray tracing·denoise는 그대로 유지하며 Blender의 CPU 렌더 스레드 수는 바꾸지 않는다. 기본 studio frame 1과 32-bit EXR tap의 두 진단 실행은 각각 12.63–12.92초였고 worker 하나에서는 15.55–15.96초였다(프로세스 시작·EXR 저장 포함, 고정된 성능 benchmark는 아님). 호출자가 명시한 `0`이나 여러 worker 값은 유지하고, 부모 환경은 수정하지 않는다. 다른 GPU·드라이버·Blender 판이나 명시적 override의 바이트 동일성을 보장하지 않는다.
 - 색 관리: 디스플레이 sRGB, 뷰 변환은 `view`(기본 Standard), 룩 None, 노출 0, 감마 1. `background`와 `material.base`의 헥스가 적은 대로 나온다(테스트가 배경 픽셀을 확인한다).
 - PNG 8비트, 압축 15, `use_stamp_*` 전부 끔, 쓴 뒤 tEXt 청크를 지운다. 스탬프와 Cycles가 적는 렌더·동기화 시간이 같은 그림에서 달라지던 바이트였다.
 
-`manifest.json`의 `specHash`는 샷 JSON + 스크립트·모델·HDRI 파일 바이트 + `blender_scene.py`·`blender_builtins.py`·`blender_looks.py`·`blender_studio.py` 바이트, 스캔 흉상을 쓰면 그 파일 바이트 + `GENERATION`의 해시다. 같은 해시이고 요청한 PNG가 다 있으면 건너뛴다. 빌더를 고치면 저절로 다시 렌더된다. 번들 HDRI 이름은 해시에 파일 바이트를 넣지 않는다(Blender 판에 따라 그림이 달라질 수 있다).
+`manifest.json`의 `specHash`는 샷 JSON + 유효 `LP_NUM_THREADS` 값 + 스크립트·모델·HDRI 파일 바이트 + `blender_scene.py`·`blender_builtins.py`·`blender_looks.py`·`blender_studio.py` 바이트, 스캔 흉상을 쓰면 그 파일 바이트 + `GENERATION`의 해시다. 같은 해시이고 요청한 PNG가 다 있으면 건너뛴다. 빌더나 worker 설정을 바꾸면 다시 렌더된다. 번들 HDRI 이름은 해시에 파일 바이트를 넣지 않는다(Blender 판에 따라 그림이 달라질 수 있다).
 
 ## models.json
 
