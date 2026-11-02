@@ -115,7 +115,7 @@ export function runChecks(video, {fps, folder, prompt, project} = {}) {
     {check: 'frame-check', args: [script('frame-check'), video, ...(fps ? ['--fps', fps] : [])]},
     {check: 'flash-check', args: [script('flash-check'), video, ...(fps ? [fps] : [])]},
     {check: 'seam-check', skip: optional('seam-check', motion, ''), args: [script('seam-check'), motion, ...(brief ? ['--prompt', brief] : []), '--json']},
-    {check: 'narration-check', skip: optional('narration-check', timing, '--film 없음'), args: [script('narration-check'), folder ?? '']},
+    {check: 'narration-check', skip: optional('narration-check', timing, '--film 없음'), args: [script('narration-check'), folder ?? '', ...(brief ? ['--prompt', resolve(brief)] : []), ...(fps ? ['--fps', fps] : [])]},
     {check: 'brief', skip: optional('brief-check', folder && join(folder, 'brief.md'), '--film 없음'), args: [script('brief-check'), folder ?? '']},
   ];
   return plan.map(({check, skip, args}) => {

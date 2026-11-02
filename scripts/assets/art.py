@@ -156,7 +156,7 @@ def library(intent):
 def kit_catalog():
     """{component name: search words} from src/assets/catalog.ts. Needs the engine's npm install, like render and the studio."""
     script = 'import {CATALOG} from "./src/assets/catalog.ts"; console.log(JSON.stringify(CATALOG.map(c => [c.name, (c.tags || []).join(" ")])))'
-    result = subprocess.run(['npx', 'tsx', '-e', script], cwd=ROOT, capture_output=True, text=True)
+    result = subprocess.run(['node', '--import', 'tsx', '--input-type=module', '-e', script], cwd=ROOT, capture_output=True, text=True)
     try:
         return {name: tags for name, tags in json.loads(result.stdout.strip().splitlines()[-1])}
     except (ValueError, IndexError):

@@ -143,7 +143,8 @@ def shot_files(spec, shot, spec_dir):
 
 
 def spec_hash(shot, files):
-    digest = hashlib.sha256((json.dumps(shot, sort_keys=True) + GENERATION).encode())
+    settings = {'shot': shot, 'lp_num_threads': os.environ.get('LP_NUM_THREADS', '1')}
+    digest = hashlib.sha256((json.dumps(settings, sort_keys=True) + GENERATION).encode())
     # The scene builders are part of the picture too: editing a builtin mesh or a look re-renders without a GENERATION bump.
     here = os.path.dirname(os.path.abspath(__file__))
     for path in [os.path.join(here, f'blender_{part}.py') for part in ('scene', 'builtins', 'looks', 'studio')] + list(files):
@@ -153,8 +154,12 @@ def spec_hash(shot, files):
 
 
 def run_blender(blender, spec_path, shot, out, first, last, mode='render'):
-    run = subprocess.run([blender, '-b', '--factory-startup', '--python', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'blender_scene.py'),
-                         '--', os.path.abspath(spec_path), shot['name'], out, str(first), str(last), mode], capture_output=True, text=True)
+    # Mesa llvmpipe's parallel workers produced different EEVEE pixels between fresh processes.
+    # Keep all rendering effects; constrain only the software GL driver's default worker count.
+    environment = os.environ.copy()
+    environment.setdefault('LP_NUM_THREADS', '1')
+    run = subprocess.run([blender, '-b', '--factory-startup', '--python-exit-code', '1', '--python', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'blender_scene.py'),
+                         '--', os.path.abspath(spec_path), shot['name'], out, str(first), str(last), mode], capture_output=True, text=True, env=environment)
     if run.returncode != 0:
         tail = '\n'.join((run.stdout + '\n' + run.stderr).strip().splitlines()[-25:])
         fail(spec_path, f"shot {shot['name']}: Blender failed (exit {run.returncode})\n{tail}")
@@ -215,7 +220,7 @@ def render_shot(spec, shot, spec_path, frames, force, blender):
     began = time.time()
     run = run_blender(blender, spec_path, shot, out, first, last)
     if not all(os.path.isfile(p) for p in wanted):
-        fail(spec_path, f"shot {shot['name']}: Blender wrote no frames\n{run.stdout[-2000:]}")
+        fail(spec_path, f"shot {shot['name']}: Blender wrote no frames\n{(run.stdout + chr(10) + run.stderr)[-2000:]}")
     version = next((line.split()[1] for line in run.stdout.splitlines() if line.startswith('Blender ')), 'unknown')
     manifest = {'frames': shot['frames'], 'fps': shot['fps'], 'width': shot['width'], 'height': shot['height'], 'specHash': key,
                 'blender': version, 'seconds': round(time.time() - began, 1), 'generation': GENERATION,

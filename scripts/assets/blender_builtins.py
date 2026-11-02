@@ -7,6 +7,7 @@ arguments (no randomness), so the same shot gives the same mesh. Each returns [(
 shot's look), `trim` (polished metal: a bottle cap), `eye` (glossy black: plush eyes) or `plinth` (dark stone: the bust's stand).
 """
 import math, os, tempfile
+from importlib import import_module
 
 import bpy, bmesh
 import numpy as np
@@ -116,9 +117,19 @@ def plush_field(p):
     return smax(d, half_space(p, 2, -1.12, True), 0.04)
 
 
+def load_openvdb():
+    """Accept the upstream and distro binding names, preserving broken dependency errors."""
+    try:
+        return import_module('openvdb')
+    except ModuleNotFoundError as error:
+        if error.name != 'openvdb':
+            raise
+        return import_module('pyopenvdb')
+
+
 def field_mesh(name, field, low, high, detail):
     """Meshes `field` (negative inside) over the box low..high, `detail` voxels along its longest side."""
-    import openvdb
+    openvdb = load_openvdb()
     low, high = np.asarray(low, float), np.asarray(high, float)
     step = float((high - low).max()) / detail
     axes = [low[i] + step * np.arange(int(math.ceil((high[i] - low[i]) / step)) + 1) for i in range(3)]

@@ -6,11 +6,12 @@ import spec from './template.audio.json';
 const W = 1920;
 const H = 1080;
 const S = Math.min(W, H);
-// Minimums from docs/samples/rules.md (구성 최소치). Go bigger, never smaller.
+// Placeholder sizes: set a hierarchy for the brief and inspect readability at delivery size.
 const SIZES = {headline: S * 0.1, label: Math.ceil(S * 0.035), marginX: W * 0.05, marginY: H * 0.05};
-// TODO the concept's own faces (Google Fonts; never a system font). The same string works in CSS and in ctx.font.
+// TODO choose authorized type for the concept. This optional network font is a placeholder;
+// prefer a licensed local face for reproducible offline rendering and record substitutions.
 const display = googleFont('Inter', {weights: [800], fallback: 'sans-serif'});
-// TODO the palette derived from the concept (four colours at most).
+// TODO derive palette roles and colour range from the concept, not this placeholder count.
 const palette = {ink: '#111111', paper: '#EEEEEE', accent: '#888888', soft: '#444444'};
 // TODO every seeded value the film needs, made once here so each frame draws from the same numbers.
 const SEEDS = (() => { const next = rng('TODO-slug'); return Array.from({length: 64}, () => [next(), next(), next()] as const); })();

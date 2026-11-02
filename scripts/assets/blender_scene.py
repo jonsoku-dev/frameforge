@@ -44,6 +44,21 @@ SCAN_FILE = os.path.join('frameforge-scans', 'models', 'head', 'head.gltf')  # u
 # Blender's own CC0 studio-light HDRIs (datafiles/studiolights/world); `light.hdri` may name one instead of a file.
 BUNDLED_HDRIS = ('studio', 'city', 'courtyard', 'forest', 'interior', 'night', 'sunrise', 'sunset')
 ENGINES = {'eevee': 'BLENDER_EEVEE', 'cycles': 'CYCLES'}
+
+
+def set_render_engine(render, engine):
+    """EEVEE's RNA identifier differs between supported Blender versions."""
+    if engine == 'cycles':
+        render.engine = 'CYCLES'
+        return
+    if engine != 'eevee':
+        raise ValueError(f'Unknown render engine: {engine}')
+    try:
+        render.engine = 'BLENDER_EEVEE'
+    except TypeError:
+        # Blender 4.2–4.x uses NEXT; do not silently switch to another renderer.
+        render.engine = 'BLENDER_EEVEE_NEXT'
+
 # Shot defaults; blender.py validates the types, this file only fills gaps.
 DEFAULTS = {'engine': 'eevee', 'samples': 32, 'transparent': False, 'background': '#F4F4F1', 'shadowCatcher': False,
             'look': None, 'sweep': None, 'bloom': None, 'dof': None, 'view': 'standard', 'motionBlur': None, 'scatter': None,
@@ -249,6 +264,7 @@ def node(tree, kind, **inputs):
 
 def make_material(spec):
     material = bpy.data.materials.new('frameforge')
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     bsdf = material.node_tree.nodes['Principled BSDF']
     bsdf.inputs['Base Color'].default_value = linear(spec['base'])
     bsdf.inputs['Metallic'].default_value = float(spec['metallic'])
@@ -362,27 +378,64 @@ def hdri_path(name, generated):
 
 
 def make_post(scene, shot):
-    """Bloom (the compositor's Glare node) when `bloom` > 0: only pixels brighter than white bleed, so a hex background
-    stays exact. Transparent films keep their alpha; the halo outside the subject is lost there, so bloom suits opaque shots."""
-    group = bpy.data.node_groups.new('frameforge-post', 'CompositorNodeTree')
-    group.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
-    layers = group.nodes.new('CompositorNodeRLayers')
-    glare = group.nodes.new('CompositorNodeGlare')
-    glare.inputs['Type'].default_value = 'Bloom'
-    glare.inputs['Quality'].default_value = 'High'
-    glare.inputs['Threshold'].default_value = 1.0
-    glare.inputs['Strength'].default_value = float(shot['bloom'])
-    glare.inputs['Size'].default_value = 0.6
-    output = group.nodes.new('NodeGroupOutput')
-    group.links.new(layers.outputs['Image'], glare.inputs['Image'])
-    group.links.new(glare.outputs['Image'], output.inputs['Image'])
-    scene.compositing_node_group = group
+    """Bloom (the compositor's Glare node): only pixels brighter than white generate a halo.
+    Transparent films keep their alpha; the halo outside the subject is lost there, so bloom suits opaque shots."""
+    # Scene compositor groups replaced scene.node_tree in Blender 5.x. Attach before adding Render Layers:
+    # older Blender only permits that node in a scene's own tree.
+    grouped = hasattr(scene, 'compositing_node_group')
+    if grouped:
+        tree = bpy.data.node_groups.new('frameforge-post', 'CompositorNodeTree')
+        tree.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
+        scene.compositing_node_group = tree
+    else:
+        scene.use_nodes = True
+        tree = scene.node_tree
+        tree.nodes.clear()
+    layers = tree.nodes.new('CompositorNodeRLayers')
+    glare = tree.nodes.new('CompositorNodeGlare')
+    if 'Type' in glare.inputs:
+        glare.inputs['Type'].default_value = 'Bloom'
+    else:
+        glare.glare_type = 'BLOOM'
+    if 'Quality' in glare.inputs:
+        glare.inputs['Quality'].default_value = 'High'
+    else:
+        glare.quality = 'HIGH'
+    strength = float(shot['bloom'])
+    if 'Strength' in glare.inputs:  # Blender 4.4+; keep the modern effect unchanged.
+        glare.inputs['Threshold'].default_value = 1.0
+        glare.inputs['Strength'].default_value = strength
+        glare.inputs['Size'].default_value = 0.6
+        image = glare.outputs['Image']
+    else:  # Blender 4.2–4.3: isolate glare, scale it, then add it without dimming the original.
+        glare.threshold, glare.size, glare.mix = 1.0, 8, 1.0
+        # Legacy size 8 covers half the image: nearest available spread to 0.6. Blender 4.4 changed
+        # Bloom's energy conservation too, so this is semantic compatibility, not pixel equivalence.
+        scale = tree.nodes.new('CompositorNodeMixRGB')
+        scale.blend_type, scale.use_clamp = 'MULTIPLY', False
+        scale.inputs[0].default_value = 1.0
+        scale.inputs[2].default_value = (strength, strength, strength, 1.0)
+        tree.links.new(glare.outputs['Image'], scale.inputs[1])
+        add = tree.nodes.new('CompositorNodeMixRGB')
+        add.blend_type, add.use_clamp = 'ADD', False
+        add.inputs[0].default_value = 1.0
+        tree.links.new(layers.outputs['Image'], add.inputs[1])
+        tree.links.new(scale.outputs['Image'], add.inputs[2])
+        alpha = tree.nodes.new('CompositorNodeSetAlpha')
+        alpha.mode = 'REPLACE_ALPHA'
+        tree.links.new(add.outputs['Image'], alpha.inputs['Image'])
+        tree.links.new(layers.outputs['Alpha'], alpha.inputs['Alpha'])
+        image = alpha.outputs['Image']
+    output = tree.nodes.new('NodeGroupOutput' if grouped else 'CompositorNodeComposite')
+    tree.links.new(layers.outputs['Image'], glare.inputs['Image'])
+    tree.links.new(image, output.inputs['Image'])
     scene.render.use_compositing = True
 
 
 def make_world(scene, shot, generated):
     """Camera rays see the background hex (or nothing when transparent); everything else is lit by the preset's environment."""
     world = bpy.data.worlds.new('frameforge')
+    if hasattr(world, 'use_nodes'): world.use_nodes = True
     scene.world = world
     tree = world.node_tree
     output = tree.nodes['World Output']
@@ -488,6 +541,7 @@ def make_shadow_catcher(scene, shot, objects):
         plane.is_shadow_catcher = True
         return
     material = bpy.data.materials.new('shadow-catcher')
+    if hasattr(material, 'use_nodes'): material.use_nodes = True
     material.surface_render_method = 'BLENDED'
     tree = material.node_tree
     tree.nodes.remove(tree.nodes['Principled BSDF'])
@@ -517,7 +571,7 @@ def setup(spec_path, shot_name):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     render = scene.render
-    render.engine = ENGINES[shot['engine']]
+    set_render_engine(render, shot['engine'])
     render.resolution_x, render.resolution_y, render.resolution_percentage = int(shot['width']), int(shot['height']), 100
     render.fps, scene.frame_start, scene.frame_end = int(shot['fps']), 0, int(shot['frames']) - 1
     render.film_transparent = bool(shot['transparent']) or shot['background'] == 'transparent'

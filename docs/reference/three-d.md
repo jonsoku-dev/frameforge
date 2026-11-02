@@ -10,6 +10,8 @@ Frameforge의 3D는 소켓도 서버도 없는 파일 파이프라인이다. 작
 
 Blender 4.2 이상이 필요하다(`blender`가 PATH에 있거나 `BLENDER_PATH`). 5.2 LTS로 검증했다. 없으면 `npm run blender`가 `Blender not found`로 멈추고, 이미 렌더된 PNG가 있으면 그대로 쓴다. Poly Haven API에는 키가 필요 없다.
 
+Blender 4.x의 EEVEE 식별자(`BLENDER_EEVEE_NEXT`)와 이후 버전의 식별자를 실행 시 선택한다. 재질과 월드는 노드 사용을 명시적으로 활성화한다. 필드 기반 builtin 메시에는 Blender의 Python 환경에서 `openvdb` 또는 배포판의 `pyopenvdb` 모듈을 import할 수 있어야 한다. 첫 모듈 자체가 없을 때만 두 번째 이름을 시도하며, 내부 의존성 누락이나 ABI 오류를 숨기지 않는다. 시스템의 OpenVDB 공유 라이브러리만 있는 것은 Python 바인딩 설치의 증거가 아니다. Python 오류는 nonzero 종료와 traceback으로 보고하며, 프레임 생성 여부와 전체 샷 검증을 별도로 확인한다.
+
 ## 3d.json
 
 ```json
@@ -78,6 +80,11 @@ def build(scene, shot):
 
 - `sweep: {"to": <look>, "from": <프레임>, "until": <프레임>}`: 샷의 `look`이 아래에서 위로 `to`로 닦여 바뀌고, 경계에 `accent` 색의 밝은 이음매가 지나간다. 높이는 프레임 번호의 순수 함수(`sweep_level`, 인-아웃 이징)다. 대표 조합은 `scanline` → `glossy`.
 - `bloom`: 룩이 있으면 기본 0.5, 없으면 0. 컴포지터 Glare(Bloom, 문턱 1.0)라 흰색보다 밝은 픽셀만 번지고 배경은 밝은 픽셀에서 떨어진 곳에서 헥스 그대로다(1080p 프레임 모서리는 정확히 같고, 96x54 테스트 썸네일에서는 번짐이 모서리에 1단계까지 닿는다). 투명 필름은 피사체 밖의 번짐을 잃으니 불투명 배경에 쓴다.
+  - Blender API 모양으로 선택한다: 4.2–4.3은 `scene.node_tree` + 기존 Glare 속성, 4.4+는 제공되는 Glare 입력 소켓, 최신 버전은 `scene.compositing_node_group`을 쓴다. 최신 소켓의 Bloom/High/Threshold 1/Size 0.6은 그대로다.
+  - 기존 Glare에는 Strength가 없으므로 `mix=1`로 효과만 뽑고, `원본 + bloom × 효과`로 합성한다(클램프 없음, 원본 알파 유지). `bloom=0`은 원본, 1보다 큰 값은 효과를 더 키운다. 기존 Size는 정수·지수 단계라 0.6에 가장 가까운 반 프레임 범위인 8을 쓴다. Blender 4.4에서 Bloom 에너지 보존 알고리즘도 바뀌어 버전 간 밝기·번짐·픽셀 일치는 보장하지 않는다. 위 모서리 색 측정은 최신 경로의 기존 검증이며 4.2–4.3의 수치 보장이 아니다.
+  - 근거: [Blender 4.3 Glare API](https://docs.blender.org/api/4.3/bpy.types.CompositorNodeGlare.html), [4.3 Glare 크기 설명](https://docs.blender.org/manual/en/4.3/compositing/types/filter/glare.html), [4.4 변경·호환성 기록](https://developer.blender.org/docs/release_notes/4.4/compositor/).
+  - 회귀 확인: `node --import tsx --test tests/blender-startup.test.tsx`. API 모형(기존·4.4 전환기·최신)과 설치된 Blender의 오프라인 CPU Cycles 원시 큐브를 검사한다. 4.3.2에서 불투명·투명 필름의 EXR 원본/0/0.5/2 렌더로 0 강도 동일성, 양의 가산 효과, 강도 2의 비클램프 배율, 알파 보존을 확인했다. 4.4+ 실제 실행·전체 작품·미적 품질 검증은 별도다.
+
 - `dof`: f-stop(예: 4). 초점 거리는 매 프레임 카메라에서 바라보는 점까지다.
 - `motionBlur`: 셔터(프레임 단위, 0 초과 2 이하). 카메라와 `subject.keys`를 매 프레임 키프레임으로 넣으므로 블러가 실제 움직임을 본다.
 - 룩이 있거나 조명 리그(`three-point` `product` `rim`)를 쓰고 HDRI가 없으면 절차적 소프트박스 스튜디오(어두운 방에 앞왼쪽 키 박스, 위 박스, 뒤쪽 세로 스트립 둘, 오른쪽 필, 피사체 뒤의 낮은 빛)가 반사와 굴절을 준다. `light.rotate`가 방을 돌리고 `light.environment`(#rrggbb)가 물들인다. 카메라는 여전히 `background`를 본다. `light.hdri`에는 파일 대신 번들 이름 `studio` `city` `courtyard` `forest` `interior` `night` `sunrise` `sunset`을 적을 수 있고 `light.rotate`(도)로 돌린다.
@@ -126,10 +133,11 @@ Apple M 시리즈 Mac, EEVEE, 32 샘플, 1080p 기준: 스윕·피사계 심도�
 - 샷마다 Blender 프로세스 하나, `--factory-startup`, `read_factory_settings(use_empty=True)`. 사용자 설정이 섞이지 않는다.
 - 카메라와 피사체는 `camera_pose`·`subject_pose`라는 프레임 번호의 순수 함수에서 계산해 모든 프레임에 키프레임으로 넣는다(사이는 선형). 스윕 높이(`sweep_level`)와 스캔라인 흐름, 피사계 심도 초점은 매 프레임 넣는다. scatter는 고정 시드다. 블룸은 결정적인 컴포지터 노드다. `--frames 5`만 렌더한 5번 프레임은 전체 렌더의 5번 프레임과 같은 바이트다(테스트가 확인한다).
 - EEVEE: `taa_render_samples = samples`, 모션 블러는 `motionBlur`가 있을 때만. Cycles: `samples`, `seed`, `use_animated_seed = False`, `use_adaptive_sampling = False`, 디노이즈는 `denoise`일 때만, `device = 'CPU'`.
+- Blender 자식 환경의 `LP_NUM_THREADS` 기본값은 `1`이다. 클라우드의 Blender 4.3.2 / Mesa llvmpipe 25.0.7 / LLVM 19.1.7 기본설정에서 병렬 소프트웨어 GL 실행에 따라 EEVEE 픽셀이 달랐고, worker 하나로 제한한 진단에서는 같았다. 유리·모션 블러·ray tracing·denoise는 그대로 유지하며 Blender의 CPU 렌더 스레드 수는 바꾸지 않는다. 기본 studio frame 1과 32-bit EXR tap의 두 진단 실행은 각각 12.63–12.92초였고 worker 하나에서는 15.55–15.96초였다(프로세스 시작·EXR 저장 포함, 고정된 성능 benchmark는 아님). 호출자가 명시한 `0`이나 여러 worker 값은 유지하고, 부모 환경은 수정하지 않는다. 다른 GPU·드라이버·Blender 판이나 명시적 override의 바이트 동일성을 보장하지 않는다.
 - 색 관리: 디스플레이 sRGB, 뷰 변환은 `view`(기본 Standard), 룩 None, 노출 0, 감마 1. `background`와 `material.base`의 헥스가 적은 대로 나온다(테스트가 배경 픽셀을 확인한다).
 - PNG 8비트, 압축 15, `use_stamp_*` 전부 끔, 쓴 뒤 tEXt 청크를 지운다. 스탬프와 Cycles가 적는 렌더·동기화 시간이 같은 그림에서 달라지던 바이트였다.
 
-`manifest.json`의 `specHash`는 샷 JSON + 스크립트·모델·HDRI 파일 바이트 + `blender_scene.py`·`blender_builtins.py`·`blender_looks.py`·`blender_studio.py` 바이트, 스캔 흉상을 쓰면 그 파일 바이트 + `GENERATION`의 해시다. 같은 해시이고 요청한 PNG가 다 있으면 건너뛴다. 빌더를 고치면 저절로 다시 렌더된다. 번들 HDRI 이름은 해시에 파일 바이트를 넣지 않는다(Blender 판에 따라 그림이 달라질 수 있다).
+`manifest.json`의 `specHash`는 샷 JSON + 유효 `LP_NUM_THREADS` 값 + 스크립트·모델·HDRI 파일 바이트 + `blender_scene.py`·`blender_builtins.py`·`blender_looks.py`·`blender_studio.py` 바이트, 스캔 흉상을 쓰면 그 파일 바이트 + `GENERATION`의 해시다. 같은 해시이고 요청한 PNG가 다 있으면 건너뛴다. 빌더나 worker 설정을 바꾸면 다시 렌더된다. 번들 HDRI 이름은 해시에 파일 바이트를 넣지 않는다(Blender 판에 따라 그림이 달라질 수 있다).
 
 ## models.json
 
