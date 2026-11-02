@@ -95,3 +95,7 @@ MCP `check`의 `pass`는 모든 검사 행이 PASS일 때만 `true`다. `noFailu
 - Codex 플러그인은 로컬 마켓플레이스로 검증했고, ChatGPT 디렉터리 등록은 하지 않았다.
 - MCP 서버는 stdio(테스트와 실제 렌더 세션)와 HTTP(curl)로 확인했다. Claude Desktop에 .mcpb를 실제로 설치하는 것, ChatGPT 개발자 모드·Responses API의 터널 연결, Agents SDK 예제 실행(키 필요)은 확인하지 않았다.
 - HTTP 모드에는 인증이 없다. 터널은 쓸 때만 연다.
+
+### 검사 명령의 검토 범위
+
+`/frameforge:check`는 먼저 `frameforge-check` 스킬을 읽고 수치 검사 결과와 별도로 저장 영상의 연출·정보 전달을 검토합니다. 수치가 모두 PASS여도 이 검토를 생략하지 않습니다. 현재 소스에서 다시 만든 스틸을 기존 MP4의 증거로 대신하지 않으며, 접근할 수 없는 영상·브리프·재생·청취는 NOT VERIFIED로 남깁니다. 검사 요청만으로 새 에셋 생성이나 재렌더를 승인받은 것으로 보지 않습니다. 기존 사용자 품질 거절은 수치 PASS나 자기 검토로 해제하지 않습니다.

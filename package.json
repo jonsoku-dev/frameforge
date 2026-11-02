@@ -18,9 +18,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "test": "tsx --test tests/*.test.tsx",
+    "test": "node --import tsx --test tests/*.test.tsx",
     "render": "node scripts/render.mjs",
-    "benchmark": "tsx scripts/benchmark.ts",
+    "benchmark": "node --import tsx scripts/benchmark.ts",
     "score": "python3 scripts/assets/score.py",
     "frame-check": "node scripts/frame-check.mjs",
     "lint:video": "node scripts/lint.mjs",

@@ -3,6 +3,7 @@ import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import * as P from '../../src/packages/paths';
 import type {WarpPathFn} from '../../src/packages/paths';
+import {currentPathOracleRuntime, pathOracleReference} from './paths-runtime-oracle';
 type Case = {name: string; op: string; args: unknown[]; reference: unknown};
 const oracle = JSON.parse(readFileSync(new URL('../../compatibility/paths.json', import.meta.url), 'utf8')) as {cases: Case[]};
 // Function-valued arguments travel through the JSON as names; these match the generator's definitions.
@@ -31,17 +32,19 @@ function close(a: unknown, b: unknown, tol: number): boolean {
   if (a && b && typeof a === 'object' && typeof b === 'object') { const keys = new Set([...Object.keys(a), ...Object.keys(b)]); return [...keys].every(k => close((a as any)[k], (b as any)[k], tol)); }
   return a === b;
 }
+const oracleRuntime = currentPathOracleRuntime();
 const byOp = new Map<string, Case[]>();
 for (const c of oracle.cases) byOp.set(c.op, [...(byOp.get(c.op) ?? []), c]);
 for (const [op, cases] of byOp) {
   test(`${op} matches the reference on ${cases.length} oracle cases`, () => {
     for (const c of cases) {
-      const ref = c.reference as {error?: string} | null;
+      const expected = pathOracleReference(c, oracleRuntime);
+      const ref = expected as {error?: string} | null;
       if (ref && typeof ref === 'object' && 'error' in ref) { assert.throws(() => OPS[op]!(...(live(c.args) as unknown[])), c.name); continue; }
       const value = OPS[op]!(...(live(c.args) as unknown[]));
       const mine = value === undefined ? null : JSON.parse(JSON.stringify(value));
-      if (TOLERANT.has(op)) assert.ok(close(mine, c.reference, 1e-9), `${c.name}\n  got ${JSON.stringify(mine)}\n  want ${JSON.stringify(c.reference)}`);
-      else assert.deepEqual(mine, c.reference, c.name);
+      if (TOLERANT.has(op)) assert.ok(close(mine, expected, 1e-9), `${c.name}\n  got ${JSON.stringify(mine)}\n  want ${JSON.stringify(expected)}`);
+      else assert.deepEqual(mine, expected, c.name);
     }
   });
 }
