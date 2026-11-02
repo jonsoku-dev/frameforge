@@ -80,6 +80,11 @@ def build(scene, shot):
 
 - `sweep: {"to": <look>, "from": <프레임>, "until": <프레임>}`: 샷의 `look`이 아래에서 위로 `to`로 닦여 바뀌고, 경계에 `accent` 색의 밝은 이음매가 지나간다. 높이는 프레임 번호의 순수 함수(`sweep_level`, 인-아웃 이징)다. 대표 조합은 `scanline` → `glossy`.
 - `bloom`: 룩이 있으면 기본 0.5, 없으면 0. 컴포지터 Glare(Bloom, 문턱 1.0)라 흰색보다 밝은 픽셀만 번지고 배경은 밝은 픽셀에서 떨어진 곳에서 헥스 그대로다(1080p 프레임 모서리는 정확히 같고, 96x54 테스트 썸네일에서는 번짐이 모서리에 1단계까지 닿는다). 투명 필름은 피사체 밖의 번짐을 잃으니 불투명 배경에 쓴다.
+  - Blender API 모양으로 선택한다: 4.2–4.3은 `scene.node_tree` + 기존 Glare 속성, 4.4+는 제공되는 Glare 입력 소켓, 최신 버전은 `scene.compositing_node_group`을 쓴다. 최신 소켓의 Bloom/High/Threshold 1/Size 0.6은 그대로다.
+  - 기존 Glare에는 Strength가 없으므로 `mix=1`로 효과만 뽑고, `원본 + bloom × 효과`로 합성한다(클램프 없음, 원본 알파 유지). `bloom=0`은 원본, 1보다 큰 값은 효과를 더 키운다. 기존 Size는 정수·지수 단계라 0.6에 가장 가까운 반 프레임 범위인 8을 쓴다. Blender 4.4에서 Bloom 에너지 보존 알고리즘도 바뀌어 버전 간 밝기·번짐·픽셀 일치는 보장하지 않는다. 위 모서리 색 측정은 최신 경로의 기존 검증이며 4.2–4.3의 수치 보장이 아니다.
+  - 근거: [Blender 4.3 Glare API](https://docs.blender.org/api/4.3/bpy.types.CompositorNodeGlare.html), [4.3 Glare 크기 설명](https://docs.blender.org/manual/en/4.3/compositing/types/filter/glare.html), [4.4 변경·호환성 기록](https://developer.blender.org/docs/release_notes/4.4/compositor/).
+  - 회귀 확인: `node --import tsx --test tests/blender-startup.test.tsx`. API 모형(기존·4.4 전환기·최신)과 설치된 Blender의 오프라인 CPU Cycles 원시 큐브를 검사한다. 4.3.2에서 불투명·투명 필름의 EXR 원본/0/0.5/2 렌더로 0 강도 동일성, 양의 가산 효과, 강도 2의 비클램프 배율, 알파 보존을 확인했다. 4.4+ 실제 실행·전체 작품·미적 품질 검증은 별도다.
+
 - `dof`: f-stop(예: 4). 초점 거리는 매 프레임 카메라에서 바라보는 점까지다.
 - `motionBlur`: 셔터(프레임 단위, 0 초과 2 이하). 카메라와 `subject.keys`를 매 프레임 키프레임으로 넣으므로 블러가 실제 움직임을 본다.
 - 룩이 있거나 조명 리그(`three-point` `product` `rim`)를 쓰고 HDRI가 없으면 절차적 소프트박스 스튜디오(어두운 방에 앞왼쪽 키 박스, 위 박스, 뒤쪽 세로 스트립 둘, 오른쪽 필, 피사체 뒤의 낮은 빛)가 반사와 굴절을 준다. `light.rotate`가 방을 돌리고 `light.environment`(#rrggbb)가 물들인다. 카메라는 여전히 `background`를 본다. `light.hdri`에는 파일 대신 번들 이름 `studio` `city` `courtyard` `forest` `interior` `night` `sunrise` `sunset`을 적을 수 있고 `light.rotate`(도)로 돌린다.

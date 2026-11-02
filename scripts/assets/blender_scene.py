@@ -378,21 +378,57 @@ def hdri_path(name, generated):
 
 
 def make_post(scene, shot):
-    """Bloom (the compositor's Glare node) when `bloom` > 0: only pixels brighter than white bleed, so a hex background
-    stays exact. Transparent films keep their alpha; the halo outside the subject is lost there, so bloom suits opaque shots."""
-    group = bpy.data.node_groups.new('frameforge-post', 'CompositorNodeTree')
-    group.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
-    layers = group.nodes.new('CompositorNodeRLayers')
-    glare = group.nodes.new('CompositorNodeGlare')
-    glare.inputs['Type'].default_value = 'Bloom'
-    glare.inputs['Quality'].default_value = 'High'
-    glare.inputs['Threshold'].default_value = 1.0
-    glare.inputs['Strength'].default_value = float(shot['bloom'])
-    glare.inputs['Size'].default_value = 0.6
-    output = group.nodes.new('NodeGroupOutput')
-    group.links.new(layers.outputs['Image'], glare.inputs['Image'])
-    group.links.new(glare.outputs['Image'], output.inputs['Image'])
-    scene.compositing_node_group = group
+    """Bloom (the compositor's Glare node): only pixels brighter than white generate a halo.
+    Transparent films keep their alpha; the halo outside the subject is lost there, so bloom suits opaque shots."""
+    # Scene compositor groups replaced scene.node_tree in Blender 5.x. Attach before adding Render Layers:
+    # older Blender only permits that node in a scene's own tree.
+    grouped = hasattr(scene, 'compositing_node_group')
+    if grouped:
+        tree = bpy.data.node_groups.new('frameforge-post', 'CompositorNodeTree')
+        tree.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
+        scene.compositing_node_group = tree
+    else:
+        scene.use_nodes = True
+        tree = scene.node_tree
+        tree.nodes.clear()
+    layers = tree.nodes.new('CompositorNodeRLayers')
+    glare = tree.nodes.new('CompositorNodeGlare')
+    if 'Type' in glare.inputs:
+        glare.inputs['Type'].default_value = 'Bloom'
+    else:
+        glare.glare_type = 'BLOOM'
+    if 'Quality' in glare.inputs:
+        glare.inputs['Quality'].default_value = 'High'
+    else:
+        glare.quality = 'HIGH'
+    strength = float(shot['bloom'])
+    if 'Strength' in glare.inputs:  # Blender 4.4+; keep the modern effect unchanged.
+        glare.inputs['Threshold'].default_value = 1.0
+        glare.inputs['Strength'].default_value = strength
+        glare.inputs['Size'].default_value = 0.6
+        image = glare.outputs['Image']
+    else:  # Blender 4.2–4.3: isolate glare, scale it, then add it without dimming the original.
+        glare.threshold, glare.size, glare.mix = 1.0, 8, 1.0
+        # Legacy size 8 covers half the image: nearest available spread to 0.6. Blender 4.4 changed
+        # Bloom's energy conservation too, so this is semantic compatibility, not pixel equivalence.
+        scale = tree.nodes.new('CompositorNodeMixRGB')
+        scale.blend_type, scale.use_clamp = 'MULTIPLY', False
+        scale.inputs[0].default_value = 1.0
+        scale.inputs[2].default_value = (strength, strength, strength, 1.0)
+        tree.links.new(glare.outputs['Image'], scale.inputs[1])
+        add = tree.nodes.new('CompositorNodeMixRGB')
+        add.blend_type, add.use_clamp = 'ADD', False
+        add.inputs[0].default_value = 1.0
+        tree.links.new(layers.outputs['Image'], add.inputs[1])
+        tree.links.new(scale.outputs['Image'], add.inputs[2])
+        alpha = tree.nodes.new('CompositorNodeSetAlpha')
+        alpha.mode = 'REPLACE_ALPHA'
+        tree.links.new(add.outputs['Image'], alpha.inputs['Image'])
+        tree.links.new(layers.outputs['Alpha'], alpha.inputs['Alpha'])
+        image = alpha.outputs['Image']
+    output = tree.nodes.new('NodeGroupOutput' if grouped else 'CompositorNodeComposite')
+    tree.links.new(layers.outputs['Image'], glare.inputs['Image'])
+    tree.links.new(image, output.inputs['Image'])
     scene.render.use_compositing = True
 
 
