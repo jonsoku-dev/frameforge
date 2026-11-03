@@ -22,3 +22,10 @@ Clean baseline1166cbebb1d6f670d2957816443036e263fe75ee; prospective official set
 
 ## Completion status
 Source checkpoint only. Full exact-source integration, real rendering parity and plugin validator remain mandatory before merge. No film quality claim or engine acceptance is implied by test totals.
+
+## Exact committed-source local integration
+`npm test` on c5910540ca6bafe2d8ce6f4acf589cf1ef5f4595 / tree06d7387935e5f98ebaeeaf309d5ce426bef336b1 completed341total326pass15fail0skip,160.371s,exit1. Source/tests had no uncommitted changes. All15 failing test names exactly match the intermediate environment run; no new failure names.13 error records expose SIGABRT startup diagnostics, cancellation fixtures cannot reach readiness, and the unchanged Blender fixture still lacks pyopenvdb. This remains a failed integration gate, not acceptance.
+
+Local raw log `/tmp/frameforge-diagnostics-c591054-npm-test.log`, SHA256d6713654b4299c9fc8d935b58942f7d9a40d2c47a438a3d0955e804b7a41e5c0. Successful integration and pixel parity require the working renderer environment; no security settings were changed.
+
+Installed convergence guidance assessed the implementation against spec/plan/tasks after prerequisites succeeded. No additional application-code requirement gap identified. Remaining evidence gates are explicitly refined in T010/T011, not waived or marked complete.

@@ -15,3 +15,7 @@ Independent test: controlled browser launch failure reports reason promptly, lea
 - [ ] T009 Execute installed analyze/converge guidance, inspect final diff and commit verified fix. Publication/merge only after required gates established, separate from PR26 rejected films.
 
 Dependencies:T001→T002→T003→T004→T005→T006→T007→T008→T009. Single coding author, no parallel edits; documentation inspection can run alongside checks but adds no independent implementation task. MVP is the single complete startup diagnostic story, not a series of speculative features.
+
+## Phase5: Convergence
+- [ ] T010 Close T008/T009 renderer evidence in a working authorized environment: exact-source full suite and main1166 baseline/candidate90frame snapshot comparison. Current local341suite fails15 environment-dependent tests.
+- [ ] T011 Close T008/T009 official-skill host validator gate: `claude plugin validate .` when an authorized host is available; local host command is absent. Do not install unrelated host tooling or claim substitute checks pass this gate.
