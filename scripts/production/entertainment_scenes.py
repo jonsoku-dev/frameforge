@@ -77,10 +77,14 @@ def cloth(name,parent):
  vs=[];fs=[]
  for j in range(16):
   v=j/15
-  for i in range(13):u=i/12;vs.append(((u-.5)*1.65*(.6+.4*v),.25+v*.55,2.5-v*1.7+.09*math.sin(u*8+v*6)))
+  for i in range(13):
+   u=i/12;x=(u-.5)*1.65*(.45+.55*v);z=2.5-v*1.7+.09*math.sin(u*8+v*6)
+   # Keep the fabric outside the actual coat ellipsoid rather than cutting through its back.
+   coat_back=.43*math.sqrt(max(0,1-(x/.58)**2-((z-1.95)/.74)**2))
+   y=max(.10+v*.65,coat_back+.045);vs.append((x,y,z-2.5))
  for j in range(15):
   for i in range(12):a=j*13+i;fs.append((a,a+1,a+14,a+13))
- me=bpy.data.meshes.new(name);me.from_pydata(vs,[],fs);me.update();o=bpy.data.objects.new(name,me);bpy.context.collection.objects.link(o);finish(o,CLOTH,parent);q=o.modifiers.new('cloth thickness','SOLIDIFY');q.thickness=.035;q=o.modifiers.new('cloth smoothing','SUBSURF');q.levels=1;return o
+ me=bpy.data.meshes.new(name);me.from_pydata(vs,[],fs);me.update();o=bpy.data.objects.new(name,me);bpy.context.collection.objects.link(o);finish(o,CLOTH,parent);o.location.z=2.5;q=o.modifiers.new('cloth thickness','SOLIDIFY');q.thickness=.035;q=o.modifiers.new('cloth smoothing','SUBSURF');q.levels=1;return o
 
 def pilot(root,moth=False):
  body=uv('tailored coat',(0,0,1.95),(.58,.43,.74),CREAM if moth else ORANGE,root)
@@ -153,6 +157,9 @@ def starfall():
  for j in range(3):
   y=7+j*5;line('course gateway '+str(j),[(-1.6,y,.6),(-1.6,y,3.4),(0,y,4.2),(1.6,y,3.4),(1.6,y,.6)],.085,GOLD)
  emblem=star('earned cape brass badge',(0,.56,1.63),.20,root);emblem.data.materials.clear();emblem.data.materials.append(GOLD)
+ bpy.context.view_layer.update();evaluated=cape.evaluated_get(bpy.context.evaluated_depsgraph_get());hit,point,normal,_=evaluated.ray_cast(Vector((0,10,1.63-2.5)),Vector((0,-1,0)))
+ if not hit:raise RuntimeError('Cape badge must attach to evaluated cloth surface')
+ emblem.location=point+cape.location+normal*.105;emblem.rotation_euler=normal.to_track_quat('Y','Z').to_euler()
  dock=box('arrival dock',(0,-4.5,.05),(3.7,3.8,.25),BLUE,.12);stars=[star('collectible '+str(i),(0,0,0),.30) for i in range(3)];cam=camera((6,-12,7),(0,0,2.7),8.8)
  def pose(f):
   travel=-4.5*smooth(60,240,f)

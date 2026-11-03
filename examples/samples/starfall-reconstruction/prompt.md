@@ -38,3 +38,6 @@ Authorized autonomous production; parent review at representative-shot checkpoin
 | Star2 |142|150|158| world → hand → moving bag |
 | Star3 |198|210|218| world → hand → moving bag |
 World-space star starts are derived from the meeting pose; hand-space carry reaches the visible rim before release. Deposit ends below the rim, not at the lip. Gaze/hand recover over12frames after storage. Only second-star sampled contact/storage has actual local proof; all three continuous actions remain pending.
+
+### Cape proof correction
+The prior270 orange cutout was an actual coat/cloth intersection, not an accepted neckline. Exterior coat-surface-aware drape and shoulder-height unfold origin replace that path; badge contact is resolved against evaluated cloth. Saved v7 previews245/270 remove the large coat exposure. Simplified fabric motion and native/composed output remain to review; this is not a physics-simulation claim.

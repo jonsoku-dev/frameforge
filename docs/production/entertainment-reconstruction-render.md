@@ -51,3 +51,9 @@ Starfall: pre-contact star is world-owned at the predicted meeting position; han
 Moonpost: letter is hand-supported through approach/rotation/slot push196–214, supported by mailbox at215, hand withdraws215–231; window remains dark225, starts warming226, visibly lights240. V6 saved214/215/216 confirms no obvious changed-prop appearance at the sampled support transfer. Geometric nonpenetration of every contact surface is not certified. The close insertion framing intentionally crops part of the left wing; the240 wider shot restores the world triangle. Saved282/291/300 from v5 shows contact/compression/recovery, not continuous landing playback. Full three-letter collection action remains unverified.
 
 Neon: v5 saved300 demonstrates corrected camera-visible geometry and readable lettering only; the music-led transitions and all360-frame title continuity remain unverified.
+
+### Cape contact correction (2026-11-03 resumed production)
+
+Source inspection confirmed the broad orange cutout in prior270 was coat/cloth intersection: the planar cloth passed inside the coat ellipsoid. The cape now follows an exterior drape above the coat posterior, unfolds about a shoulder-height origin, and places the existing brass badge against the evaluated subdivided cloth surface via ray-cast. No unrelated world/material/type changes.
+
+`starfall-reconstruction/cape-contact-preview-v7/0245.png` and `0270.png` are actual540×960/16sample Cycles previews. Self-review of saved270 shows the large orange cutout removed; the small neck seam remains visible as normal garment separation.245 shows the shoulder-anchored initial unfold; the drape is deliberately simplified, not cloth simulation or certified continuous motion. Source SHA, saved maker bytes and per-frame elapsed times are recorded in that folder. Representative render exited0; Python syntax/diff checks passed. Full composition/final native finish remains pending the authorized cloud render.
