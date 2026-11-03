@@ -245,14 +245,22 @@ const liveBrowsers = new Set();
 /** One headless Chrome with its own profile, connected over DevTools, navigated to the render page and configured with `inputProps`. */
 async function openPage(chrome, url, inputProps, profile) {
   // shortcut: window starts at 1920x1080 because the composition size is only known after configure; the device-metrics override sets the real size.
-  const browser = spawn(chrome, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--window-size=1920,1080', '--hide-scrollbars', '--force-device-scale-factor=1', '--disable-background-networking', '--no-first-run', '--enable-blink-features=CanvasDrawElement', 'about:blank'], {stdio: 'ignore'});
+  const browser = spawn(chrome, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--window-size=1920,1080', '--hide-scrollbars', '--force-device-scale-factor=1', '--disable-background-networking', '--no-first-run', '--enable-blink-features=CanvasDrawElement', 'about:blank'], {stdio: ['ignore', 'ignore', 'pipe']});
   liveBrowsers.add(browser);
-  browser.once('exit', () => liveBrowsers.delete(browser));
-  browser.on('error', () => {});
+  let launchError, exitedAt, closed = false, stderrTail = Buffer.alloc(0);
+  browser.once('exit', () => { exitedAt = Date.now(); liveBrowsers.delete(browser); });
+  // Drain throughout the child's lifetime; retain only the most recent bytes.
+  browser.stderr.on('data', part => {
+    const tail = Buffer.from(part).subarray(-8000);
+    stderrTail = Buffer.concat([stderrTail, tail]).subarray(-8000);
+  });
+  browser.on('error', error => { launchError = error; });
+  browser.once('close', () => { closed = true; liveBrowsers.delete(browser); });
+  const diagnostic = message => new Error(`${message}${stderrTail.length ? `\nChrome stderr (last 8000 bytes):\n${stderrTail.toString('utf8').trimEnd()}` : ''}`);
   let socket;
   const close = async () => {
     socket?.close();
-    if (browser.exitCode === null && browser.signalCode === null) {
+    if (!launchError && browser.exitCode === null && browser.signalCode === null) {
       const exited = new Promise(done => browser.once('exit', done));
       browser.kill('SIGTERM');
       if (await Promise.race([exited.then(() => true), sleep(2000)]) !== true) { browser.kill('SIGKILL'); await exited; }
@@ -261,7 +269,10 @@ async function openPage(chrome, url, inputProps, profile) {
   try {
     let port;
     for (const deadline = Date.now() + 10000; !port; await sleep(50)) {
-      if (Date.now() > deadline) throw new Error('Chrome did not write DevToolsActivePort within 10 s.');
+      if (launchError) throw diagnostic(`Chrome failed to start: ${launchError.message}`);
+      // Allow final stderr to drain, but do not wait on a descendant holding the pipe open.
+      if (closed || (exitedAt !== undefined && Date.now() - exitedAt >= 100)) throw diagnostic(`Chrome exited before DevTools was ready (${browser.signalCode ? `signal ${browser.signalCode}` : `code ${browser.exitCode}`}).`);
+      if (Date.now() > deadline) throw diagnostic('Chrome did not write DevToolsActivePort within 10 s.');
       port = await readFile(join(profile, 'DevToolsActivePort'), 'utf8').then(text => text.includes('\n') && text.split('\n')[0], () => undefined);
     }
     const target = (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json()).find(item => item.type === 'page');

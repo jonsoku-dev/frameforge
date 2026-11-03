@@ -3,14 +3,14 @@
 - [x] T001 Install official workspace-local Spec Kit1.2.6 and inspect installed definitions.
 - [x] T002 Capture retrospective baseline separately in research.md; specify/clarify/plan prospective scope and quality checklist. No material ambiguity remains.
 ## Phase2: Foundational
-- [ ] T003 Commit official scaffolding, constitution and analyzed planning baseline before application code.
+- [x] T003 Commit official scaffolding, constitution and analyzed planning baseline before application code.
 ## Phase3: User Story1 - Diagnose startup failures
 Independent test: controlled browser launch failure reports reason promptly, leaves no output/scratch, bounded diagnostics.
-- [ ] T004 [US1] Add regression fixtures in tests/render-startup.test.tsx for FR-001/002/003/004; prove existing implementation fails.
-- [ ] T005 [US1] Implement bounded startup diagnostics in scripts/render.mjs; update cleanup mock pipe shape in tests/render-cleanup.test.tsx.
-- [ ] T006 [US1] Run focused regression/cleanup checks and inspect actual local browser error.
+- [x] T004 [US1] Add regression fixtures in tests/render-startup.test.tsx for FR-001/002/003/004; prove existing implementation fails.
+- [x] T005 [US1] Implement bounded startup diagnostics in scripts/render.mjs; update cleanup mock pipe shape in tests/render-cleanup.test.tsx.
+- [x] T006 [US1] Run focused regression/cleanup checks and inspect actual local browser error.
 ## Phase4: Delivery
-- [ ] T007 Update docs/reference/rendering.md and CHANGELOG.md; record evidence mapping.
+- [x] T007 Update docs/reference/rendering.md and CHANGELOG.md; record evidence mapping.
 - [ ] T008 Run mandatory TypeScript/full test/benchmark/build/plugin-validation gates and actual baseline-after render comparison. Record any blocked gates without claiming pass.
 - [ ] T009 Execute installed analyze/converge guidance, inspect final diff and commit verified fix. Publication/merge only after required gates established, separate from PR26 rejected films.
 

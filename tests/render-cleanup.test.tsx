@@ -6,6 +6,7 @@ import {syncBuiltinESMExports} from 'node:module';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
+import {PassThrough} from 'node:stream';
 // @ts-expect-error the renderer is plain ESM without types
 import {renderMedia} from '../scripts/render.mjs';
 
@@ -32,6 +33,7 @@ test('renderer scratch cleanup retries only transient failures and preserves shu
     fs.mkdirSync(profile);
     fs.writeFileSync(join(profile, 'DevToolsActivePort'), '12345\n');
     const browser = Object.assign(new EventEmitter(), {
+      stderr: new PassThrough(),
       exitCode: null,
       signalCode: null as NodeJS.Signals | null,
       kill(signal: NodeJS.Signals) {

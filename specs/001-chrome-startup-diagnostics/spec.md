@@ -17,7 +17,7 @@ A creator whose installed browser cannot start receives its real launch failure 
 4. Given successful startup, rendering, cancellation and scratch cleanup retain their current behavior.
 
 ### Edge Cases
-Empty diagnostic output, output larger than the diagnostic limit, invalid readiness file, normal exit code0 before readiness, signal termination and nonexistent executable must not hang or publish output.
+Empty diagnostic output, output larger than the diagnostic limit, invalid readiness file, normal exit code0 before readiness, a descendant holding stderr open after parent exit, signal termination and nonexistent executable must not hang or publish output.
 
 ## Requirements
 ### Functional Requirements

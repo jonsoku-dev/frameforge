@@ -89,4 +89,4 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 
 ## Engine change specifications
 
-- [Browser startup diagnostics](../specs/001-chrome-startup-diagnostics/spec.md): bounded requirements, planning and verification evidence.
+- [Browser startup diagnostics](../specs/001-chrome-startup-diagnostics/spec.md): bounded requirements, planning and [verification evidence](../specs/001-chrome-startup-diagnostics/evidence.md).

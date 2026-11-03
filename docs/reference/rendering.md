@@ -25,6 +25,12 @@ npm run render -- examples/samples/cafe-morning/entry.tsx CafeMorning renders/ca
 
 부분 렌더는 출력 범위 이전의 모션 이력을 수집하지 않으므로, 범위 시작 전에 발생한 모션 효과음의 꼬리는 빠질 수 있습니다. 이를 복구하는 전체 시간축 분석은 범위 밖 미디어 접근을 안전하게 제한할 수 있을 때까지 지원하지 않습니다.
 
+## Chrome 시작 실패 진단
+
+`Chrome failed to start`는 실행 파일을 시작하지 못한 OS 오류입니다. `CHROME_PATH`와 설치 상태를 확인합니다. `Chrome exited before DevTools was ready`는 준비 전에 브라우저가 종료됐다는 뜻이며 종료 코드 또는 신호를 함께 표시합니다. 살아 있는 브라우저가 준비 파일을 쓰지 않으면 기존처럼10초 뒤 `Chrome did not write DevToolsActivePort within 10 s.`로 실패합니다.
+
+세 경우 모두 가능한 최근 stderr 최대8000바이트를 오류에 붙입니다. stderr는 계속 비우되 메모리에 제한된 꼬리만 보관하며 별도 파일이나 외부 서비스로 전송하지 않습니다. 진단에는 로컬 경로가 포함될 수 있으므로 공유 전에 확인합니다. 메시지는 원인을 파악하는 자료이며 보안 설정을 끄거나 샌드박스를 우회하라는 지시가 아닙니다. 렌더러는 자신이 시작한 브라우저와 임시 디렉터리만 기존 절차로 정리하고 불완전한 출력을 게시하지 않습니다.
+
 ## 기존 전체 믹스로 부분 렌더하기
 
 외부 프로젝트의 `public/`에 준비한 PNG·JPEG·WebP·AVIF도 `/assets/hero.png`처럼 해당 폴더 기준 URL로 사용할 수 있습니다. 실제 파일이 `public/assets/hero.png`에 있으면 같은 URL의 엔진 파일보다 우선하며 MIME 형식과 HEAD/Range 응답을 보존합니다. 심볼릭 링크·경로 이탈은 거부합니다. 이 경로는 임의 HTML·스크립트·SVG 파일을 서빙하는 기능이 아니며, 자산 자동 생성이나 전체 파일 시스템 격리를 제공하지 않습니다.
