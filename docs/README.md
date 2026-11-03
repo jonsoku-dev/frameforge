@@ -86,3 +86,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [../CHANGELOG.md](../CHANGELOG.md) | 변경 이력 |
 | [../THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) | 제3자 코드, 글꼴, 의존성, 외부 서비스 결과물의 라이선스 |
 | [../LICENSE](../LICENSE) | MIT License |
+
+## Engine change specifications
+
+- [Browser startup diagnostics](../specs/001-chrome-startup-diagnostics/spec.md): bounded requirements, planning and verification evidence.
