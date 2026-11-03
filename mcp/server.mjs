@@ -305,11 +305,12 @@ export function buildServer(state) {
     }
   });
 
-  tool('studio_start', 'Start the studio (live preview with sound) for the project on 127.0.0.1 and return its URL. One studio per server; a different project or port, or a request while it is starting, returns an error.', {
+  tool('studio_start', 'Start the studio (live preview with sound) for the project on 127.0.0.1 and return its URL. One studio per server; a different project or port, or a request while it is starting, returns an error. Cancelling the request stops a starting studio.', {
     port: z.number().int().min(1024).max(65535).default(4317), project: projectArg,
-  }, writes, async ({port, project}) => {
+  }, writes, async ({port, project}, extra) => {
     const p = pick(project);
     const url = `http://127.0.0.1:${port}/`;
+    if (extra?.signal?.aborted) return text('Studio start was cancelled.', true);
     if (state.studio) {
       if (state.studio.project !== p.root || state.studio.url !== url) return text(`A studio for ${state.studio.project} is running or starting at ${state.studio.url}. Stop it first.`, true);
       return state.studio.ready ? text({url, project: p.root, running: true}) : text('The studio is still starting.', true);
@@ -322,17 +323,29 @@ export function buildServer(state) {
     let log = '';
     child.stdout.on('data', chunk => { log = tail(log + chunk, 4000); });
     child.stderr.on('data', chunk => { log = tail(log + chunk, 4000); });
-    for (let waited = 0; waited < 60_000; waited += 500) {
-      if (child.exitCode !== null || child.signalCode !== null) return text(`studio exited ${child.exitCode ?? child.signalCode}\n${log}`, true);
-      if (state.studio !== studio) return text('Studio start was stopped.', true);
-      if (log.includes('Local:') && log.includes(url) && await fetch(url, {signal: AbortSignal.timeout(2000)}).then(response => response.ok, () => false) && child.exitCode === null && child.signalCode === null && state.studio === studio) {
-        studio.ready = true;
-        return text({url, project: p.root});
+    const onAbort = () => {
+      if (state.studio !== studio) return;
+      state.studio = null;
+      if (child.exitCode === null && child.signalCode === null) killGroup(child);
+    };
+    extra?.signal?.addEventListener('abort', onAbort, {once: true});
+    if (extra?.signal?.aborted) onAbort();
+    try {
+      for (let waited = 0; waited < 60_000; waited += 500) {
+        if (child.exitCode !== null || child.signalCode !== null) return text(`studio exited ${child.exitCode ?? child.signalCode}\n${log}`, true);
+        if (state.studio !== studio) return text('Studio start was stopped.', true);
+        // shortcut: Vite's startup message is version-dependent; use an explicit readiness handshake if it changes.
+        if (log.includes('Local:') && log.includes(url) && await fetch(url, {signal: AbortSignal.timeout(2000)}).then(response => response.ok, () => false) && child.exitCode === null && child.signalCode === null && state.studio === studio) {
+          studio.ready = true;
+          return text({url, project: p.root});
+        }
+        await new Promise(next => setTimeout(next, 500));
       }
-      await new Promise(next => setTimeout(next, 500));
+      if (state.studio === studio) { state.studio = null; killGroup(child); }
+      return text(`studio did not answer at ${url} within 60 s\n${log}`, true);
+    } finally {
+      extra?.signal?.removeEventListener('abort', onAbort);
     }
-    if (state.studio === studio) { state.studio = null; killGroup(child); }
-    return text(`studio did not answer at ${url} within 60 s\n${log}`, true);
   });
   tool('studio_stop', 'Stop the studio this server started, including while it is starting.', {}, {readOnlyHint: false, destructiveHint: false, idempotentHint: true}, async () => {
     if (!state.studio) return text('no studio running');

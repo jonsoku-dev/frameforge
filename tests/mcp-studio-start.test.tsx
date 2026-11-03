@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
 import {mkdtempSync, rmSync, writeFileSync} from 'node:fs';
 import {createServer} from 'node:http';
 import {tmpdir} from 'node:os';
@@ -68,5 +69,58 @@ test('studio_stop cancels a studio that is still starting', {timeout: 30000}, as
     await starting;
     await client.callTool({name: 'studio_stop', arguments: {}});
     await client.close();
+  }
+});
+
+test('cancelling studio_start stops the starting studio', {timeout: 30000}, async () => {
+  const probe = createServer();
+  await new Promise<void>(resolve => probe.listen(0, '127.0.0.1', resolve));
+  const address = probe.address();
+  assert.ok(address && typeof address !== 'string');
+  const port = address.port;
+  await new Promise<void>(resolve => probe.close(() => resolve()));
+  const client = new Client({name: 'mcp-studio-cancel-test', version: '0'});
+  await client.connect(new StdioClientTransport({command: process.execPath, args: [join(ENGINE, 'bin/frameforge.mjs'), 'mcp'], cwd: ENGINE, stderr: 'pipe'}));
+  const sentinel = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)'], {detached: true, stdio: 'ignore'});
+  const controller = new AbortController();
+  const starting = client.callTool({name: 'studio_start', arguments: {port}}, undefined, {signal: controller.signal});
+  try {
+    const duplicate = await client.callTool({name: 'studio_start', arguments: {port}});
+    assert.match(JSON.stringify(duplicate.content), /still starting/);
+    controller.abort();
+    await assert.rejects(starting, /abort|cancel/i);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    assert.equal(await fetch(`http://127.0.0.1:${port}/`, {signal: AbortSignal.timeout(500)}).then(() => true, () => false), false);
+    assert.equal(sentinel.exitCode, null);
+    assert.equal(sentinel.signalCode, null);
+    const stopped = await client.callTool({name: 'studio_stop', arguments: {}});
+    assert.match(JSON.stringify(stopped.content), /no studio running/);
+  } finally {
+    sentinel.kill();
+    await client.callTool({name: 'studio_stop', arguments: {}});
+    await client.close();
+  }
+});
+
+test('closing the stdio MCP connection stops a studio that is starting', {timeout: 30000}, async () => {
+  const probe = createServer();
+  await new Promise<void>(resolve => probe.listen(0, '127.0.0.1', resolve));
+  const address = probe.address();
+  assert.ok(address && typeof address !== 'string');
+  const port = address.port;
+  await new Promise<void>(resolve => probe.close(() => resolve()));
+  const client = new Client({name: 'mcp-studio-disconnect-test', version: '0'});
+  await client.connect(new StdioClientTransport({command: process.execPath, args: [join(ENGINE, 'bin/frameforge.mjs'), 'mcp'], cwd: ENGINE, stderr: 'pipe'}));
+  const starting = client.callTool({name: 'studio_start', arguments: {port}}).then(() => undefined, () => undefined);
+  try {
+    const duplicate = await client.callTool({name: 'studio_start', arguments: {port}});
+    assert.match(JSON.stringify(duplicate.content), /still starting/);
+    await client.close();
+    await starting;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    assert.equal(await fetch(`http://127.0.0.1:${port}/`, {signal: AbortSignal.timeout(500)}).then(() => true, () => false), false);
+  } finally {
+    await client.close();
+    await starting;
   }
 });

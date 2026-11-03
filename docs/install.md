@@ -205,7 +205,7 @@ npm run skill:uninstall -- --dry-run       # 지울 링크 목록만 출력, 아
 | `contact_sheet`, `still` | 여러 프레임 시트, 한 프레임(기본 0.5배)을 PNG 이미지로 돌려줌 |
 | `video_frames` | 프로젝트의 저장된 MP4에서 프레임과 원본 SHA·타임스탬프를 반환(POSIX 전용, 재생·청취는 아님) |
 | `check` | `frameforge check --json`의 표 |
-| `studio_start`, `studio_stop` | 스튜디오를 127.0.0.1에 띄우고 URL을 돌려줌, 시작 중에도 끄기. 새로 시작할 때 포트가 사용 중이거나 이미 다른 프로젝트·포트의 스튜디오가 있으면 실패함 |
+| `studio_start`, `studio_stop` | 스튜디오를 127.0.0.1에 띄우고 URL을 돌려줌, 시작 중에도 끄기. 시작 요청을 취소하면 시작 중인 스튜디오를 끔. 포트가 사용 중이거나 이미 다른 프로젝트·포트의 스튜디오가 있으면 실패함 |
 | `read_skill` | 스킬이나 참고 문서(`frameforge-motion`, `frameforge-best-practices/bespoke` 등)를 이름으로 읽기. 이름 없이 부르면 목록 |
 
 프롬프트 `make_motion_film`, `make_explainer`는 요청 원문을 받아 브리프 → 콘셉트 → `film_files`로 직접 쓴 코드 → `score` → `contact_sheet` → 두 번째 손질 → `render` → `check` 순서를 모델에 줍니다.
