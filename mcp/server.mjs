@@ -317,8 +317,8 @@ export function buildServer(state) {
     child.stderr.on('data', chunk => { log = tail(log + chunk, 4000); });
     const url = `http://127.0.0.1:${port}/`;
     for (let waited = 0; waited < 60_000; waited += 500) {
-      if (child.exitCode !== null) return text(`studio exited ${child.exitCode}\n${log}`, true);
-      if (await fetch(url).then(response => response.ok, () => false)) {
+      if (child.exitCode !== null || child.signalCode !== null) return text(`studio exited ${child.exitCode ?? child.signalCode}\n${log}`, true);
+      if (log.includes('Local:') && log.includes(url) && await fetch(url).then(response => response.ok, () => false) && child.exitCode === null && child.signalCode === null) {
         state.studio = {child, url};
         child.on('exit', () => { if (state.studio?.child === child) state.studio = null; });
         return text({url, project: p.root});
