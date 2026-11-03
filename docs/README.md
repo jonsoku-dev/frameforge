@@ -46,6 +46,7 @@ Frameforge의 모든 문서입니다. 처음이면 저장소의 [README](../READ
 | [guides/README.md](guides/README.md) | 가이드 읽는 순서 |
 | [guides/motion-graphics.md](guides/motion-graphics.md) | 15–30초 스팟 한 편의 기획, 화면, 모션 언어, 마스크, 코드 패턴, 자기 검사 |
 | [guides/assets.md](guides/assets.md) | 작품별 오디오 사양, 아이콘, 글꼴, 화면 캡처, 색 |
+| [production/snow-open-base-proof.md](production/snow-open-base-proof.md) | 외부 CC-BY Snow 리그의 안전한 검사·커스텀·짧은 동작 실험, 출처와 검증 한계 |
 | [guides/product-explainer.md](guides/product-explainer.md) | 사용자가 직접 캡처한 제품 화면으로 만드는 설명 영상 |
 | [guides/model-playbook.md](guides/model-playbook.md) | 모델별 편차 분석, 같은 브리프 비교 결과, 브리프 쓰는 법, 교차 리뷰 |
 
