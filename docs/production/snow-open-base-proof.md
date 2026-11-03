@@ -92,7 +92,15 @@ Local checkpoint source: ad13aee plus this documentation/index/changelog update.
 - `node --import tsx scripts/benchmark.ts`: PASS,1554matches, no differences.
 - Build equivalent `node node_modules/typescript/bin/tsc --noEmit && node node_modules/vite/bin/vite.js build`: PASS, exit0; existing module-level `use client` bundler warnings retained.
 - `git diff --check`: PASS.
-- Required repository-wide `npm test`: NOT RUN for this source-only publication checkpoint. No new full-suite pass is claimed; it remains an integration/merge gate. Earlier differently sourced test results are not reused as proof.
+- Required repository-wide `npm test`: subsequently RUN against exact published commit `df3cdeb4bbc83be425f5394003347af6d134a4f2`, tree `184d7d3ad1f06a4762c16df68df21b4562932a92`. Existing configured renderer cloud: PASS,334tests/334passed/0failed/0skipped, exit0,248.78seconds. The earlier local-environment FAIL (319passed/15failed) is retained below, not rewritten as a pass. This source-integration result is not film-quality acceptance.
 - Video-entry determinism lint: NOT APPLICABLE to these standalone Blender/FFmpeg helpers, which are not Frameforge composition entries. No new engine composition or deterministic saved-render replay is claimed.
 - Plugin validation / scripts/assets self-checks: NOT APPLICABLE; no skill, manifest or scripts/assets file changed.
 - CI, PR approval, merge and main update: NOT PERFORMED by this checkpoint. PR remains draft, with creative acceptance and full-film work open.
+
+### Full-suite environment results for the exact published source
+
+Both runs tested commit-equivalent tree `184d7d3ad1f06a4762c16df68df21b4562932a92` from published source `df3cdeb4bbc83be425f5394003347af6d134a4f2`; this follow-up changes documentation only.
+- Earlier local isolated worktree: normal `npm test`,334total/319passed/15failed/0skipped/0cancelled, exit1,157.30seconds. Fourteen failures depended on Chrome DevTools startup, and the Blender plush fixture lacked pyopenvdb. Exact log/result JSON remain preserved; no Snow regression or environment repair is claimed from this run.
+- Existing configured renderer cloud: after its existing environment activation, normal `npm test` through its existing process-reaping runner,334total/334passed/0failed/0skipped, exit0,248.78seconds. Terminal completion was verified. Worktree `/workspace/frameforge-pr26-df3cdeb`; retained validation artifacts `pr26-validation-df3cdeb-20261103/npm-test.log` and `run.json`. No new test execution or rendering was performed for this documentation correction.
+
+The exact-source full-suite pass closes the previously unrun integration check in that working environment. The local prerequisite failures remain separate evidence. No CI, PR approval, merge, main update, complete entertainment films, natural acting or creative acceptance is implied; rejected primitive experiments remain historical, and the unfinished Snow-film quality work remains open.
