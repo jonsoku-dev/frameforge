@@ -61,7 +61,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "0.186.0",
-    "katex": "^0.16.22",
+    "katex": "^0.18.10",
     "lottie-web": "^5.13.0",
     "tailwindcss": "^4.3.3",
     "three": "0.186.1",
