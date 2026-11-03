@@ -46,7 +46,7 @@ OFL에 따라 글꼴 파일만 따로 팔 수 없고, 수정한 글꼴은 예약
 | `@types/three` | 0.186.0 | MIT | devDependencies |
 | `lottie-web` | 5.13.0 | MIT | devDependencies, `<Lottie>`가 실행 중에 씁니다 |
 | `tailwindcss` | 4.3.3 | MIT | devDependencies |
-| `katex` | 0.16.22 | MIT | devDependencies, `<Formula>`의 수식 렌더러. 글꼴 파일은 KaTeX 배포본의 것(SIL OFL 1.1) |
+| `katex` | 0.18.10 | MIT | devDependencies, `<Formula>`의 수식 렌더러. 글꼴 파일은 KaTeX 배포본의 것(SIL OFL 1.1) |
 | `three` | 0.186.1 | MIT | devDependencies, `<ThreeCanvas>`의 선택 패키지 |
 | `tsx` | 4.23.15 | MIT | devDependencies |
 | `typescript` | 5.9.3 | Apache-2.0 | devDependencies |
