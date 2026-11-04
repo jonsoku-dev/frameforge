@@ -137,7 +137,7 @@
 
 ## 효과음
 
-효과음은 사양의 `sfx[]` 한 항목이 파일 하나다. 항목은 `name`(파일 이름)과 `intent`(무슨 소리인지 한 문장, 영어가 검색에 유리)를 적고, 선택으로 `length`(초, 한 사건이면 꼭 적는다: 라이브러리 녹음은 여러 사건을 담고 있을 때가 있다), `source`(`auto`·`library`·`synth`, 기본 `auto`), 폴백용 `preset`·`variant`를 둔다. `intent` 없이 `preset`만 적으면 예전처럼 합성한다.
+효과음은 사양의 `sfx[]` 한 항목이 파일 하나다. 항목은 `name`(파일 이름)과 `intent`(무슨 소리인지 한 문장, 영어가 검색에 유리)를 적고, 선택으로 `length`(초, 한 사건이면 꼭 적는다: 라이브러리 녹음은 여러 사건을 담고 있을 때가 있다), `source`(`auto`·`library`·`synth`, 기본 `auto`), 폴백용 `preset`·`variant`를 둔다. 이름은 서로 달라야 하며 음악과 내레이션 파일에 쓰는 `music`과 `voice`는 사용할 수 없다. `intent` 없이 `preset`만 적으면 예전처럼 합성한다.
 
 `scripts/assets/sfx.py`가 소스를 이 순서로 해결한다(2026-10-20, 근거는 `docs/research/sfx-reference-study.md`).
 

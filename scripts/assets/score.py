@@ -1000,7 +1000,7 @@ def validate(s, path):
     need(all(x.get('source', 'auto') in ('auto', 'library', 'synth') for x in sfx), 'sfx source must be auto, library or synth')
     need(all(x.get('variant', 1) in (1, 2, 3) and num(x.get('length', 1)) and 0.05 <= x.get('length', 1) <= 10 for x in sfx), 'sfx variant must be 1..3 and length 0.05..10 seconds')
     names = [x['name'] for x in sfx]
-    need(len(set(names)) == len(names) and 'music' not in names, 'sfx names must be unique and not "music"')
+    need(len(set(names)) == len(names) and not {'music', 'voice'}.intersection(names), 'sfx names must be unique and cannot be "music" or "voice"')
     need(isinstance(s.get('seed'), int), 'seed must be an integer')
     ld = s.get('loudness', {})
     need(isinstance(ld, dict) and num(ld.get('I')) and num(ld.get('TP')) and -70 <= ld['I'] <= -5 and -9 <= ld['TP'] <= 0, 'loudness needs I (-70..-5) and TP (-9..0)')
