@@ -281,6 +281,8 @@ claude.ai의 커스텀 커넥터는 Anthropic 서버가 MCP URL에 접속하므�
 
 [4. Codex 플러그인](#4-codex-플러그인)을 설치하면 `.codex-plugin/plugin.json`의 `mcpServers`(`.codex-plugin/mcp.json`)가 플러그인 폴더에서 `node ./bin/frameforge.mjs mcp`를 띄우고 도구 시간 제한을 900초로 둡니다. 플러그인 폴더가 작업 폴더이므로 프로젝트는 `FRAMEFORGE_PROJECT_DIR`(Codex가 환경에서 넘김)이나 도구의 `project` 인자로 줍니다. 스킬은 그대로 함께 실립니다.
 
+프로젝트가 지정되지 않고 플러그인 폴더와 그 상위 폴더에서 `frameforge.json`을 찾지 못하면 엔진의 `examples/samples`가 기본 대상입니다. 설치된 플러그인에서는 이 경로가 사용자의 작업 폴더가 아닌 설치 캐시일 수 있습니다. 파일을 만들거나 바꾸기 전에 `film_list`의 `project` 경로를 확인하세요. 원하는 프로젝트가 아니라면 새 빈 폴더에 `project_init`을 쓰거나, `frameforge.json`이 있는 프로젝트의 절대 경로를 도구의 `project` 인자로 지정합니다.
+
 플러그인 없이 서버만 붙입니다.
 
 ```sh
