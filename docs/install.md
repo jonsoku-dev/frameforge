@@ -154,6 +154,23 @@ claude --plugin-dir /path/to/frameforge
 
    `~/.codex/config.toml`에 `[marketplaces.frameforge]` 블록이 생깁니다. 새 세션에서 `$frameforge-create 20초 제품 소개 모션그래픽`으로 스킬을 부릅니다.
 
+### 설치된 코드 확인과 캐시 보존
+
+마켓플레이스 원본을 갱신해도 이미 실행 중인 MCP 서버나 설치 캐시가 같은 코드라고 가정하지 마세요. `codex plugin marketplace list`에서 원본 경로를 확인하고, 설치 캐시의 버전 폴더도 확인합니다. 기본 Codex 홈에서 버전이 `0.1.0`인 예:
+
+```sh
+ls ~/.codex/plugins/cache/frameforge/frameforge/
+frameforge_cache=~/.codex/plugins/cache/frameforge/frameforge/0.1.0
+if [ -e "$frameforge_cache/.git" ]; then
+  git -C "$frameforge_cache" status --short --branch
+  git -C "$frameforge_cache" rev-parse HEAD
+fi
+```
+
+버전이 다르면 경로를 실제 폴더에 맞게 바꿉니다. Git 정보가 없으면 이 명령으로 소스 리비전을 확인할 수 없습니다. `git status`는 무시된 생성 파일을 보여 주지 않으므로, 보존할 파일은 별도로 확인합니다.
+
+`codex plugin remove`는 설치 캐시도 제거합니다. 캐시에 변경한 파일이나 보존할 생성물이 있으면 먼저 따로 보존하고, 삭제할 내용을 확인한 뒤에만 제거합니다. `codex plugin marketplace upgrade`는 Git 마켓플레이스 스냅샷을 갱신하는 명령이며, 로컬 마켓플레이스의 작업 트리를 갱신하지 않습니다. 설치나 갱신 후 새 세션에서 필요한 도구의 실제 동작을 다시 확인합니다.
+
 ## 5. Cursor
 
 Cursor는 로컬 플러그인 폴더에 저장소를 클론하고 재시작하는 방식입니다.
