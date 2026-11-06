@@ -24,6 +24,9 @@ test('aggregate narration check preserves film prompt, explicit prompt and fps',
     const highRate = narration({prompt: override, fps: '60'});
     assert.equal(highRate.status, 'FAIL', '60 fps narration ends beyond a 300-frame composition');
     assert.match(highRate.detail, /line_past_end/);
+    const invalidRate = narration({prompt: override, fps: '0'});
+    assert.equal(invalidRate.status, 'FAIL', 'invalid fps must not produce an aggregate pass');
+    assert.match(invalidRate.detail, /options_invalid/);
     writeFileSync(override, cut);
     assert.match(narration({prompt: override}).detail, /scene_inside_line/, 'absolute explicit prompt resolves once');
   } finally {

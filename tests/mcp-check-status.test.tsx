@@ -23,7 +23,7 @@ test('MCP check separates all-pass, warnings, intentional skips and failures', {
     mkdirSync(folder, {recursive: true});
     writeFileSync(join(project, 'frameforge.json'), JSON.stringify({engine: ENGINE, films: 'films'}));
     for (const name of ['brief.md', 'entry.tsx']) writeFileSync(join(folder, name), readFileSync(join(ENGINE, 'tests/fixtures/brief', name)));
-    writeFileSync(join(folder, 'narration.timing.json'), JSON.stringify({slug: 'check', lines: [], totalMs: 0}));
+    writeFileSync(join(folder, 'narration.timing.json'), JSON.stringify({slug: 'check', totalMs: 500, lines: [{id: 'one', text: 'hello', startMs: 0, endMs: 500, estimated: true}]}));
     const encoded = spawnSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=320x180:rate=30', '-t', '2', '-pix_fmt', 'yuv420p', '-y', video], {encoding: 'utf8'});
     assert.equal(encoded.status, 0, encoded.stderr);
     await client.connect(new StdioClientTransport({command: process.execPath, args: [join(ENGINE, 'bin/frameforge.mjs'), 'mcp', '--project', project], stderr: 'pipe'}));

@@ -97,9 +97,12 @@ const at = {define: n.at('define'), formula: n.at('formula')};
 ## 검사 `npm run narration-check -- examples/samples/<slug> [--scenes 0,121,253 | --prompt prompt.md] [--fps 30] [--rate-ko 8] [--json]`
 
 `narration.timing.json`을 읽고 실패하면 종료 코드 1. 언어는 `narration.json`에서, 길이는 `entry.tsx`의 `durationInFrames={…}`에서 읽는다. `--prompt`는 `prompt.md`의 표에서 각 행의 첫 정수 칸(`120` 또는 `120–240`의 120)을 장면 시작으로 읽는다.
+타이밍의 줄과 시간은 유효한 값이어야 하며 `totalMs`는 모든 줄의 끝을 포함해야 한다. fps와 속도 제한은 양수의 유한한 수, 장면 시작은 0 이상의 정수여야 한다. 유효하지 않은 값은 통과시키지 않는다.
 
 | 코드 | 조건 | 고치기 |
 | --- | --- | --- |
+| `timing_invalid` | 줄, 시간 또는 `totalMs`가 유효하지 않음 | 타이밍을 고치거나 `npm run voice`로 다시 생성 |
+| `options_invalid` | 언어, fps, 속도 제한 또는 장면 프레임이 유효하지 않음 | 검사 옵션을 고치고 다시 실행 |
 | `line_overlap` | 다음 줄이 앞 줄이 끝나기 전에 시작 | `npm run voice`를 다시 돌리거나 `gapMs`를 올린다 |
 | `line_too_fast` | 읽기 속도 초과. 한국어 8음절/초, 영어 4단어/초, 일본어 7자/초(`--rate-<lang>`) | 줄을 나누거나 `rate`를 1 아래로 |
 | `line_past_end` | 줄이 컴포지션 길이 뒤에 끝남 | `durationInFrames`를 끝 + 60 이상으로 |
