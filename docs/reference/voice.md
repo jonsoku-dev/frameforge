@@ -97,7 +97,7 @@ const at = {define: n.at('define'), formula: n.at('formula')};
 ## 검사 `npm run narration-check -- examples/samples/<slug> [--scenes 0,121,253 | --prompt prompt.md] [--fps 30] [--rate-ko 8] [--json]`
 
 `narration.timing.json`을 읽고 실패하면 종료 코드 1. 언어는 `narration.json`에서, 길이는 `entry.tsx`의 `durationInFrames={…}`에서 읽는다. `--prompt`는 `prompt.md`의 표에서 각 행의 첫 정수 칸(`120` 또는 `120–240`의 120)을 장면 시작으로 읽는다.
-타이밍의 줄과 시간은 유효한 값이어야 하며 `totalMs`는 모든 줄의 끝을 포함해야 한다. fps와 속도 제한은 양수의 유한한 수, 장면 시작은 0 이상의 정수여야 한다. 유효하지 않은 값은 통과시키지 않는다.
+타이밍의 줄과 시간은 유효한 값이어야 하며 `totalMs`는 모든 줄의 끝을 포함해야 한다. fps와 속도 제한은 양수의 유한한 수, 장면 시작과 계산된 프레임은 안전하게 표현할 수 있는 정수여야 한다. 장면 시작은 0 이상이어야 한다. 유효하지 않은 값은 통과시키지 않는다.
 
 | 코드 | 조건 | 고치기 |
 | --- | --- | --- |

@@ -23,10 +23,12 @@ export function checkNarration({timing, language, durationInFrames = null, fps =
         (line.estimated !== undefined && typeof line.estimated !== 'boolean')) ||
       new Set(timing.lines.map(line => line.id)).size !== timing.lines.length) return invalidTiming();
   if (!Object.hasOwn(RATES, language) || !Number.isFinite(fps) || fps <= 0 ||
-      (durationInFrames !== null && (!Number.isFinite(durationInFrames) || durationInFrames <= 0)) ||
-      !Array.isArray(scenes) || scenes.some(scene => !Number.isInteger(scene) || scene < 0) ||
+      (durationInFrames !== null && (!Number.isSafeInteger(durationInFrames) || durationInFrames <= 0)) ||
+      !Array.isArray(scenes) || scenes.some(scene => !Number.isSafeInteger(scene) || scene < 0) ||
       !rates || typeof rates !== 'object' || !Number.isFinite(rates[language]) || rates[language] <= 0 ||
-      Object.values(rates).some(rate => !Number.isFinite(rate) || rate <= 0)) {
+      Object.values(rates).some(rate => !Number.isFinite(rate) || rate <= 0) ||
+      !Number.isSafeInteger(Math.round(timing.totalMs * fps / 1000)) ||
+      timing.lines.some(line => !Number.isSafeInteger(Math.round(line.startMs * fps / 1000)) || !Number.isSafeInteger(Math.round(line.endMs * fps / 1000)))) {
     return [{code: 'options_invalid', message: 'Narration check options must have a supported language and valid positive fps and rate, with nonnegative scene frames', fix: 'Correct the check options and rerun narration-check.'}];
   }
   const findings = [];

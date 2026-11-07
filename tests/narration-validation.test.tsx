@@ -32,9 +32,10 @@ test('invalid timing and numeric options cannot produce a clean report', () => {
     {...timing(), lines: []},
     {...timing(), lines: null},
   ]) assert.ok(codes({timing: broken}).includes('timing_invalid'));
-  for (const options of [{fps: 0}, {fps: Infinity}, {fps: NaN}, {scenes: [NaN]}, {rates: {en: 0}}, {language: 'xx'}]) {
+  for (const options of [{fps: 0}, {fps: Infinity}, {fps: NaN}, {fps: 1e308}, {scenes: [NaN]}, {scenes: [1e20]}, {durationInFrames: 1e20}, {rates: {en: 0}}, {language: 'xx'}]) {
     assert.ok(codes(options).includes('options_invalid'));
   }
+  assert.ok(codes({timing: {...timing(), totalMs: 1e308}}).includes('options_invalid'));
 });
 
 test('CLI reports invalid timing and fps in JSON with a failing exit status', t => {
@@ -47,7 +48,7 @@ test('CLI reports invalid timing and fps in JSON with a failing exit status', t 
   assert.equal(invalidTiming.status, 1, invalidTiming.stderr);
   assert.equal(JSON.parse(invalidTiming.stdout).findings[0].code, 'timing_invalid');
   writeFileSync(join(folder, 'narration.timing.json'), JSON.stringify(timing()));
-  for (const args of [['--fps', '0'], ['--fps', 'not-a-number'], ['--fps'], ['--rate-ko', '0'], ['--scenes', '1,,2'], ['--prompt']]) {
+  for (const args of [['--fps', '0'], ['--fps', 'not-a-number'], ['--fps', '1e308'], ['--fps'], ['--rate-ko', '0'], ['--scenes', '1,,2'], ['--prompt']]) {
     const result = run(...args);
     assert.equal(result.status, 1, result.stderr);
     assert.equal(JSON.parse(result.stdout).findings[0].code, 'options_invalid');
