@@ -142,7 +142,7 @@ def write_credits(folder, manifest):
              for name, r in sorted(manifest.items()) if r.get('provider') == 'library' and r['source'].get('license') == 'by']
     path = os.path.join(folder, 'CREDITS.md')
     if lines:
-        with open(path, 'w') as f:
+        with open(path, 'w', encoding='utf-8') as f:
             f.write('# Sound effect credits\n\nThese sounds are CC BY: credit them wherever the video is published.\n\n' + '\n'.join(lines) + '\n')
     elif os.path.exists(path):
         os.remove(path)

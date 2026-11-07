@@ -4,7 +4,7 @@ Usage: python3 scripts/assets/score.py [--force] [spec.json ...] | --self-check
 Without spec paths it reads every examples/**/audio.json.
 Writes public/audio/generated/<slug>/music.wav and <sfx name>.wav. Format and policy: docs/audio-score.md.
 """
-import glob, hashlib, json, os, re, subprocess, sys, tempfile, time, wave, zlib
+import glob, hashlib, json, locale, os, re, subprocess, sys, tempfile, time, wave, zlib
 import numpy as np
 from audio_guard import require_local_output
 import sfx as sfx_sources
@@ -1048,7 +1048,15 @@ def generate(path, force):
         exact_length(out, mix.shape[1])
         os.replace(out, music)  # rename into place so a server never reads a half-written file
         manifest_path = os.path.join(folder, 'sfx.json')
-        manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
+        if os.path.exists(manifest_path):
+            with open(manifest_path, 'rb') as f:
+                raw_manifest = f.read()
+            try:
+                manifest = json.loads(raw_manifest.decode('utf-8'))
+            except UnicodeDecodeError:
+                manifest = json.loads(raw_manifest.decode(locale.getpreferredencoding(False)))
+        else:
+            manifest = {}
         for x in spec['sfx']:
             def synth(preset, variant, length):
                 global rng
@@ -1056,7 +1064,7 @@ def generate(path, force):
                 return SFX[preset][0](variant, length)
             manifest[x['name']] = sfx_sources.resolve(spec, x, folder, tmp, synth, GENERATION, manifest)
         manifest = {k: v for k, v in manifest.items() if k in {x['name'] for x in spec['sfx']}}
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, 'w', encoding='utf-8') as f:
             json.dump(manifest, f, indent=1, ensure_ascii=False)
         sfx_sources.write_credits(folder, manifest)
     m = loudnorm(music, I, TP)

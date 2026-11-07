@@ -193,15 +193,15 @@ def generate(path, force, out_root=OUT):
             write_wav(out, mix)
         os.replace(out, final)
     timing = {'slug': spec['slug'], 'provider': provider, 'voice': voice, 'totalMs': total_ms, 'lines': lines}
-    with open(os.path.join(os.path.dirname(os.path.abspath(path)), 'narration.timing.json'), 'w') as f:
+    with open(os.path.join(os.path.dirname(os.path.abspath(path)), 'narration.timing.json'), 'w', encoding='utf-8') as f:
         json.dump(timing, f, indent=2, ensure_ascii=False)
         f.write('\n')
-    with open(os.path.join(folder, 'manifest.json'), 'w') as f:
+    with open(os.path.join(folder, 'manifest.json'), 'w', encoding='utf-8') as f:
         json.dump({'provider': provider, 'voice': voice, 'skipped': skipped, 'loudness': loudness, 'lines': {l['id']: l['endMs'] - l['startMs'] for l in lines}}, f, indent=1, ensure_ascii=False)
     for name in os.listdir(folder):  # drop cache entries no line uses any more
         if name.endswith('.wav') and name[:-4] not in {line_hash(provider, voice, language, rate, l['text']) for l in spec['lines']}:
             os.remove(os.path.join(folder, name))
-    print(json.dumps({'slug': spec['slug'], 'provider': provider, 'voice': voice, 'skipped': skipped, 'totalMs': total_ms, 'lines': len(lines), 'cached': cached, **loudness, 'seconds': round(time.time() - began, 2)}, ensure_ascii=False))
+    print(json.dumps({'slug': spec['slug'], 'provider': provider, 'voice': voice, 'skipped': skipped, 'totalMs': total_ms, 'lines': len(lines), 'cached': cached, **loudness, 'seconds': round(time.time() - began, 2)}))
     return timing
 
 
@@ -218,7 +218,8 @@ def self_check():
         spec = {'slug': 'check', 'language': 'ko', 'voice': {'provider': 'silent'}, 'leadMs': 500, 'gapMs': 300,
                 'lines': [{'id': 'a', 'text': '안녕하세요 반갑습니다', 'emphasis': ['반갑습니다'], 'embed': '반갑습니다'}, {'id': 'b', 'text': '둘째 줄입니다', 'pauseMs': 900}, {'id': 'c', 'text': '셋째 줄'}]}
         path = os.path.join(folder, 'narration.json')
-        json.dump(spec, open(path, 'w'), ensure_ascii=False)
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(spec, f, ensure_ascii=False)
         out = os.path.join(root, 'generated')
         t = generate(path, False, out)
         a, b, c = t['lines']
@@ -227,7 +228,8 @@ def self_check():
         with wave.open(os.path.join(out, 'check', 'voice.wav')) as w:
             assert w.getnchannels() == 2 and w.getframerate() == SR and w.getnframes() == t['totalMs'] * SR // 1000, w.getnframes()
         assert probe_ms(os.path.join(out, 'check', 'voice.wav')) == t['totalMs']
-        assert json.load(open(os.path.join(folder, 'narration.timing.json'))) == t
+        with open(os.path.join(folder, 'narration.timing.json'), encoding='utf-8') as f:
+            assert json.load(f) == t
         again = json.loads(subprocess.run([sys.executable, os.path.abspath(__file__), path, '--out', out], capture_output=True, text=True, check=True).stdout)
         assert again['cached'] == 3 and again['totalMs'] == t['totalMs'], again
         assert json.loads(subprocess.run([sys.executable, os.path.abspath(__file__), '--force', path, '--out', out], capture_output=True, text=True, check=True).stdout)['cached'] == 0
