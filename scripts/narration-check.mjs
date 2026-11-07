@@ -11,10 +11,26 @@ const SYLLABLE = /[가-힣]/g;  // the same class voice.py estimates with
 const KANA_KANJI = /[぀-ヿ一-鿿]/g;
 
 export const units = (text, language) => language === 'ko' ? (text.match(SYLLABLE) ?? []).length : language === 'ja' ? (text.match(KANA_KANJI) ?? []).length : text.split(/\s+/).filter(Boolean).length;
-export const guessLanguage = text => SYLLABLE.test(text) ? 'ko' : KANA_KANJI.test(text) ? 'ja' : 'en';
+export const guessLanguage = text => text.search(SYLLABLE) !== -1 ? 'ko' : text.search(KANA_KANJI) !== -1 ? 'ja' : 'en';
 
 /** Every fault as {code, message, fix, line?, scene?}. `scenes` are absolute start frames; `durationInFrames` null skips that check. */
 export function checkNarration({timing, language, durationInFrames = null, fps = 30, scenes = [], rates = RATES, voiceExists = true}) {
+  const invalidTiming = () => [{code: 'timing_invalid', message: 'Narration timing has invalid lines, times or totalMs', fix: 'Correct narration.timing.json or regenerate it with npm run voice.'}];
+  if (!timing || typeof timing.slug !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(timing.slug) ||
+      !Number.isFinite(timing.totalMs) || timing.totalMs < 0 || !Array.isArray(timing.lines) || !timing.lines.length ||
+      timing.lines.some(line => !line || typeof line.id !== 'string' || !line.id.trim() || typeof line.text !== 'string' || !line.text.trim() ||
+        !Number.isFinite(line.startMs) || line.startMs < 0 || !Number.isFinite(line.endMs) || line.endMs < 0 || line.endMs > timing.totalMs ||
+        (line.estimated !== undefined && typeof line.estimated !== 'boolean')) ||
+      new Set(timing.lines.map(line => line.id)).size !== timing.lines.length) return invalidTiming();
+  if (!Object.hasOwn(RATES, language) || !Number.isFinite(fps) || fps <= 0 ||
+      (durationInFrames !== null && (!Number.isSafeInteger(durationInFrames) || durationInFrames <= 0)) ||
+      !Array.isArray(scenes) || scenes.some(scene => !Number.isSafeInteger(scene) || scene < 0) ||
+      !rates || typeof rates !== 'object' || !Number.isFinite(rates[language]) || rates[language] <= 0 ||
+      Object.values(rates).some(rate => !Number.isFinite(rate) || rate <= 0) ||
+      !Number.isSafeInteger(Math.round(timing.totalMs * fps / 1000)) ||
+      timing.lines.some(line => !Number.isSafeInteger(Math.round(line.startMs * fps / 1000)) || !Number.isSafeInteger(Math.round(line.endMs * fps / 1000)))) {
+    return [{code: 'options_invalid', message: 'Narration check options must have a supported language and valid positive fps and rate, with nonnegative scene frames', fix: 'Correct the check options and rerun narration-check.'}];
+  }
   const findings = [];
   const frame = ms => Math.round(ms * fps / 1000);
   const lines = timing.lines.map(line => ({...line, startFrame: frame(line.startMs), endFrame: frame(line.endMs)}));
@@ -44,26 +60,30 @@ export function scenesFromPrompt(markdown) {
 }
 
 function main(argv) {
-  const flag = name => { const i = argv.indexOf(name); return i === -1 ? null : argv[i + 1]; };
+  const flag = name => { const i = argv.indexOf(name); return i === -1 ? null : (!argv[i + 1] || argv[i + 1].startsWith('--') ? '' : argv[i + 1]); };
   const folder = argv.find((arg, i) => !arg.startsWith('--') && !/^--(scenes|prompt|fps|rate-\w+)$/.test(argv[i - 1] ?? ''));
   if (!folder || !existsSync(folder)) { console.error('usage: npm run narration-check -- examples/samples/<slug> [--scenes a,b,c | --prompt prompt.md] [--fps 30] [--rate-ko 8] [--json]'); process.exit(2); }
   const root = dirname(dirname(fileURLToPath(import.meta.url)));
   const timingPath = join(folder, 'narration.timing.json');
   if (!existsSync(timingPath)) { console.error(`FAIL timing_missing: ${timingPath} does not exist\n  fix: write narration.json and run npm run voice -- ${join(folder, 'narration.json')}`); process.exit(1); }
   const timing = JSON.parse(readFileSync(timingPath, 'utf8'));
+  const lines = Array.isArray(timing?.lines) ? timing.lines : [];
   const specPath = join(folder, 'narration.json');
-  const language = existsSync(specPath) ? JSON.parse(readFileSync(specPath, 'utf8')).language : guessLanguage(timing.lines.map(line => line.text).join(' '));
+  const language = existsSync(specPath) ? JSON.parse(readFileSync(specPath, 'utf8')).language : guessLanguage(lines.map(line => typeof line?.text === 'string' ? line.text : '').join(' '));
   const entry = join(folder, 'entry.tsx');
   const duration = existsSync(entry) ? /durationInFrames=\{(\d+)\}/.exec(readFileSync(entry, 'utf8')) : null;
   const prompt = flag('--prompt');
-  const scenes = flag('--scenes') ? flag('--scenes').split(',').map(Number) : prompt ? scenesFromPrompt(readFileSync(resolve(folder, prompt), 'utf8')) : [];
+  const scenesValue = flag('--scenes');
+  const scenes = scenesValue !== null ? scenesValue.split(',').map(value => value.trim() ? Number(value) : NaN) : prompt ? scenesFromPrompt(readFileSync(resolve(folder, prompt), 'utf8')) : [];
   const rates = {...RATES};
-  for (const language of Object.keys(RATES)) if (flag(`--rate-${language}`)) rates[language] = Number(flag(`--rate-${language}`));
-  const findings = checkNarration({timing, language, durationInFrames: duration ? Number(duration[1]) : null, fps: Number(flag('--fps') ?? 30), scenes, rates, voiceExists: !externalProject(root) && existsSync(join(root, 'public', 'audio', 'generated', timing.slug, 'voice.wav'))});
-  if (argv.includes('--json')) console.log(JSON.stringify({ok: findings.length === 0, language, lines: timing.lines.length, totalMs: timing.totalMs, scenes, findings}, null, 1));
+  for (const language of Object.keys(RATES)) if (flag(`--rate-${language}`) !== null) rates[language] = Number(flag(`--rate-${language}`));
+  const slug = typeof timing?.slug === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(timing.slug) ? timing.slug : '';
+  const findings = prompt === '' ? [{code: 'options_invalid', message: '--prompt needs a path', fix: 'Provide a prompt path or omit --prompt.'}] :
+    checkNarration({timing, language, durationInFrames: duration ? Number(duration[1]) : null, fps: Number(flag('--fps') ?? 30), scenes, rates, voiceExists: !!slug && !externalProject(root) && existsSync(join(root, 'public', 'audio', 'generated', slug, 'voice.wav'))});
+  if (argv.includes('--json')) console.log(JSON.stringify({ok: findings.length === 0, language, lines: lines.length, totalMs: timing?.totalMs ?? null, scenes, findings}, null, 1));
   else {
     for (const f of findings) console.log(`FAIL ${f.code}: ${f.message}\n  fix: ${f.fix}`);
-    console.log(findings.length ? `FAIL: ${findings.length} finding(s) in ${timingPath}` : `PASS: ${timing.lines.length} lines, ${timing.totalMs} ms, ${scenes.length} scene starts checked`);
+    console.log(findings.length ? `FAIL: ${findings.length} finding(s) in ${timingPath}` : `PASS: ${lines.length} lines, ${timing.totalMs} ms, ${scenes.length} scene starts checked`);
   }
   process.exit(findings.length ? 1 : 0);
 }
